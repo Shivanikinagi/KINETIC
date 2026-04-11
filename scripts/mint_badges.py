@@ -12,15 +12,6 @@ from dotenv import load_dotenv
 
 
 def _algod_client() -> AlgodClient:
-    network = os.getenv("ALGORAND_NETWORK", "testnet").lower()
-    if network == "localnet":
-        return AlgodClient(
-            algod_token=os.getenv(
-                "LOCALNET_ALGOD_TOKEN",
-                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            ),
-            algod_address=os.getenv("LOCALNET_ALGOD_URL", "http://localhost:4001"),
-        )
     return AlgodClient(
         algod_token=os.getenv("ALGOD_TOKEN", ""),
         algod_address=os.getenv("ALGOD_URL", "https://testnet-api.algonode.cloud"),

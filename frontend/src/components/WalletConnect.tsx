@@ -7,21 +7,36 @@ function shortAddress(address: string): string {
 }
 
 export default function WalletConnect() {
-  const { manager, activeAddress } = useWalletManager();
+  const { manager, activeAddress, isReady, initError } = useWalletManager();
 
   const connectWallet = async () => {
-    const pera = manager.getWallet(WalletId.PERA);
-    if (!pera) return;
-    await pera.connect();
-    pera.setActive();
+    try {
+      const pera = manager.getWallet(WalletId.PERA);
+      if (!pera) {
+        alert("Pera wallet is not available in this browser. Install Pera Wallet extension.");
+        return;
+      }
+      await pera.connect();
+      pera.setActive();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Wallet connect failed");
+    }
   };
 
   const disconnectWallet = async () => {
     await manager.disconnect();
   };
 
+  if (!isReady) {
+    return <button className="btn alt" disabled>Initializing wallet...</button>;
+  }
+
+  if (initError) {
+    return <button className="btn alt" onClick={connectWallet}>Retry Wallet Connect</button>;
+  }
+
   return (
-    <button className="btn" onClick={activeAddress ? disconnectWallet : connectWallet}>
+    <button className="btn alt" onClick={activeAddress ? disconnectWallet : connectWallet}>
       {activeAddress ? shortAddress(activeAddress) : "Connect Wallet"}
     </button>
   );

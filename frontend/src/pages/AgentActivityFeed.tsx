@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
+import { bridgeUrl, txExplorerUrl } from "../config";
+
 type LogEntry = {
   timestamp: string;
   message: string;
@@ -15,8 +17,6 @@ type StatusPayload = {
   budget_remaining: number;
   current_task?: { type?: string; tokens?: number };
 };
-
-const BRIDGE = "http://localhost:3001";
 
 function iconFor(message: string): string {
   const text = message.toLowerCase();
@@ -49,8 +49,8 @@ export default function AgentActivityFeed() {
     const tick = async () => {
       try {
         const [logRes, statusRes] = await Promise.all([
-          axios.get(`${BRIDGE}/agent/log`),
-          axios.get(`${BRIDGE}/agent/status`),
+          axios.get(bridgeUrl("/agent/log")),
+          axios.get(bridgeUrl("/agent/status")),
         ]);
         const nextLogs = (logRes.data as LogEntry[]).slice().reverse();
         setLogs(nextLogs);
@@ -71,15 +71,30 @@ export default function AgentActivityFeed() {
   );
 
   const runTestJob = async () => {
-    await axios.post(`${BRIDGE}/agent/run`, { type: "inference", tokens: 100, payload: "demo" });
+    try {
+      await axios.post(bridgeUrl("/agent/run"), { type: "inference", tokens: 100, payload: "demo" });
+    } catch (error) {
+      const text =
+        axios.isAxiosError(error)
+          ? `Run failed: ${error.response?.status || "network"} ${error.response?.data?.detail || error.message}`
+          : "Run failed";
+      setLogs((prev) => [
+        {
+          timestamp: new Date().toISOString(),
+          message: text,
+          task_type: "inference",
+        },
+        ...prev,
+      ]);
+    }
   };
 
   return (
-    <section className="card">
+    <section className="card section-card">
       <div className="topbar" style={{ marginBottom: 14 }}>
         <div>
           <h2>Agent Activity</h2>
-          <p className="muted">Status: {status.status}</p>
+          <p className="muted">Status: <strong>{status.status}</strong></p>
           <p className="muted">
             Task: {status.current_task?.type || "-"} | Tokens: {status.current_task?.tokens || 0} | Budget remaining: {status.budget_remaining.toFixed(3)} ALGO
           </p>
@@ -113,13 +128,13 @@ export default function AgentActivityFeed() {
           const match = entry.message.match(/tx_id=([A-Z0-9]+)/i);
           const txId = match?.[1];
           return (
-            <div key={`${entry.timestamp}-${idx}`} style={{ display: "grid", gridTemplateColumns: "40px 1fr", gap: 10, padding: "8px 0" }}>
-              <span style={{ fontSize: 14 }}>{iconFor(entry.message)}</span>
+            <div key={`${entry.timestamp}-${idx}`} className="timeline-item">
+              <span className="timeline-icon">{iconFor(entry.message)}</span>
               <div>
                 <div className="muted" style={{ fontSize: "0.82rem" }}>{relativeTime(entry.timestamp)}</div>
                 <div>{entry.message}</div>
                 {txId && (
-                  <a href={`https://testnet.explorer.perawallet.app/tx/${txId}`} target="_blank" rel="noreferrer">
+                  <a href={txExplorerUrl(txId)} target="_blank" rel="noreferrer">
                     {txId.slice(0, 6)}...{txId.slice(-6)}
                   </a>
                 )}

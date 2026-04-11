@@ -11,15 +11,6 @@ from dotenv import load_dotenv
 
 
 def _algod_client() -> AlgodClient:
-    network = os.getenv("ALGORAND_NETWORK", "testnet").lower()
-    if network == "localnet":
-        return AlgodClient(
-            algod_token=os.getenv(
-                "LOCALNET_ALGOD_TOKEN",
-                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            ),
-            algod_address=os.getenv("LOCALNET_ALGOD_URL", "http://localhost:4001"),
-        )
     return AlgodClient(
         algod_token=os.getenv("ALGOD_TOKEN", ""),
         algod_address=os.getenv("ALGOD_URL", "https://testnet-api.algonode.cloud"),
@@ -47,7 +38,9 @@ def main() -> None:
     vram_gb = int(os.getenv("PROVIDER_VRAM_GB", "8"))
     gpu_model = os.getenv("PROVIDER_GPU_MODEL", "RTX3090")
     price_per_hour = int(os.getenv("JOB_PRICE_PER_TOKEN_MICROALGO", "100"))
-    endpoint = os.getenv("PROVIDER_ENDPOINT", "http://localhost:8000")
+    endpoint = os.getenv("PROVIDER_ENDPOINT", "")
+    if not endpoint:
+        raise SystemExit("PROVIDER_ENDPOINT missing in .env; set your public provider URL")
 
     atc.add_method_call(
         app_id=int(registry_app_id),

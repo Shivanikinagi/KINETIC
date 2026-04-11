@@ -46,8 +46,8 @@ def _ensure_account(name: str, mnemonic_key: str) -> tuple[str, str, str]:
 def main() -> None:
     load_dotenv()
     algod = AlgodClient(
-        algod_token=os.getenv("LOCALNET_ALGOD_TOKEN", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
-        algod_address=os.getenv("LOCALNET_ALGOD_URL", "http://localhost:4001"),
+        algod_token=os.getenv("ALGOD_TOKEN", ""),
+        algod_address=os.getenv("ALGOD_URL", "https://testnet-api.algonode.cloud"),
     )
 
     accounts = {
@@ -64,10 +64,9 @@ def main() -> None:
         amount = int(info.get("amount", 0))
         print(f"- {name}: {address} -> {amount / 1_000_000:.6f} ALGO")
 
-    print("\nIf balances are low, fund with:")
-    print("- TestNet faucet: https://bank.testnet.algorand.network/")
-    print("- LocalNet dispenser: algokit dispenser localnet --account <address> --amount 100")
-    print("Current LocalNet round:", algod.status().get("last-round"))
+    print("\nIf balances are low, fund with TestNet faucet:")
+    print("- https://bank.testnet.algorand.network/")
+    print("Current TestNet round:", algod.status().get("last-round"))
 
 
 if __name__ == "__main__":

@@ -48,7 +48,7 @@ def _update_env_var(path: Path, key: str, value: str) -> None:
 def _select_algorand_client() -> AlgorandClient:
     network = os.getenv("ALGORAND_NETWORK", "testnet").lower().strip()
     if network == "localnet":
-        return AlgorandClient.default_localnet()
+        raise RuntimeError("LocalNet is disabled for this deployment flow. Set ALGORAND_NETWORK=testnet.")
 
     if network == "mainnet":
         return AlgorandClient.mainnet()

@@ -60,7 +60,7 @@ async def provider_info() -> dict:
         "vram_gb": int(os.getenv("PROVIDER_VRAM_GB", "8")),
         "gpu_model": os.getenv("PROVIDER_GPU_MODEL", "RTX3090"),
         "price_per_hour": int(os.getenv("JOB_PRICE_PER_TOKEN_MICROALGO", "100")),
-        "endpoint": os.getenv("PROVIDER_ENDPOINT", "http://localhost:8000"),
+        "endpoint": os.getenv("PROVIDER_ENDPOINT", ""),
         "uptime_score": 100,
     }
 

@@ -3,6 +3,7 @@ import axios from "axios";
 import algosdk from "algosdk";
 import { ABIContract } from "algosdk";
 
+import { appConfig } from "../config";
 import { manager } from "../walletManager";
 
 type Provider = {
@@ -15,8 +16,8 @@ type Provider = {
   verified: boolean;
 };
 
-const INDEXER = "https://testnet-idx.algonode.cloud";
-const ALGOD = "https://testnet-api.algonode.cloud";
+const INDEXER = appConfig.indexerUrl;
+const ALGOD = appConfig.algodUrl;
 
 const registryAbi = new ABIContract({
   name: "ProviderRegistry",
@@ -53,9 +54,16 @@ function uptimeColor(score: number): string {
 export default function ProviderDashboard() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ gpu_model: "RTX4090", vram_gb: 16, price_per_hour: 100, endpoint: "http://localhost:8000" });
+  const [form, setForm] = useState({
+    gpu_model: "RTX4090",
+    vram_gb: 16,
+    price_per_hour: 100,
+    endpoint: "https://your-provider-domain.example",
+  });
+  const [sliderTokens, setSliderTokens] = useState(800);
+  const [sliderPrice, setSliderPrice] = useState(100);
 
-  const registryAppId = import.meta.env.VITE_REGISTRY_APP_ID || "0";
+  const registryAppId = String(appConfig.registryAppId || 0);
 
   useEffect(() => {
     const loadProviders = async () => {
@@ -94,10 +102,10 @@ export default function ProviderDashboard() {
           const active = Number(decoded[5]);
           if (active !== 1) continue;
 
-          const endpoint = new TextDecoder().decode(decoded[3]);
+          const endpoint = new TextDecoder().decode(decoded[3]).replace(/\0+$/g, "");
           parsed.push({
             address,
-            gpu_model: new TextDecoder().decode(decoded[1]),
+            gpu_model: new TextDecoder().decode(decoded[1]).replace(/\0+$/g, ""),
             vram_gb: Number(decoded[0]),
             price_per_hour: Number(decoded[2]),
             endpoint,
@@ -115,6 +123,7 @@ export default function ProviderDashboard() {
   }, [registryAppId]);
 
   const activeCount = useMemo(() => providers.length, [providers]);
+  const previewEstimate = useMemo(() => sliderTokens * sliderPrice, [sliderTokens, sliderPrice]);
 
   const submitRegistration = async (event: FormEvent) => {
     event.preventDefault();
@@ -154,7 +163,7 @@ export default function ProviderDashboard() {
   };
 
   return (
-    <section className="card">
+    <section className="card section-card">
       <div className="topbar" style={{ marginBottom: 16 }}>
         <div>
           <h2>Provider Network</h2>
@@ -165,9 +174,43 @@ export default function ProviderDashboard() {
         </button>
       </div>
 
+      <div className="card" style={{ marginBottom: 14 }}>
+        <h3 style={{ marginBottom: 6 }}>Price Sandbox</h3>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Tune token demand and per-token rate to preview what your provider pricing feels like in agentic flows.
+        </p>
+        <div className="grid">
+          <label>
+            Tokens per job: <strong>{sliderTokens}</strong>
+            <input
+              type="range"
+              min={100}
+              max={5000}
+              step={50}
+              value={sliderTokens}
+              onChange={(e) => setSliderTokens(Number(e.target.value))}
+            />
+          </label>
+          <label>
+            microALGO per token: <strong>{sliderPrice}</strong>
+            <input
+              type="range"
+              min={10}
+              max={500}
+              step={5}
+              value={sliderPrice}
+              onChange={(e) => setSliderPrice(Number(e.target.value))}
+            />
+          </label>
+        </div>
+        <div className="chip" style={{ marginTop: 12 }}>
+          Est. payment challenge: {(previewEstimate / 1_000_000).toFixed(4)} ALGO
+        </div>
+      </div>
+
       <div className="grid">
         {providers.map((provider) => (
-          <article className="card" key={provider.address}>
+          <article className="card provider-card" key={provider.address}>
             <h3>{provider.gpu_model}</h3>
             <p className="muted">VRAM {provider.vram_gb} GB</p>
             <p>{(provider.price_per_hour / 1_000_000).toFixed(4)} ALGO/hr</p>
@@ -209,7 +252,7 @@ export default function ProviderDashboard() {
 
             <div style={{ marginTop: 10 }}>
               <div style={{ fontSize: "0.85rem", marginBottom: 4 }}>Uptime {provider.uptime_score}%</div>
-              <div style={{ background: "#e5e7eb", borderRadius: 999, height: 8 }}>
+              <div style={{ background: "rgba(17, 36, 58, 0.12)", borderRadius: 999, height: 8 }}>
                 <div
                   style={{
                     width: `${provider.uptime_score}%`,
@@ -239,11 +282,27 @@ export default function ProviderDashboard() {
                 value={form.vram_gb}
                 onChange={(e) => setForm((v) => ({ ...v, vram_gb: Number(e.target.value) }))}
               />
+              <input
+                type="range"
+                min={2}
+                max={64}
+                step={1}
+                value={form.vram_gb}
+                onChange={(e) => setForm((v) => ({ ...v, vram_gb: Number(e.target.value) }))}
+              />
             </label>
             <label>
               Price per Hour (microALGO)
               <input
                 type="number"
+                value={form.price_per_hour}
+                onChange={(e) => setForm((v) => ({ ...v, price_per_hour: Number(e.target.value) }))}
+              />
+              <input
+                type="range"
+                min={10}
+                max={5000}
+                step={10}
                 value={form.price_per_hour}
                 onChange={(e) => setForm((v) => ({ ...v, price_per_hour: Number(e.target.value) }))}
               />

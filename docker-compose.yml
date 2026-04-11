@@ -1,17 +1,6 @@
 version: "3.9"
 
 services:
-  localnet:
-    image: algorand/algod:latest
-    container_name: algorand-localnet
-    environment:
-      ALGORAND_DATA: /algod/data
-    ports:
-      - "4001:4001"
-      - "7833:7833"
-    volumes:
-      - ./data/algorand:/algod/data
-
   provider-api:
     image: python:3.11-slim
     container_name: provider-api
@@ -23,8 +12,6 @@ services:
       - .env
     ports:
       - "8000:8000"
-    depends_on:
-      - localnet
 
   agent-bridge:
     image: python:3.11-slim

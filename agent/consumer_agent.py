@@ -119,7 +119,7 @@ class ComputeAgent:
         if not providers:
             endpoints = [
                 ep.strip()
-                for ep in os.getenv("PROVIDER_ENDPOINT", "http://localhost:8000").split(",")
+                for ep in os.getenv("PROVIDER_ENDPOINT", "").split(",")
                 if ep.strip()
             ]
             for endpoint in endpoints:

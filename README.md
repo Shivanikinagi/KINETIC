@@ -48,20 +48,19 @@ sequenceDiagram
 2. Copy `.env.example` to `.env` and fill keys.
 3. Install backend dependencies: `pip install -e .`
 4. Install frontend dependencies: `cd frontend && npm install`
-5. Start LocalNet: `algokit localnet start`
-6. Deploy contracts: `python contracts/deploy.py`
-7. Fund demo accounts: `python scripts/fund_accounts.py`
-8. Mint badges: `python scripts/mint_badges.py`
+5. Generate or set three TestNet wallets in `.env` (`ADMIN_MNEMONIC`, `PROVIDER_MNEMONIC`, `AGENT_MNEMONIC`).
+6. Fund those wallets using the TestNet faucet: `https://bank.testnet.algorand.network/`.
+7. Deploy contracts to TestNet: `python contracts/deploy.py`
+8. Register and mint: `python scripts/register_provider.py` and `python scripts/mint_badges.py`
 
 ### Running The Demo
-1. Start LocalNet: `algokit localnet start`
+1. Ensure `.env` points to TestNet endpoints and has funded mnemonics.
 2. Deploy contracts: `python contracts/deploy.py`
-3. Fund and prepare accounts: `python scripts/fund_accounts.py` and `python scripts/mint_badges.py`
-4. Register provider: `python scripts/register_provider.py`
-5. Start provider API: `uvicorn api.main:app --port 8000`
-6. Start agent bridge: `uvicorn api.agent_bridge:app --port 3001`
-7. Start frontend: `cd frontend && npm run dev`
-8. Run agent flow: `python agent/consumer_agent.py --type inference --tokens 500 --payload "Algorand demo"`
+3. Register provider and mint badges: `python scripts/register_provider.py` then `python scripts/mint_badges.py`
+4. Start provider API on your public host/domain: `uvicorn api.main:app --host 0.0.0.0 --port 8000`
+5. Start agent bridge: `uvicorn api.agent_bridge:app --host 0.0.0.0 --port 3001`
+6. Start frontend: `cd frontend && npm run dev`
+7. Run agent flow: `python agent/consumer_agent.py --type inference --tokens 500 --payload "Algorand testnet demo"`
 
 ## How It Maps To Algorand Agentic Commerce
 This project demonstrates direct agentic payments where autonomous software decides when and how to pay for external services. The provider does not trust client intent and instead enforces payment first via HTTP 402 metadata, with on-chain verification gates before execution.
@@ -75,27 +74,10 @@ The marketplace supports machine-to-machine settlement, pay-per-call compute API
 | ProviderRegistry | 1005 | Provider listing, uptime metadata |
 | BadgeMinter | 1013 | Campus membership soulbound badge |
 
-## Live LocalNet Evidence
-- LocalNet runtime: Docker on WSL Debian via `algokit localnet start`
-- Latest successful autonomous run includes full escrow lifecycle:
-  - Escrow lock tx: `SKOLJKAAC4VULG3HO5UYFZGQT5IHCBUY2VG6SNE6VUTFTNOLIOKQ`
-  - x402 payment tx: `XVBKITBQCDWCEIHEYKZLIQZT3E2U22HRNX6M2CNPJDIITPEBJU2A`
-  - Escrow release tx: `A2ASEHP5JRNAK5XPOP666565KEIVHILLVVBOT73ALDWM2G4NMC3A`
-- Transaction confirmations observed on-chain in LocalNet rounds: 67, 68, 69.
-
-## One-Command Demo (WSL)
-Run this from WSL Debian at repo root:
-
-```bash
-algokit localnet start \
-&& python3 contracts/deploy.py \
-&& python3 scripts/fund_accounts.py \
-&& python3 scripts/register_provider.py \
-&& python3 scripts/mint_badges.py \
-&& (python3 -m uvicorn api.main:app --host 0.0.0.0 --port 8000 >/tmp/provider.log 2>&1 &) \
-&& sleep 3 \
-&& python3 agent/consumer_agent.py --type inference --tokens 100 --payload "Algorand live demo"
-```
+## TestNet-Only Notes
+- This repository is configured for Algorand TestNet by default.
+- No LocalNet dependency is required in scripts or default configuration.
+- Contract deployment and payment verification use `ALGOD_URL` / `INDEXER_URL` from `.env`.
 
 ## License
 MIT
