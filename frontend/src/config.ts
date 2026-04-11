@@ -3,6 +3,9 @@ import { NetworkId } from "@txnlab/use-wallet";
 type NetworkName = "testnet" | "mainnet";
 
 const network = (import.meta.env.VITE_ALGORAND_NETWORK || "testnet").toLowerCase() as NetworkName;
+const isLocalHost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
 
 function defaultIndexerUrl(value: NetworkName): string {
   if (value === "mainnet") return "https://mainnet-idx.algonode.cloud";
@@ -30,7 +33,8 @@ export const appConfig = {
   walletNetwork: walletNetwork(network),
   algodUrl: import.meta.env.VITE_ALGOD_URL || defaultAlgodUrl(network),
   indexerUrl: import.meta.env.VITE_INDEXER_URL || defaultIndexerUrl(network),
-  bridgeUrl: import.meta.env.VITE_AGENT_BRIDGE_URL || "",
+  bridgeUrl: import.meta.env.VITE_AGENT_BRIDGE_URL || (isLocalHost ? "http://localhost:3001" : ""),
+  providerApiUrl: import.meta.env.VITE_PROVIDER_API_URL || (isLocalHost ? "http://localhost:8000" : ""),
   registryAppId: parseAppId(import.meta.env.VITE_REGISTRY_APP_ID || 0),
   escrowAppId: parseAppId(import.meta.env.VITE_ESCROW_APP_ID || 0),
 };

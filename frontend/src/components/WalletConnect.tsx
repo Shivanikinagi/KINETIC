@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { WalletId } from "@txnlab/use-wallet";
+import { appConfig } from "../config";
 import { useWalletManager } from "../walletManager";
 
 function shortAddress(address: string): string {
@@ -8,36 +10,56 @@ function shortAddress(address: string): string {
 
 export default function WalletConnect() {
   const { manager, activeAddress, isReady, initError } = useWalletManager();
+  const [walletError, setWalletError] = useState("");
+
+  const expectedNetwork = appConfig.network.toUpperCase();
+
+  const toUserMessage = (error: unknown): string => {
+    const raw = error instanceof Error ? error.message : String(error ?? "Wallet connect failed");
+    const text = raw.toLowerCase();
+    if (text.includes("network mismatch") || text.includes("4100")) {
+      return `Pera is on a different network. Switch Pera Wallet to ${expectedNetwork} and try again.`;
+    }
+    return raw;
+  };
 
   const connectWallet = async () => {
     try {
+      setWalletError("");
       const pera = manager.getWallet(WalletId.PERA);
       if (!pera) {
-        alert("Pera wallet is not available in this browser. Install Pera Wallet extension.");
+        setWalletError("Pera wallet is not available in this browser. Install Pera Wallet extension.");
         return;
       }
       await pera.connect();
-      pera.setActive();
-    } catch (error) {
-      alert(error instanceof Error ? error.message : "Wallet connect failed");
+      await pera.setActive();
+    } catch (error: unknown) {
+      setWalletError(toUserMessage(error));
     }
   };
 
   const disconnectWallet = async () => {
-    await manager.disconnect();
+    try {
+      setWalletError("");
+      await manager.disconnect();
+    } catch (error: unknown) {
+      setWalletError(toUserMessage(error));
+    }
   };
 
-  if (!isReady) {
-    return <button className="btn alt" disabled>Initializing wallet...</button>;
-  }
-
-  if (initError) {
-    return <button className="btn alt" onClick={connectWallet}>Retry Wallet Connect</button>;
-  }
-
   return (
-    <button className="btn alt" onClick={activeAddress ? disconnectWallet : connectWallet}>
-      {activeAddress ? shortAddress(activeAddress) : "Connect Wallet"}
-    </button>
+    <div style={{ display: "grid", gap: 6, justifyItems: "end" }}>
+      {!isReady ? (
+        <button className="btn alt" disabled>Initializing wallet...</button>
+      ) : initError ? (
+        <button className="btn alt" onClick={connectWallet}>Retry Wallet Connect</button>
+      ) : (
+        <button className="btn alt" onClick={activeAddress ? disconnectWallet : connectWallet}>
+          {activeAddress ? shortAddress(activeAddress) : "Connect Wallet"}
+        </button>
+      )}
+      {(walletError || initError) && <div className="error-text">{walletError || initError}</div>}
+      {!activeAddress && <div className="muted">Wallet network: {expectedNetwork}</div>}
+    </div>
   );
 }

@@ -2,10 +2,11 @@ import { useMemo, useState } from "react";
 import WalletConnect from "./components/WalletConnect";
 import { appConfig, isChainConfigured } from "./config";
 import AgentActivityFeed from "./pages/AgentActivityFeed";
+import Proofs from "./pages/Proofs";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import TransactionLog from "./pages/TransactionLog";
 
-type TabKey = "providers" | "activity" | "transactions";
+type TabKey = "providers" | "activity" | "transactions" | "proofs";
 
 export default function App() {
   const [tab, setTab] = useState<TabKey>("providers");
@@ -13,6 +14,7 @@ export default function App() {
   const content = useMemo(() => {
     if (tab === "providers") return <ProviderDashboard />;
     if (tab === "activity") return <AgentActivityFeed />;
+    if (tab === "proofs") return <Proofs />;
     return <TransactionLog />;
   }, [tab]);
 
@@ -20,10 +22,10 @@ export default function App() {
     <main className="app-shell">
       <header className="hero-wrap reveal-fade">
         <div>
-          <div className="chip">Algorand Agentic Commerce</div>
-          <h1 className="hero-title">P2P Compute Marketplace</h1>
+          <div className="chip">Algorand TestNet</div>
+          <h1 className="hero-title">Agent Compute Marketplace</h1>
           <p className="hero-subtitle">
-            Autonomous agents discover providers, pay through x402 flow, and verify outcomes without manual wallet approvals.
+            Discover verified GPU providers, run jobs, and settle with on-chain escrow proofs.
           </p>
           <div className="hero-stats">
             <div className="hero-stat">
@@ -57,13 +59,16 @@ export default function App() {
 
       <div className="tabs card reveal-up">
         <button className={`tab-btn ${tab === "providers" ? "active" : ""}`} onClick={() => setTab("providers")}>
-          Provider Network
+          Providers
         </button>
         <button className={`tab-btn ${tab === "activity" ? "active" : ""}`} onClick={() => setTab("activity")}>
-          Agent Activity
+          Activity
         </button>
         <button className={`tab-btn ${tab === "transactions" ? "active" : ""}`} onClick={() => setTab("transactions")}>
-          Transaction Log
+          Transactions
+        </button>
+        <button className={`tab-btn ${tab === "proofs" ? "active" : ""}`} onClick={() => setTab("proofs")}>
+          Proofs
         </button>
       </div>
 

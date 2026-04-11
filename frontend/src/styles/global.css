@@ -20,6 +20,7 @@
 body {
   margin: 0;
   font-family: "IBM Plex Sans", sans-serif;
+  font-size: 16px;
   color: var(--ink);
   min-height: 100vh;
   background:
@@ -93,15 +94,17 @@ a {
 
 .hero-title {
   margin-top: 8px;
-  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-size: clamp(2rem, 3.2vw, 3rem);
+  line-height: 1.08;
   letter-spacing: -0.04em;
 }
 
 .hero-subtitle {
-  max-width: 720px;
+  max-width: 620px;
   margin: 10px 0 14px;
   color: var(--ink-soft);
-  line-height: 1.6;
+  font-size: 1.02rem;
+  line-height: 1.5;
 }
 
 .hero-side {
@@ -138,7 +141,7 @@ a {
 
 .hero-stat-label {
   display: block;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-soft);
@@ -146,6 +149,7 @@ a {
 
 .hero-stat-value {
   font-weight: 700;
+  font-size: 1.02rem;
 }
 
 .chip {
@@ -156,10 +160,20 @@ a {
   padding: 6px 12px;
   background: rgba(79, 139, 255, 0.2);
   color: #cddcff;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+h2 {
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  letter-spacing: -0.02em;
+}
+
+h3 {
+  font-size: 1.08rem;
+  letter-spacing: -0.01em;
 }
 
 .section-card {
@@ -194,7 +208,7 @@ a {
 }
 
 .section-card {
-  background: linear-gradient(170deg, var(--card-strong), rgba(255, 255, 255, 0.56));
+  background: linear-gradient(170deg, var(--card-strong), rgba(18, 28, 43, 0.92));
 }
 
 .tabs {
@@ -205,12 +219,13 @@ a {
 
 .tab-btn {
   border: 1px solid rgba(20, 99, 255, 0.22);
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(12, 20, 33, 0.95);
   border-radius: 999px;
-  padding: 10px 14px;
+  padding: 9px 13px;
   cursor: pointer;
-  color: var(--ink);
+  color: #c8d7f0;
   font-weight: 600;
+  font-size: 0.92rem;
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
@@ -288,6 +303,7 @@ a {
 
 .muted {
   color: var(--ink-soft);
+  font-size: 0.93rem;
 }
 
 input,
@@ -332,6 +348,15 @@ td {
   padding: 10px 8px;
   border-bottom: 1px solid rgba(151, 175, 211, 0.2);
   font-size: 0.92rem;
+}
+
+thead th {
+  color: #c1d4f3;
+  font-weight: 700;
+}
+
+.error-text {
+  color: #ff9aa0;
 }
 
 .timeline-item {

@@ -1,9 +1,9 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import algosdk from "algosdk";
 import { ABIContract } from "algosdk";
 
-import { appConfig } from "../config";
+import { appConfig, txExplorerUrl } from "../config";
 import { manager } from "../walletManager";
 
 type Provider = {
@@ -18,6 +18,10 @@ type Provider = {
 
 const INDEXER = appConfig.indexerUrl;
 const ALGOD = appConfig.algodUrl;
+const MIN_TX_BUFFER_MICROALGO = 5_000;
+const TESTNET_FAUCET_URL = "https://bank.testnet.algorand.network/";
+const REGISTER_SELECTOR_HEX = "71c4983d";
+const DEREGISTER_SELECTOR_HEX = "6decaf3d";
 
 const registryAbi = new ABIContract({
   name: "ProviderRegistry",
@@ -51,76 +55,124 @@ function uptimeColor(score: number): string {
   return "#dc2626";
 }
 
+function parseChainError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error ?? "Unknown transaction error");
+  const text = message.toLowerCase();
+  if (text.includes("overspend") || text.includes("insufficient")) {
+    if (appConfig.network === "testnet") {
+      return `Insufficient TestNet ALGO balance. Fund your connected wallet from ${TESTNET_FAUCET_URL} and retry.`;
+    }
+    return "Insufficient ALGO balance in the connected wallet. Fund the wallet and retry.";
+  }
+  if (text.includes("network mismatch") || text.includes("4100")) {
+    return `Wallet network mismatch. Switch wallet to ${appConfig.network.toUpperCase()} and retry.`;
+  }
+  return message;
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes)
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function decodeUint64Arg(base64Arg: string): number {
+  const bytes = Uint8Array.from(atob(base64Arg), (char) => char.charCodeAt(0));
+  if (bytes.length !== 8) return 0;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const value = view.getBigUint64(0, false);
+  return Number(value);
+}
+
+function decodeDynamicBytesArg(base64Arg: string): string {
+  const bytes = Uint8Array.from(atob(base64Arg), (char) => char.charCodeAt(0));
+  if (bytes.length < 2) return "";
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const size = view.getUint16(0, false);
+  const payload = bytes.slice(2, 2 + size);
+  return new TextDecoder().decode(payload).replace(/\0+$/g, "");
+}
+
 export default function ProviderDashboard() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [actionMessage, setActionMessage] = useState("");
+  const [actionTxId, setActionTxId] = useState("");
   const [form, setForm] = useState({
     gpu_model: "RTX4090",
     vram_gb: 16,
     price_per_hour: 100,
-    endpoint: "https://your-provider-domain.example",
+    endpoint: appConfig.providerApiUrl || "http://localhost:8000",
   });
   const [sliderTokens, setSliderTokens] = useState(800);
   const [sliderPrice, setSliderPrice] = useState(100);
 
   const registryAppId = String(appConfig.registryAppId || 0);
 
-  useEffect(() => {
-    const loadProviders = async () => {
+  const loadProviders = useCallback(async () => {
       try {
-        const res = await axios.get(`${INDEXER}/v2/applications/${registryAppId}/boxes`);
-        const boxes = (res.data?.boxes || []) as Array<{ name: string }>;
-        const providerInfoType = algosdk.ABIType.from("(uint64,byte[],uint64,byte[],uint64,uint64,uint64)");
+        const res = await axios.get(`${INDEXER}/v2/transactions`, {
+          params: {
+            "application-id": registryAppId,
+            limit: 1000,
+            "tx-type": "appl",
+          },
+        });
 
-        const parsed: Provider[] = [];
-        for (const box of boxes) {
-          const rawName = Uint8Array.from(atob(box.name), (c) => c.charCodeAt(0));
-          const prefix = new TextEncoder().encode("provider");
-          const isPrefixed = rawName.length > prefix.length && prefix.every((byte, idx) => rawName[idx] === byte);
-          if (!isPrefixed) continue;
-          const keyBytes = rawName.slice(prefix.length);
-          if (keyBytes.length !== 32) continue;
+        type IndexerTxn = {
+          sender?: string;
+          "confirmed-round"?: number;
+          "round-time"?: number;
+          "application-transaction"?: {
+            "application-args"?: string[];
+          };
+        };
 
-          const address = algosdk.encodeAddress(keyBytes);
-          const boxData = await axios.get(`${INDEXER}/v2/applications/${registryAppId}/box`, {
-            params: { name: box.name },
-          });
-          const valueB64 = boxData.data?.value as string;
-          if (!valueB64) continue;
+        const txs = ((res.data?.transactions || []) as IndexerTxn[])
+          .slice()
+          .sort((a, b) => (a["confirmed-round"] || 0) - (b["confirmed-round"] || 0));
 
-          const value = Uint8Array.from(atob(valueB64), (c) => c.charCodeAt(0));
-          const decoded = providerInfoType.decode(value) as [
-            bigint,
-            Uint8Array,
-            bigint,
-            Uint8Array,
-            bigint,
-            bigint,
-            bigint,
-          ];
+        const providerByAddress = new Map<string, Provider & { active: boolean }>();
 
-          const active = Number(decoded[5]);
-          if (active !== 1) continue;
+        for (const tx of txs) {
+          const sender = tx.sender;
+          const args = tx["application-transaction"]?.["application-args"] || [];
+          if (!sender || args.length === 0) continue;
 
-          const endpoint = new TextDecoder().decode(decoded[3]).replace(/\0+$/g, "");
-          parsed.push({
-            address,
-            gpu_model: new TextDecoder().decode(decoded[1]).replace(/\0+$/g, ""),
-            vram_gb: Number(decoded[0]),
-            price_per_hour: Number(decoded[2]),
-            endpoint,
-            uptime_score: Number(decoded[4]),
-            verified: Number(decoded[6]) > 0,
-          });
+          const selector = bytesToHex(Uint8Array.from(atob(args[0]), (char) => char.charCodeAt(0)));
+
+          if (selector === REGISTER_SELECTOR_HEX && args.length >= 5) {
+            providerByAddress.set(sender, {
+              address: sender,
+              vram_gb: decodeUint64Arg(args[1]),
+              gpu_model: decodeDynamicBytesArg(args[2]),
+              price_per_hour: decodeUint64Arg(args[3]),
+              endpoint: decodeDynamicBytesArg(args[4]),
+              uptime_score: 100,
+              verified: true,
+              active: true,
+            });
+          }
+
+          if (selector === DEREGISTER_SELECTOR_HEX) {
+            const existing = providerByAddress.get(sender);
+            if (existing) {
+              providerByAddress.set(sender, { ...existing, active: false });
+            }
+          }
         }
+
+        const parsed = Array.from(providerByAddress.values()).filter((provider) => provider.active);
         setProviders(parsed);
       } catch {
         setProviders([]);
       }
-    };
-
-    loadProviders();
   }, [registryAppId]);
+
+  useEffect(() => {
+    void loadProviders();
+  }, [loadProviders]);
 
   const activeCount = useMemo(() => providers.length, [providers]);
   const previewEstimate = useMemo(() => sliderTokens * sliderPrice, [sliderTokens, sliderPrice]);
@@ -133,33 +185,61 @@ export default function ProviderDashboard() {
       alert("Connect wallet first.");
       return;
     }
-
-    const signer = manager.transactionSigner;
-    const algod = new algosdk.Algodv2("", ALGOD, "");
-    const sp = await algod.getTransactionParams().do();
-    const method = registryAbi.methods.find((m) => m.name === "register_provider");
-    if (!method) {
-      alert("Registry ABI not loaded.");
+    if (Number(registryAppId) <= 0) {
+      alert("Registry app ID is missing. Set VITE_REGISTRY_APP_ID in frontend/.env.");
       return;
     }
 
-    const atc = new algosdk.AtomicTransactionComposer();
-    atc.addMethodCall({
-      appID: Number(registryAppId),
-      method,
-      sender: active,
-      suggestedParams: sp,
-      signer,
-      methodArgs: [
-        BigInt(form.vram_gb),
-        new TextEncoder().encode(form.gpu_model),
-        BigInt(form.price_per_hour),
-        new TextEncoder().encode(form.endpoint),
-      ],
-    });
+    setActionTxId("");
+    setActionMessage("");
+    setIsSubmitting(true);
+    try {
+      const signer = manager.transactionSigner;
+      const algod = new algosdk.Algodv2("", ALGOD, "");
+      const accountInfo = await algod.accountInformation(active).do();
+      const microAlgos = Number(accountInfo?.amount ?? 0);
+      if (!Number.isFinite(microAlgos) || microAlgos < MIN_TX_BUFFER_MICROALGO) {
+        if (appConfig.network === "testnet") {
+          setActionMessage(`Connected wallet has ${microAlgos / 1_000_000} ALGO. Fund it at ${TESTNET_FAUCET_URL} and retry.`);
+        } else {
+          setActionMessage("Connected wallet has insufficient ALGO for transaction fees.");
+        }
+        return;
+      }
 
-    await atc.execute(algod, 4);
-    setShowModal(false);
+      const sp = await algod.getTransactionParams().do();
+      const method = registryAbi.methods.find((m) => m.name === "register_provider");
+      if (!method) {
+        setActionMessage("Registry ABI not loaded.");
+        return;
+      }
+
+      const atc = new algosdk.AtomicTransactionComposer();
+      atc.addMethodCall({
+        appID: Number(registryAppId),
+        method,
+        sender: active,
+        suggestedParams: sp,
+        signer,
+        methodArgs: [
+          BigInt(form.vram_gb),
+          new TextEncoder().encode(form.gpu_model),
+          BigInt(form.price_per_hour),
+          new TextEncoder().encode(form.endpoint),
+        ],
+      });
+
+      const result = await atc.execute(algod, 4);
+      const txId = result.txIDs?.[0] || "";
+      setActionTxId(txId);
+      setActionMessage("Provider registration submitted on-chain.");
+      setShowModal(false);
+      await loadProviders();
+    } catch (error: unknown) {
+      setActionMessage(parseChainError(error));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -169,10 +249,44 @@ export default function ProviderDashboard() {
           <h2>Provider Network</h2>
           <p className="muted">{activeCount} active providers</p>
         </div>
-        <button className="btn alt" onClick={() => setShowModal(true)}>
-          Register My Hardware
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button className="btn" onClick={() => void loadProviders()}>
+            Refresh
+          </button>
+          <button
+            className="btn"
+            onClick={async () => {
+              try {
+                const base = appConfig.providerApiUrl;
+                if (!base) {
+                  setActionMessage("Provider API URL missing. Set VITE_PROVIDER_API_URL.");
+                  return;
+                }
+                await axios.get(`${base}/health`);
+                setActionMessage("Provider API is reachable.");
+              } catch {
+                setActionMessage("Provider API health check failed.");
+              }
+            }}
+          >
+            Check Provider API
+          </button>
+          <button className="btn alt" onClick={() => setShowModal(true)}>
+            Register My Hardware
+          </button>
+        </div>
       </div>
+
+      {actionMessage && (
+        <div className="card" style={{ marginBottom: 14 }}>
+          <p style={{ margin: 0 }}>{actionMessage}</p>
+          {actionTxId && (
+            <a href={txExplorerUrl(actionTxId)} target="_blank" rel="noreferrer">
+              View tx {actionTxId.slice(0, 8)}...{actionTxId.slice(-8)}
+            </a>
+          )}
+        </div>
+      )}
 
       <div className="card" style={{ marginBottom: 14 }}>
         <h3 style={{ marginBottom: 6 }}>Price Sandbox</h3>
@@ -216,8 +330,12 @@ export default function ProviderDashboard() {
             <p>{(provider.price_per_hour / 1_000_000).toFixed(4)} ALGO/hr</p>
             <p className="muted">{provider.endpoint}</p>
             <p>{provider.verified ? "Verified Member" : "Unverified"}</p>
+            {manager.activeAddress && manager.activeAddress !== provider.address && (
+              <p className="muted">Owned by another wallet</p>
+            )}
             <button
               className="btn"
+              disabled={Boolean(manager.activeAddress) && manager.activeAddress !== provider.address}
               onClick={async () => {
                 const active = manager.activeAddress;
                 if (!active) {
@@ -229,21 +347,46 @@ export default function ProviderDashboard() {
                   return;
                 }
 
-                const signer = manager.transactionSigner;
-                const algod = new algosdk.Algodv2("", ALGOD, "");
-                const sp = await algod.getTransactionParams().do();
-                const method = registryAbi.methods.find((m) => m.name === "deregister_provider");
-                if (!method) return;
-                const atc = new algosdk.AtomicTransactionComposer();
-                atc.addMethodCall({
-                  appID: Number(registryAppId),
-                  method,
-                  sender: active,
-                  suggestedParams: sp,
-                  signer,
-                  methodArgs: [],
-                });
-                await atc.execute(algod, 4);
+                setActionTxId("");
+                setActionMessage("");
+                try {
+                  const signer = manager.transactionSigner;
+                  const algod = new algosdk.Algodv2("", ALGOD, "");
+                  const accountInfo = await algod.accountInformation(active).do();
+                  const microAlgos = Number(accountInfo?.amount ?? 0);
+                  if (!Number.isFinite(microAlgos) || microAlgos < MIN_TX_BUFFER_MICROALGO) {
+                    if (appConfig.network === "testnet") {
+                      setActionMessage(`Connected wallet has ${microAlgos / 1_000_000} ALGO. Fund it at ${TESTNET_FAUCET_URL} and retry.`);
+                    } else {
+                      setActionMessage("Connected wallet has insufficient ALGO for transaction fees.");
+                    }
+                    return;
+                  }
+
+                  const sp = await algod.getTransactionParams().do();
+                  const method = registryAbi.methods.find((m) => m.name === "deregister_provider");
+                  if (!method) {
+                    setActionMessage("Registry ABI not loaded.");
+                    return;
+                  }
+
+                  const atc = new algosdk.AtomicTransactionComposer();
+                  atc.addMethodCall({
+                    appID: Number(registryAppId),
+                    method,
+                    sender: active,
+                    suggestedParams: sp,
+                    signer,
+                    methodArgs: [],
+                  });
+                  const result = await atc.execute(algod, 4);
+                  const txId = result.txIDs?.[0] || "";
+                  setActionTxId(txId);
+                  setActionMessage("Provider deregistration submitted on-chain.");
+                  await loadProviders();
+                } catch (error: unknown) {
+                  setActionMessage(parseChainError(error));
+                }
               }}
               style={{ marginTop: 10 }}
             >
@@ -311,8 +454,8 @@ export default function ProviderDashboard() {
               Endpoint URL
               <input value={form.endpoint} onChange={(e) => setForm((v) => ({ ...v, endpoint: e.target.value }))} />
             </label>
-            <button className="btn" type="submit">
-              Submit
+            <button className="btn" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </form>
         </div>

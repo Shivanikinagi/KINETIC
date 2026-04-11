@@ -71,7 +71,25 @@ def _compile_contracts() -> None:
         "--output-client",
         "--output-arc56",
     ]
-    subprocess.run(cmd, cwd=PROJECT_ROOT, check=True)
+    required_artifacts = [
+        ARTIFACTS_DIR / "BadgeMinter.approval.bin",
+        ARTIFACTS_DIR / "BadgeMinter.clear.bin",
+        ARTIFACTS_DIR / "BadgeMinter.arc56.json",
+        ARTIFACTS_DIR / "ProviderRegistry.approval.bin",
+        ARTIFACTS_DIR / "ProviderRegistry.clear.bin",
+        ARTIFACTS_DIR / "ProviderRegistry.arc56.json",
+        ARTIFACTS_DIR / "EscrowContract.approval.bin",
+        ARTIFACTS_DIR / "EscrowContract.clear.bin",
+        ARTIFACTS_DIR / "EscrowContract.arc56.json",
+    ]
+
+    try:
+        subprocess.run(cmd, cwd=PROJECT_ROOT, check=True)
+    except subprocess.CalledProcessError as exc:
+        if all(path.exists() for path in required_artifacts):
+            print(f"Compile skipped ({exc}); using existing artifacts from {ARTIFACTS_DIR}")
+            return
+        raise
 
 
 def _read_program(path: Path) -> bytes:
@@ -180,6 +198,8 @@ def _fund_application_account(
     app_id: int,
     amount_microalgo: int,
 ) -> None:
+    if amount_microalgo <= 0:
+        return
     app_address = get_application_address(app_id)
     sp = algorand.client.algod.suggested_params()
     pay = PaymentTxn(
@@ -238,26 +258,30 @@ def main() -> None:
         signer=signer,
     )
 
+    badge_app_fund = int(os.getenv("BADGE_APP_FUND_MICROALGO", "1000000"))
+    registry_app_fund = int(os.getenv("REGISTRY_APP_FUND_MICROALGO", "500000"))
+    escrow_app_fund = int(os.getenv("ESCROW_APP_FUND_MICROALGO", "1500000"))
+
     _fund_application_account(
         algorand=algorand,
         sender_private_key=admin_private_key,
         sender_address=sender,
         app_id=badge_app_id,
-        amount_microalgo=3_000_000,
+        amount_microalgo=badge_app_fund,
     )
     _fund_application_account(
         algorand=algorand,
         sender_private_key=admin_private_key,
         sender_address=sender,
         app_id=registry_app_id,
-        amount_microalgo=2_000_000,
+        amount_microalgo=registry_app_fund,
     )
     _fund_application_account(
         algorand=algorand,
         sender_private_key=admin_private_key,
         sender_address=sender,
         app_id=escrow_app_id,
-        amount_microalgo=5_000_000,
+        amount_microalgo=escrow_app_fund,
     )
 
     print(f"BADGE_APP_ID={badge_app_id}")

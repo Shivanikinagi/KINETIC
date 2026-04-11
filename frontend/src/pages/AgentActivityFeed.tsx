@@ -36,6 +36,8 @@ function relativeTime(iso: string): string {
 
 export default function AgentActivityFeed() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [runTokens, setRunTokens] = useState(10);
+  const [isRunning, setIsRunning] = useState(false);
   const [status, setStatus] = useState<StatusPayload>({
     status: "idle",
     jobs_today: 0,
@@ -71,8 +73,9 @@ export default function AgentActivityFeed() {
   );
 
   const runTestJob = async () => {
+    setIsRunning(true);
     try {
-      await axios.post(bridgeUrl("/agent/run"), { type: "inference", tokens: 100, payload: "demo" });
+      await axios.post(bridgeUrl("/agent/run"), { type: "inference", tokens: runTokens, payload: "demo" });
     } catch (error) {
       const text =
         axios.isAxiosError(error)
@@ -86,6 +89,8 @@ export default function AgentActivityFeed() {
         },
         ...prev,
       ]);
+    } finally {
+      setIsRunning(false);
     }
   };
 
@@ -99,9 +104,19 @@ export default function AgentActivityFeed() {
             Task: {status.current_task?.type || "-"} | Tokens: {status.current_task?.tokens || 0} | Budget remaining: {status.budget_remaining.toFixed(3)} ALGO
           </p>
         </div>
-        <button className="btn" onClick={runTestJob}>
-          Run Test Job
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <input
+            type="number"
+            min={1}
+            max={5000}
+            value={runTokens}
+            onChange={(e) => setRunTokens(Math.max(1, Number(e.target.value) || 1))}
+            style={{ width: 110 }}
+          />
+          <button className="btn" onClick={runTestJob} disabled={isRunning}>
+            {isRunning ? "Starting..." : "Run Test Job"}
+          </button>
+        </div>
       </div>
 
       <div className="metric-grid" style={{ marginBottom: 14 }}>

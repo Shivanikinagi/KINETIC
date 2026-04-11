@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import logging
 from typing import Any
@@ -34,7 +35,14 @@ async def verify_payment(
     try:
         client = AlgodClient(algod_token=algod_token, algod_address=algod_url)
 
-        tx_info: dict[str, Any] = client.pending_transaction_info(tx_id)
+        tx_info: dict[str, Any] = {}
+        # Allow short propagation/confirmation lag on public TestNet nodes.
+        for _ in range(8):
+            tx_info = client.pending_transaction_info(tx_id)
+            if tx_info and tx_info.get("txn") and tx_info.get("confirmed-round"):
+                break
+            await asyncio.sleep(1)
+
         if not tx_info or not tx_info.get("txn"):
             # Some algod deployments do not expose transaction lookups by tx id here,
             # so this fallback is intentionally defensive.
