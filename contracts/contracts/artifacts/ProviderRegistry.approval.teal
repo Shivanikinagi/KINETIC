@@ -1,0 +1,555 @@
+#pragma version 11
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 8 2 0 1
+    bytecblock 0x70726f7669646572 "badge_app_id" 0x002c
+    txn ApplicationID
+    bnz main_after_if_else@2
+    // contracts/registry.py:17
+    // self.badge_app_id = UInt64(0)
+    bytec_1 // "badge_app_id"
+    intc_2 // 0
+    app_global_put
+
+main_after_if_else@2:
+    // contracts/registry.py:14
+    // class ProviderRegistry(ARC4Contract):
+    txn NumAppArgs
+    bz main___algopy_default_create@14
+    txn OnCompletion
+    !
+    assert
+    txn ApplicationID
+    assert
+    pushbytess 0x0e56deda 0x71c4983d 0x6decaf3d 0x8099a3fd 0x7d67d93f // method "set_badge_app_id(uint64)void", method "register_provider(uint64,byte[],uint64,byte[])void", method "deregister_provider()void", method "update_uptime_score(address,uint64)void", method "get_provider(address)(uint64,byte[],uint64,byte[],uint64,uint64,uint64)"
+    txna ApplicationArgs 0
+    match set_badge_app_id register_provider deregister_provider update_uptime_score get_provider
+    err
+
+main___algopy_default_create@14:
+    txn OnCompletion
+    !
+    txn ApplicationID
+    !
+    &&
+    return
+
+
+// contracts.registry.ProviderRegistry.set_badge_app_id[routing]() -> void:
+set_badge_app_id:
+    // contracts/registry.py:19
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_0 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contracts/registry.py:21
+    // assert Txn.sender == Global.creator_address, "only creator can set badge app id"
+    txn Sender
+    global CreatorAddress
+    ==
+    assert // only creator can set badge app id
+    // contracts/registry.py:22
+    // self.badge_app_id = badge_app_id
+    bytec_1 // "badge_app_id"
+    swap
+    app_global_put
+    // contracts/registry.py:19
+    // @arc4.abimethod
+    intc_3 // 1
+    return
+
+
+// contracts.registry.ProviderRegistry.register_provider[routing]() -> void:
+register_provider:
+    // contracts/registry.py:24
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_0 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dupn 2
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_1 // 2
+    +
+    swap
+    len
+    dup
+    uncover 2
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_0 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 4
+    dupn 2
+    intc_2 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_1 // 2
+    +
+    swap
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    // contracts/registry.py:32-33
+    // # TODO: Replace this creator bypass with inner app call to BadgeMinter.verify_badge.
+    // assert Txn.sender == Global.creator_address or self.badge_app_id > UInt64(0), "badge check failed"
+    txn Sender
+    global CreatorAddress
+    ==
+    bnz register_provider_bool_true@3
+    intc_2 // 0
+    bytec_1 // "badge_app_id"
+    app_global_get_ex
+    assert // check self.badge_app_id exists
+    bz register_provider_bool_false@4
+
+register_provider_bool_true@3:
+    intc_3 // 1
+
+register_provider_bool_merge@5:
+    // contracts/registry.py:32-33
+    // # TODO: Replace this creator bypass with inner app call to BadgeMinter.verify_badge.
+    // assert Txn.sender == Global.creator_address or self.badge_app_id > UInt64(0), "badge check failed"
+    assert // badge check failed
+    // contracts/registry.py:42
+    // badge_app_id=self.badge_app_id,
+    intc_2 // 0
+    bytec_1 // "badge_app_id"
+    app_global_get_ex
+    assert // check self.badge_app_id exists
+    // contracts/registry.py:35-43
+    // self.providers[Txn.sender] = ProviderInfo(
+    //     vram_gb=vram_gb,
+    //     gpu_model=gpu_model.copy(),
+    //     price_per_hour=price_per_hour,
+    //     endpoint_url=endpoint_url.copy(),
+    //     uptime_score=UInt64(100),
+    //     active=UInt64(1),
+    //     badge_app_id=self.badge_app_id,
+    // )
+    dig 5
+    itob
+    bytec_2 // 0x002c
+    concat
+    pushint 44
+    dig 5
+    +
+    dig 4
+    itob
+    uncover 2
+    swap
+    concat
+    swap
+    itob
+    extract 6 2
+    concat
+    // contracts/registry.py:40
+    // uptime_score=UInt64(100),
+    pushint 100
+    // contracts/registry.py:35-43
+    // self.providers[Txn.sender] = ProviderInfo(
+    //     vram_gb=vram_gb,
+    //     gpu_model=gpu_model.copy(),
+    //     price_per_hour=price_per_hour,
+    //     endpoint_url=endpoint_url.copy(),
+    //     uptime_score=UInt64(100),
+    //     active=UInt64(1),
+    //     badge_app_id=self.badge_app_id,
+    // )
+    itob
+    concat
+    // contracts/registry.py:41
+    // active=UInt64(1),
+    intc_3 // 1
+    // contracts/registry.py:35-43
+    // self.providers[Txn.sender] = ProviderInfo(
+    //     vram_gb=vram_gb,
+    //     gpu_model=gpu_model.copy(),
+    //     price_per_hour=price_per_hour,
+    //     endpoint_url=endpoint_url.copy(),
+    //     uptime_score=UInt64(100),
+    //     active=UInt64(1),
+    //     badge_app_id=self.badge_app_id,
+    // )
+    itob
+    concat
+    swap
+    itob
+    concat
+    dig 4
+    concat
+    dig 1
+    concat
+    // contracts/registry.py:35
+    // self.providers[Txn.sender] = ProviderInfo(
+    bytec_0 // 0x70726f7669646572
+    txn Sender
+    concat
+    // contracts/registry.py:35-43
+    // self.providers[Txn.sender] = ProviderInfo(
+    //     vram_gb=vram_gb,
+    //     gpu_model=gpu_model.copy(),
+    //     price_per_hour=price_per_hour,
+    //     endpoint_url=endpoint_url.copy(),
+    //     uptime_score=UInt64(100),
+    //     active=UInt64(1),
+    //     badge_app_id=self.badge_app_id,
+    // )
+    dup
+    box_del
+    pop
+    swap
+    box_put
+    // contracts/registry.py:24
+    // @arc4.abimethod
+    intc_3 // 1
+    return
+
+register_provider_bool_false@4:
+    intc_2 // 0
+    b register_provider_bool_merge@5
+
+
+// contracts.registry.ProviderRegistry.deregister_provider[routing]() -> void:
+deregister_provider:
+    // contracts/registry.py:47
+    // assert Txn.sender in self.providers, "provider not registered"
+    bytec_0 // 0x70726f7669646572
+    txn Sender
+    concat
+    box_len
+    bury 1
+    assert // provider not registered
+    // contracts/registry.py:48
+    // data = self.providers[Txn.sender].copy()
+    bytec_0 // 0x70726f7669646572
+    txn Sender
+    concat
+    // contracts/registry.py:50
+    // vram_gb=data.vram_gb,
+    dup
+    intc_2 // 0
+    intc_0 // 8
+    box_extract // on error: index out of bounds
+    btoi
+    // contracts/registry.py:51
+    // gpu_model=data.gpu_model.copy(),
+    dig 1
+    pushint 44
+    intc_1 // 2
+    box_extract
+    btoi
+    intc_1 // 2
+    +
+    dig 2
+    pushint 44
+    uncover 2
+    box_extract
+    // contracts/registry.py:52
+    // price_per_hour=data.price_per_hour,
+    dig 2
+    pushint 10
+    intc_0 // 8
+    box_extract // on error: index out of bounds
+    btoi
+    // contracts/registry.py:53
+    // endpoint_url=data.endpoint_url.copy(),
+    dig 3
+    pushint 18
+    intc_1 // 2
+    box_extract
+    btoi
+    dig 4
+    dig 1
+    intc_1 // 2
+    box_extract
+    btoi
+    intc_1 // 2
+    +
+    dig 5
+    cover 2
+    box_extract
+    // contracts/registry.py:54
+    // uptime_score=data.uptime_score,
+    dig 4
+    pushint 20
+    intc_0 // 8
+    box_extract // on error: index out of bounds
+    btoi
+    // contracts/registry.py:56
+    // badge_app_id=data.badge_app_id,
+    uncover 5
+    pushint 36
+    intc_0 // 8
+    box_extract // on error: index out of bounds
+    btoi
+    // contracts/registry.py:49-57
+    // self.providers[Txn.sender] = ProviderInfo(
+    //     vram_gb=data.vram_gb,
+    //     gpu_model=data.gpu_model.copy(),
+    //     price_per_hour=data.price_per_hour,
+    //     endpoint_url=data.endpoint_url.copy(),
+    //     uptime_score=data.uptime_score,
+    //     active=UInt64(0),
+    //     badge_app_id=data.badge_app_id,
+    // )
+    uncover 5
+    itob
+    bytec_2 // 0x002c
+    concat
+    dig 5
+    len
+    pushint 44
+    +
+    uncover 5
+    itob
+    uncover 2
+    swap
+    concat
+    swap
+    itob
+    extract 6 2
+    concat
+    uncover 2
+    itob
+    concat
+    // contracts/registry.py:55
+    // active=UInt64(0),
+    intc_2 // 0
+    // contracts/registry.py:49-57
+    // self.providers[Txn.sender] = ProviderInfo(
+    //     vram_gb=data.vram_gb,
+    //     gpu_model=data.gpu_model.copy(),
+    //     price_per_hour=data.price_per_hour,
+    //     endpoint_url=data.endpoint_url.copy(),
+    //     uptime_score=data.uptime_score,
+    //     active=UInt64(0),
+    //     badge_app_id=data.badge_app_id,
+    // )
+    itob
+    concat
+    swap
+    itob
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    // contracts/registry.py:49
+    // self.providers[Txn.sender] = ProviderInfo(
+    bytec_0 // 0x70726f7669646572
+    txn Sender
+    concat
+    // contracts/registry.py:49-57
+    // self.providers[Txn.sender] = ProviderInfo(
+    //     vram_gb=data.vram_gb,
+    //     gpu_model=data.gpu_model.copy(),
+    //     price_per_hour=data.price_per_hour,
+    //     endpoint_url=data.endpoint_url.copy(),
+    //     uptime_score=data.uptime_score,
+    //     active=UInt64(0),
+    //     badge_app_id=data.badge_app_id,
+    // )
+    dup
+    box_del
+    pop
+    swap
+    box_put
+    // contracts/registry.py:45
+    // @arc4.abimethod
+    intc_3 // 1
+    return
+
+
+// contracts.registry.ProviderRegistry.update_uptime_score[routing]() -> void:
+update_uptime_score:
+    // contracts/registry.py:59
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_0 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // contracts/registry.py:61
+    // assert Txn.sender == Global.creator_address, "only creator can update uptime"
+    txn Sender
+    global CreatorAddress
+    ==
+    assert // only creator can update uptime
+    // contracts/registry.py:62
+    // assert provider in self.providers, "provider not found"
+    bytec_0 // 0x70726f7669646572
+    uncover 2
+    concat
+    dup
+    box_len
+    bury 1
+    assert // provider not found
+    // contracts/registry.py:63
+    // assert score <= UInt64(100), "score must be 0-100"
+    dig 1
+    pushint 100
+    <=
+    assert // score must be 0-100
+    // contracts/registry.py:67
+    // vram_gb=data.vram_gb,
+    dup
+    intc_2 // 0
+    intc_0 // 8
+    box_extract // on error: index out of bounds
+    btoi
+    // contracts/registry.py:68
+    // gpu_model=data.gpu_model.copy(),
+    dig 1
+    pushint 44
+    intc_1 // 2
+    box_extract
+    btoi
+    intc_1 // 2
+    +
+    dig 2
+    pushint 44
+    uncover 2
+    box_extract
+    // contracts/registry.py:69
+    // price_per_hour=data.price_per_hour,
+    dig 2
+    pushint 10
+    intc_0 // 8
+    box_extract // on error: index out of bounds
+    btoi
+    // contracts/registry.py:70
+    // endpoint_url=data.endpoint_url.copy(),
+    dig 3
+    pushint 18
+    intc_1 // 2
+    box_extract
+    btoi
+    dig 4
+    dig 1
+    intc_1 // 2
+    box_extract
+    btoi
+    intc_1 // 2
+    +
+    dig 5
+    cover 2
+    box_extract
+    // contracts/registry.py:72
+    // active=data.active,
+    dig 4
+    pushint 28
+    intc_0 // 8
+    box_extract // on error: index out of bounds
+    btoi
+    // contracts/registry.py:73
+    // badge_app_id=data.badge_app_id,
+    dig 5
+    pushint 36
+    intc_0 // 8
+    box_extract // on error: index out of bounds
+    btoi
+    // contracts/registry.py:66-74
+    // self.providers[provider] = ProviderInfo(
+    //     vram_gb=data.vram_gb,
+    //     gpu_model=data.gpu_model.copy(),
+    //     price_per_hour=data.price_per_hour,
+    //     endpoint_url=data.endpoint_url.copy(),
+    //     uptime_score=score,
+    //     active=data.active,
+    //     badge_app_id=data.badge_app_id,
+    // )
+    uncover 5
+    itob
+    bytec_2 // 0x002c
+    concat
+    dig 5
+    len
+    pushint 44
+    +
+    uncover 5
+    itob
+    uncover 2
+    swap
+    concat
+    swap
+    itob
+    extract 6 2
+    concat
+    uncover 6
+    itob
+    concat
+    uncover 2
+    itob
+    concat
+    swap
+    itob
+    concat
+    uncover 2
+    concat
+    swap
+    concat
+    dig 1
+    box_del
+    pop
+    box_put
+    // contracts/registry.py:59
+    // @arc4.abimethod
+    intc_3 // 1
+    return
+
+
+// contracts.registry.ProviderRegistry.get_provider[routing]() -> void:
+get_provider:
+    // contracts/registry.py:76
+    // @arc4.abimethod(readonly=True)
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // contracts/registry.py:78
+    // assert provider in self.providers, "provider not found"
+    bytec_0 // 0x70726f7669646572
+    swap
+    concat
+    dup
+    box_len
+    bury 1
+    assert // provider not found
+    // contracts/registry.py:79
+    // return self.providers[provider]
+    box_get
+    pop
+    // contracts/registry.py:76
+    // @arc4.abimethod(readonly=True)
+    pushbytes 0x151f7c75
+    swap
+    concat
+    log
+    intc_3 // 1
+    return

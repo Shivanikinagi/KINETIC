@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "p2p-compute-marketplace"
+version = "0.1.0"
+description = "P2P Compute Marketplace for Algorand Agentic Commerce"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "algokit-utils>=2.0",
+  "py-algorand-sdk>=2.6",
+  "fastapi>=0.110",
+  "uvicorn",
+  "python-dotenv",
+  "pytest",
+  "pytest-asyncio",
+  "httpx",
+  "psutil",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest-asyncio",
+  "black",
+  "ruff",
+]
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.setuptools.packages.find]
+include = ["agent*", "api*", "contracts*"]
+exclude = ["frontend*", "tests*", "scripts*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

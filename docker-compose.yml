@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  localnet:
+    image: algorand/algod:latest
+    container_name: algorand-localnet
+    environment:
+      ALGORAND_DATA: /algod/data
+    ports:
+      - "4001:4001"
+      - "7833:7833"
+    volumes:
+      - ./data/algorand:/algod/data
+
+  provider-api:
+    image: python:3.11-slim
+    container_name: provider-api
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c "pip install -e . && uvicorn api.main:app --host 0.0.0.0 --port 8000"
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - localnet
+
+  agent-bridge:
+    image: python:3.11-slim
+    container_name: agent-bridge
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c "pip install -e . && uvicorn api.agent_bridge:app --host 0.0.0.0 --port 3001"
+    env_file:
+      - .env
+    ports:
+      - "3001:3001"
+    depends_on:
+      - provider-api
