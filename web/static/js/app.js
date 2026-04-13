@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+export const API_BASE_URL = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
     ? 'http://localhost:8000'
     : window.location.origin;
 
@@ -184,11 +184,40 @@ function setupWalletConnection() {
 }
 
 // Provision a provider
-async function provisionProvider(providerId, providerName) {
-    if (!window.walletManager || !window.walletManager.isConnected()) {
-        showNotification('Please connect your wallet first', 'warning');
+export async function provisionProvider(providerId, providerName) {
+    // Check if wallet manager is available
+    if (!window.walletManager) {
+        showNotification('Wallet SDK not loaded. Please refresh the page.', 'error');
         return;
     }
+    
+    // Check if wallet is connected
+    let walletAddress = null;
+    
+    if (!window.walletManager.isConnected()) {
+        showNotification('Connecting wallet...', 'info');
+        // Trigger wallet connection
+        try {
+            walletAddress = await window.walletManager.connect();
+            console.log('Wallet connected, address:', walletAddress);
+        } catch (error) {
+            console.error('Failed to connect wallet:', error);
+            showNotification('Failed to connect wallet. Please try again.', 'error');
+            return;
+        }
+    } else {
+        // Wallet already connected, get address
+        walletAddress = window.walletManager.getAddress();
+    }
+    
+    // Final validation
+    if (!walletAddress) {
+        showNotification('Wallet address not available. Please reconnect your wallet.', 'error');
+        console.error('Wallet address is null after connection');
+        return;
+    }
+    
+    console.log('Using wallet address:', walletAddress);
     
     try {
         console.log('Provisioning provider:', providerId);
@@ -207,7 +236,6 @@ async function provisionProvider(providerId, providerName) {
         showNotification(`Preparing transaction for ${providerName || providerId}...`, 'info');
         
         // Create payment transaction
-        const walletAddress = window.walletManager.getAddress();
         const algodClient = getAlgodClient();
         const params = await algodClient.getTransactionParams().do();
         
@@ -269,7 +297,7 @@ Your compute resources are being allocated.
 }
 
 // Get Algod client
-function getAlgodClient() {
+export function getAlgodClient() {
     const server = 'https://testnet-api.algonode.cloud';
     const port = '';
     const token = '';
@@ -278,7 +306,7 @@ function getAlgodClient() {
 }
 
 // Show notification (use wallet.js implementation)
-function showNotification(message, type = 'info') {
+export function showNotification(message, type = 'info') {
     if (window.walletManager && window.walletManager.showNotification) {
         window.walletManager.showNotification(message, type);
     } else {
@@ -287,12 +315,3 @@ function showNotification(message, type = 'info') {
     }
 }
 
-// Export functions for use in other pages
-window.kineticApp = {
-    API_BASE_URL,
-    loadFeaturedProviders,
-    loadMarketStats,
-    provisionProvider,
-    getAlgodClient,
-    showNotification
-};

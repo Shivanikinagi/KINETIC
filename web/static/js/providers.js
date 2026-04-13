@@ -1,5 +1,10 @@
 // Providers page specific logic
+import { provisionProvider, showNotification, API_BASE_URL } from './app.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
+    // Wait for wallet manager
+    await waitForWalletManager();
+    
     // Initialize wallet
     if (window.walletManager) {
         await window.walletManager.initialize();
@@ -9,10 +14,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupWalletConnection();
 });
 
+// Wait for wallet manager to be available
+function waitForWalletManager() {
+    return new Promise((resolve) => {
+        if (window.walletManager) {
+            resolve();
+            return;
+        }
+        
+        const checkInterval = setInterval(() => {
+            if (window.walletManager) {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 100);
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+            clearInterval(checkInterval);
+            resolve();
+        }, 5000);
+    });
+}
+
 // Load all providers
 async function loadAllProviders() {
     try {
-        const response = await fetch(`${window.kineticApp.API_BASE_URL}/providers`);
+        const response = await fetch(`${API_BASE_URL}/providers`);
         if (!response.ok) throw new Error('Failed to fetch providers');
         
         const providers = await response.json();
@@ -48,7 +76,7 @@ function attachProvisionButtonListeners() {
         button.addEventListener('click', function() {
             const providerId = this.getAttribute('data-provider-id');
             const providerName = this.getAttribute('data-provider-name');
-            window.kineticApp.provisionProvider(providerId, providerName);
+            provisionProvider(providerId, providerName);
         });
     });
 }
