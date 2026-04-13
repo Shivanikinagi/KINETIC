@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kinetic Marketplace | Compute Providers</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#00dce5",
+                        "on-primary": "#003739",
+                        "on-secondary-fixed": "#111c2d",
+                        "tertiary-container": "#ffdb3f",
+                        "primary-container": "#00f5ff",
+                        "surface-tint": "#00dce5",
+                        "tertiary-fixed": "#ffe16c",
+                        "error": "#ffb4ab",
+                        "background": "#131314",
+                        "secondary": "#bcc7de",
+                        "surface-container-lowest": "#0e0e0f",
+                        "surface-variant": "#353436",
+                        "surface-container-highest": "#353436",
+                        "primary": "#e9feff",
+                        "on-tertiary-fixed": "#221b00",
+                        "on-error": "#690005",
+                        "tertiary": "#fff9f0",
+                        "on-secondary-container": "#aeb9d0",
+                        "on-surface": "#e5e2e3",
+                        "on-tertiary-container": "#736000",
+                        "inverse-surface": "#e5e2e3",
+                        "secondary-container": "#3e495d",
+                        "outline": "#849495",
+                        "surface-container": "#201f20",
+                        "on-primary-container": "#006c71",
+                        "on-primary-fixed-variant": "#004f53",
+                        "surface-container-high": "#2a2a2b",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#63f7ff",
+                        "on-surface-variant": "#b9caca",
+                        "surface-dim": "#131314",
+                        "on-tertiary": "#3a3000",
+                        "inverse-primary": "#00696e",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "secondary-fixed": "#d8e3fb",
+                        "surface-container-low": "#1c1b1c",
+                        "on-secondary": "#263143",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "inverse-on-surface": "#313031",
+                        "surface-bright": "#3a393a",
+                        "on-tertiary-fixed-variant": "#544600",
+                        "on-primary-fixed": "#002021",
+                        "tertiary-fixed-dim": "#e7c427",
+                        "outline-variant": "#3a494a",
+                        "error-container": "#93000a",
+                        "surface": "#131314",
+                        "on-background": "#e5e2e3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["JetBrains Mono"]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(53, 52, 54, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        .glow-hover:hover {
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.15);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #131314;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #353436;
+            border-radius: 10px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="w-full top-0 sticky bg-surface dark:bg-[#131314] font-space-grotesk tracking-tight shadow-none z-50">
+<div class="flex justify-between items-center px-8 py-4 max-w-[1920px] mx-auto">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-black italic tracking-tighter text-cyan-400">KINETIC</span>
+<div class="hidden md:flex gap-8 items-center">
+<a class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1" href="#">Marketplace</a>
+<a class="text-slate-400 hover:text-cyan-200 transition-colors" href="#">Activity</a>
+<a class="text-slate-400 hover:text-cyan-200 transition-colors" href="#">Docs</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-white/5 transition-all p-2 rounded-lg text-slate-400 hover:text-cyan-200">
+<span class="material-symbols-outlined" data-icon="settings_ethernet">settings_ethernet</span>
+</button>
+<button class="px-6 py-2 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold rounded shadow-lg shadow-primary-container/10 active:scale-95 transition-all">
+                    Connect Wallet
+                </button>
+</div>
+</div>
+</nav>
+<div class="flex min-h-[calc(100vh-72px)] overflow-hidden">
+<!-- SideNavBar / Filters -->
+<aside class="h-full w-72 bg-surface-container-low dark:bg-[#1b1b1c] font-inter text-sm border-r border-cyan-900/20 flex flex-col p-6 sticky top-[72px]">
+<div class="mb-8">
+<h2 class="text-lg font-bold text-cyan-400 font-headline uppercase tracking-tight">Network Filters</h2>
+<p class="text-slate-500 text-xs">Algorand TestNet</p>
+</div>
+<div class="space-y-8 flex-1 overflow-y-auto custom-scrollbar pr-2">
+<!-- GPU Model -->
+<section>
+<label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">GPU Model</label>
+<div class="space-y-2">
+<label class="flex items-center gap-3 group cursor-pointer">
+<input class="form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="text-on-surface-variant group-hover:text-primary transition-colors">NVIDIA H100</span>
+</label>
+<label class="flex items-center gap-3 group cursor-pointer">
+<input checked="" class="form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="text-primary font-medium">NVIDIA RTX 4090</span>
+</label>
+<label class="flex items-center gap-3 group cursor-pointer">
+<input class="form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+<span class="text-on-surface-variant group-hover:text-primary transition-colors">NVIDIA A100 (80GB)</span>
+</label>
+</div>
+</section>
+<!-- VRAM -->
+<section>
+<label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">VRAM Capacity</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1 bg-surface-container-highest text-primary text-xs rounded-full border border-primary-container/30">8GB</button>
+<button class="px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">16GB</button>
+<button class="px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">24GB+</button>
+<button class="px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">48GB+</button>
+</div>
+</section>
+<!-- Price Range -->
+<section>
+<label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">Price per Hour ($)</label>
+<input class="w-full accent-primary-container bg-surface-container rounded-lg h-1.5 appearance-none cursor-pointer" type="range"/>
+<div class="flex justify-between mt-2 text-[10px] font-mono text-slate-500">
+<span>$0.15</span>
+<span>$4.50</span>
+</div>
+</section>
+<!-- Verification -->
+<section>
+<label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">Verification Status</label>
+<label class="inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="relative w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+<span class="ml-3 text-sm font-medium text-slate-400">Verified Providers Only</span>
+</label>
+</section>
+</div>
+<button class="mt-8 w-full py-3 bg-cyan-400/10 text-cyan-400 rounded-lg font-medium hover:bg-cyan-400/20 transition-all border border-cyan-400/20 active:scale-95">
+                Optimize Performance
+            </button>
+</aside></div>
+<!-- Main Content -->
+<main class="flex-1 p-8 bg-surface overflow-y-auto">
+<header class="flex justify-between items-end mb-12">
+<div>
+<h1 class="text-4xl font-headline font-bold text-primary tracking-tight">Compute Resources</h1>
+<p class="text-on-surface-variant mt-2 max-w-xl">Provision on-demand high-performance GPU nodes directly from independent operators worldwide. Secure, verifiable, and instant.</p>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-slate-500 font-mono uppercase">Network Avg</span>
+<span class="text-2xl font-headline font-bold text-primary-fixed-dim">$0.42/hr</span>
+</div>
+<div class="w-px h-10 bg-outline-variant/30"></div>
+<div class="flex flex-col items-end">
+<span class="text-[10px] text-slate-500 font-mono uppercase">Nodes Online</span>
+<span class="text-2xl font-headline font-bold text-primary-fixed-dim">1,204</span>
+</div>
+</div>
+</header>
+<!-- Provider Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="glass-panel border border-outline-variant/10 rounded-xl p-6 glow-hover transition-all relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-3">
+<div class="flex items-center gap-1.5 px-2 py-1 bg-primary/10 rounded-full border border-primary/20">
+<span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+<span class="text-[10px] font-bold text-primary uppercase tracking-tight">Active</span>
+</div>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="w-14 h-14 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary-container border border-primary-container/20">
+<span class="material-symbols-outlined text-3xl" data-icon="memory">memory</span>
+</div>
+<div>
+<h3 class="text-lg font-headline font-bold text-on-surface leading-tight">Quantum-Node-08</h3>
+<div class="flex items-center gap-2 text-[10px] font-mono text-slate-500 mt-1 uppercase">
+<span>Verified Provider</span>
+<span class="material-symbols-outlined text-xs text-primary-container" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-8 bg-surface-container-lowest/50 p-4 rounded-lg">
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">GPU Model</span>
+<span class="text-primary font-headline">RTX 4090 x 2</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">VRAM</span>
+<span class="text-primary font-headline">48GB Total</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">Region</span>
+<span class="text-on-surface-variant text-xs">US-East (Virginia)</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">Uptime</span>
+<span class="text-on-surface-variant text-xs">99.98%</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<span class="block text-xs text-slate-500">Hourly Rate</span>
+<span class="text-2xl font-headline font-bold text-primary-container tracking-tight">$0.85<span class="text-xs text-slate-400 font-normal"> /hr</span></span>
+</div>
+<button class="px-8 py-3 bg-primary-container text-on-primary-container font-black rounded uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all">Rent</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-panel border border-outline-variant/10 rounded-xl p-6 glow-hover transition-all relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-3">
+<div class="flex items-center gap-1.5 px-2 py-1 bg-primary/10 rounded-full border border-primary/20">
+<span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+<span class="text-[10px] font-bold text-primary uppercase tracking-tight">Active</span>
+</div>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="w-14 h-14 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary-container border border-primary-container/20">
+<span class="material-symbols-outlined text-3xl" data-icon="dns">dns</span>
+</div>
+<div>
+<h3 class="text-lg font-headline font-bold text-on-surface leading-tight">Hyper-Grid-Cluster</h3>
+<div class="flex items-center gap-2 text-[10px] font-mono text-slate-500 mt-1 uppercase">
+<span>Core Operator</span>
+<span class="material-symbols-outlined text-xs text-primary-container" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-8 bg-surface-container-lowest/50 p-4 rounded-lg">
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">GPU Model</span>
+<span class="text-primary font-headline">H100 PCIe</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">VRAM</span>
+<span class="text-primary font-headline">80GB HBM3</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">Region</span>
+<span class="text-on-surface-variant text-xs">EU-West (Frankfurt)</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">Uptime</span>
+<span class="text-on-surface-variant text-xs">100%</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<span class="block text-xs text-slate-500">Hourly Rate</span>
+<span class="text-2xl font-headline font-bold text-primary-container tracking-tight">$3.10<span class="text-xs text-slate-400 font-normal"> /hr</span></span>
+</div>
+<button class="px-8 py-3 bg-primary-container text-on-primary-container font-black rounded uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all">Rent</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="glass-panel border border-outline-variant/10 rounded-xl p-6 glow-hover transition-all relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-3">
+<div class="flex items-center gap-1.5 px-2 py-1 bg-error/10 rounded-full border border-error/20">
+<span class="w-1.5 h-1.5 bg-error rounded-full"></span>
+<span class="text-[10px] font-bold text-error uppercase tracking-tight">Reserved</span>
+</div>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="w-14 h-14 rounded-lg bg-surface-container-highest flex items-center justify-center text-slate-500 border border-outline-variant/20">
+<span class="material-symbols-outlined text-3xl" data-icon="database">database</span>
+</div>
+<div>
+<h3 class="text-lg font-headline font-bold text-slate-400 leading-tight">Shadow-Vault-TX</h3>
+<div class="flex items-center gap-2 text-[10px] font-mono text-slate-600 mt-1 uppercase">
+<span>Unverified</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-8 bg-surface-container-lowest/50 p-4 rounded-lg opacity-50">
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">GPU Model</span>
+<span class="text-slate-400 font-headline">RTX 3090 Ti</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">VRAM</span>
+<span class="text-slate-400 font-headline">24GB</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">Region</span>
+<span class="text-slate-500 text-xs">Asia-East (Tokyo)</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">Uptime</span>
+<span class="text-slate-500 text-xs">98.4%</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<span class="block text-xs text-slate-500">Hourly Rate</span>
+<span class="text-2xl font-headline font-bold text-slate-600 tracking-tight">$0.35<span class="text-xs text-slate-400 font-normal"> /hr</span></span>
+</div>
+<button class="px-8 py-3 bg-surface-container-highest text-slate-500 font-black rounded uppercase text-xs tracking-widest cursor-not-allowed" disabled="">In Use</button>
+</div>
+</div>
+<!-- Card 4 (Bento Variation) -->
+<div class="xl:col-span-2 glass-panel border border-outline-variant/10 rounded-xl p-1 relative overflow-hidden group">
+<div class="flex flex-col md:flex-row h-full">
+<div class="md:w-1/3 h-48 md:h-auto overflow-hidden rounded-l-lg bg-surface-container-low">
+<img class="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700" data-alt="Futuristic server room with glowing blue neon lights reflecting on polished black metallic surfaces" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDb8pkmk3nRZGf7IQYiQ-iT0dfehYE8hBjDTKWOiVrRk3Rwzi629EtkqYu-UjbSpOtU3Q6XElP0oUizqLGyJKuwv4LNNZZPcCMlfVtZlXQHbbwUuZauuzj0cuHbzAMqfenrmvlU7fJC9PnByGrbAMZ4zl0nBdUuLq9ecEXoWx00UtCWwFlxWzLwXWkmWdMasBvHNFZlb1euXmUJwb92soeN90jyw_orNoeKnzoYx812TyXEps2x80ScvUaiDqnCqqAr_SJ_zwjMdXMH"/>
+</div>
+<div class="p-8 flex-1">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="text-[10px] font-mono text-primary uppercase font-bold tracking-[0.2em] mb-2 block">Premium Tier</span>
+<h3 class="text-3xl font-headline font-bold text-on-surface">Kinetic Core-1 Prime</h3>
+</div>
+<div class="text-right">
+<span class="block text-xs text-slate-500">Performance Index</span>
+<span class="text-xl font-headline font-bold text-primary-fixed-dim">98/100</span>
+</div>
+</div>
+<p class="text-on-surface-variant text-sm mb-6 line-clamp-2">Optimized for LLM training and heavy computational loads. Direct fiber connection with sub-5ms latency to primary network relays.</p>
+<div class="flex flex-wrap gap-6 items-end justify-between">
+<div class="flex gap-8">
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 font-bold uppercase">Compute</span>
+<span class="text-lg font-headline text-primary">8 x A100</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[10px] text-slate-500 font-bold uppercase">Memory</span>
+<span class="text-lg font-headline text-primary">640GB</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-right">
+<span class="block text-[10px] text-slate-500 uppercase">Flash Rate</span>
+<span class="text-xl font-headline font-bold text-primary-container">$12.40/hr</span>
+</div>
+<button class="px-10 py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary font-black rounded uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary-container/20">Reserve Cluster</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="glass-panel border border-outline-variant/10 rounded-xl p-6 glow-hover transition-all relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-3">
+<div class="flex items-center gap-1.5 px-2 py-1 bg-primary/10 rounded-full border border-primary/20">
+<span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+<span class="text-[10px] font-bold text-primary uppercase tracking-tight">Active</span>
+</div>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="w-14 h-14 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary-container border border-primary-container/20">
+<span class="material-symbols-outlined text-3xl" data-icon="speed">speed</span>
+</div>
+<div>
+<h3 class="text-lg font-headline font-bold text-on-surface leading-tight">Fast-Track-L40</h3>
+<div class="flex items-center gap-2 text-[10px] font-mono text-slate-500 mt-1 uppercase">
+<span>Verified Provider</span>
+<span class="material-symbols-outlined text-xs text-primary-container" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-8 bg-surface-container-lowest/50 p-4 rounded-lg">
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">GPU Model</span>
+<span class="text-primary font-headline">L40S Ada</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">VRAM</span>
+<span class="text-primary font-headline">48GB</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">Region</span>
+<span class="text-on-surface-variant text-xs">US-West (Oregon)</span>
+</div>
+<div>
+<span class="block text-[10px] text-slate-500 font-bold uppercase">Uptime</span>
+<span class="text-on-surface-variant text-xs">99.1%</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<span class="block text-xs text-slate-500">Hourly Rate</span>
+<span class="text-2xl font-headline font-bold text-primary-container tracking-tight">$0.92<span class="text-xs text-slate-400 font-normal"> /hr</span></span>
+</div>
+<button class="px-8 py-3 bg-primary-container text-on-primary-container font-black rounded uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all">Rent</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-8 border-t border-white/5 bg-surface-container-lowest dark:bg-[#0d0d0e] font-inter text-xs uppercase tracking-widest mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 w-full gap-4">
+<div class="flex flex-col md:flex-row items-center gap-10">
+<span class="font-space-grotesk font-bold text-cyan-400">KINETIC MARKETPLACE</span>
+<p class="text-slate-600 normal-case tracking-normal">© 2024 Kinetic Marketplace. Powered by Algorand.</p>
+</div>
+<div class="flex items-center gap-8 text-slate-600">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+<span class="hover:text-cyan-300 transition-colors cursor-default">ALGO: $0.18</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xs" data-icon="bolt">bolt</span>
+<span class="hover:text-cyan-300 transition-colors cursor-default">Total Power: 4.2 TH/s</span>
+</div>
+<a class="hover:text-cyan-300 transition-colors" href="#">Privacy</a>
+<a class="hover:text-cyan-300 transition-colors" href="#">Terms</a>
+</div>
+</div>
+</footer>
+</body></html>

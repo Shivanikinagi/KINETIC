@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KINETIC | Quantum Compute Marketplace</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=Space+Grotesk:wght@300;400;500;600;700;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#00dce5",
+                        "on-primary": "#003739",
+                        "on-secondary-fixed": "#111c2d",
+                        "tertiary-container": "#ffdb3f",
+                        "primary-container": "#00f5ff",
+                        "surface-tint": "#00dce5",
+                        "tertiary-fixed": "#ffe16c",
+                        "error": "#ffb4ab",
+                        "background": "#131314",
+                        "secondary": "#bcc7de",
+                        "surface-container-lowest": "#0e0e0f",
+                        "surface-variant": "#353436",
+                        "surface-container-highest": "#353436",
+                        "primary": "#e9feff",
+                        "on-tertiary-fixed": "#221b00",
+                        "on-error": "#690005",
+                        "tertiary": "#fff9f0",
+                        "on-secondary-container": "#aeb9d0",
+                        "on-surface": "#e5e2e3",
+                        "on-tertiary-container": "#736000",
+                        "inverse-surface": "#e5e2e3",
+                        "secondary-container": "#3e495d",
+                        "outline": "#849495",
+                        "surface-container": "#201f20",
+                        "on-primary-container": "#006c71",
+                        "on-primary-fixed-variant": "#004f53",
+                        "surface-container-high": "#2a2a2b",
+                        "on-error-container": "#ffdad6",
+                        "primary-fixed": "#63f7ff",
+                        "on-surface-variant": "#b9caca",
+                        "surface-dim": "#131314",
+                        "on-tertiary": "#3a3000",
+                        "inverse-primary": "#00696e",
+                        "on-secondary-fixed-variant": "#3c475a",
+                        "secondary-fixed": "#d8e3fb",
+                        "surface-container-low": "#1c1b1c",
+                        "on-secondary": "#263143",
+                        "secondary-fixed-dim": "#bcc7de",
+                        "inverse-on-surface": "#313031",
+                        "surface-bright": "#3a393a",
+                        "on-tertiary-fixed-variant": "#544600",
+                        "on-primary-fixed": "#002021",
+                        "tertiary-fixed-dim": "#e7c427",
+                        "outline-variant": "#3a494a",
+                        "error-container": "#93000a",
+                        "surface": "#131314",
+                        "on-background": "#e5e2e3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"],
+                        "mono": ["JetBrains Mono"]
+                    }
+                },
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(53, 52, 54, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at 50% 50%, rgba(0, 220, 229, 0.08) 0%, transparent 70%);
+        }
+        .node-pulse {
+            box-shadow: 0 0 0 0 rgba(0, 220, 229, 0.4);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 220, 229, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 220, 229, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 220, 229, 0); }
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #131314; color: #e5e2e3; }
+        h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+    </style>
+</head>
+<body class="selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<header class="w-full top-0 sticky bg-surface dark:bg-[#131314] z-50 flex justify-between items-center px-8 py-4 max-w-[1920px] mx-auto">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-black italic tracking-tighter text-cyan-400 font-space-grotesk">KINETIC</span>
+<nav class="hidden md:flex items-center gap-8 font-space-grotesk tracking-tight">
+<a class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1" href="#">Marketplace</a>
+<a class="text-slate-400 hover:text-cyan-200 transition-colors" href="#">Activity</a>
+<a class="text-slate-400 hover:text-cyan-200 transition-colors" href="#">Docs</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-4 py-2 text-slate-400 hover:text-cyan-200 font-inter text-sm uppercase tracking-widest transition-all">TestNet</button>
+<button class="bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold px-6 py-2 rounded-lg hover:brightness-110 transition-all scale-95 active:duration-150">
+                Connect Wallet
+            </button>
+<div class="flex items-center gap-2 ml-4">
+<span class="material-symbols-outlined text-slate-400 hover:bg-white/5 p-2 rounded-lg transition-all cursor-pointer">account_balance_wallet</span>
+<span class="material-symbols-outlined text-slate-400 hover:bg-white/5 p-2 rounded-lg transition-all cursor-pointer">settings_ethernet</span>
+</div>
+</div>
+</header>
+<main class="flex flex-col min-h-screen">
+<!-- Hero Section -->
+<section class="relative h-[870px] flex flex-col items-center justify-center overflow-hidden px-8">
+<div class="absolute inset-0 hero-gradient z-0"></div>
+<!-- Hero Visual Canvas (Simulated 3D Scene) -->
+<div class="absolute inset-0 pointer-events-none opacity-50">
+<div class="absolute top-1/4 left-1/4 w-32 h-32 glass-panel border border-cyan-900/20 rounded-2xl flex items-center justify-center transform -rotate-12 translate-y-8">
+<span class="material-symbols-outlined text-cyan-400 text-4xl" style="font-variation-settings: 'FILL' 1;">memory</span>
+</div>
+<div class="absolute bottom-1/3 right-1/4 w-40 h-40 glass-panel border border-cyan-900/20 rounded-3xl flex items-center justify-center transform rotate-6 -translate-y-12">
+<span class="material-symbols-outlined text-primary-fixed-dim text-5xl" style="font-variation-settings: 'FILL' 1;">dns</span>
+</div>
+<!-- Transaction Lines (Decorative) -->
+<svg class="absolute inset-0 w-full h-full opacity-20" preserveaspectratio="none">
+<path d="M-100,200 Q400,100 800,400 T1800,200" fill="transparent" stroke="#00f5ff" stroke-width="1"></path>
+<path d="M-100,600 Q600,400 1200,800 T2000,500" fill="transparent" stroke="#e9feff" stroke-width="1"></path>
+</svg>
+</div>
+<!-- Hero Content -->
+<div class="relative z-10 text-center max-w-4xl space-y-8">
+<div class="inline-flex items-center gap-3 bg-surface-container-high px-4 py-1.5 rounded-full border border-outline-variant/20 mb-4">
+<span class="w-2 h-2 rounded-full bg-cyan-400 node-pulse"></span>
+<span class="text-xs font-mono uppercase tracking-[0.2em] text-on-surface-variant">Decentralized GPU Grid Active</span>
+</div>
+<h1 class="text-7xl md:text-9xl font-black tracking-tighter leading-none">
+                    LEVERAGE <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-container to-cyan-600">QUANTUM</span> SPEED
+                </h1>
+<p class="text-lg md:text-xl text-on-surface-variant max-w-2xl mx-auto font-body font-light leading-relaxed">
+                    The ultra-low latency P2P marketplace for high-performance computing. Provision GPUs, CPUs, and Storage instantly on the Algorand ledger.
+                </p>
+<!-- Search Bar Container -->
+<div class="mt-12 max-w-2xl mx-auto w-full group">
+<div class="relative flex items-center bg-surface-container-low border border-outline-variant/10 rounded-2xl p-2 focus-within:bg-surface-container-highest transition-all duration-300">
+<span class="material-symbols-outlined ml-4 text-outline">search</span>
+<input class="w-full bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-outline/50 font-inter py-4 px-4 text-lg" placeholder="Search for GPU clusters, nodes, or compute types..." type="text"/>
+<div class="bg-cyan-400/10 text-cyan-400 text-xs font-mono px-3 py-1 rounded border border-cyan-400/20 mr-2 opacity-0 group-focus-within:opacity-100 transition-opacity">
+                            CMD + K
+                        </div>
+</div>
+</div>
+</div>
+</section>
+<!-- Live Market Stats Strip -->
+<section class="bg-surface-container-lowest border-y border-white/5 py-10">
+<div class="max-w-[1920px] mx-auto px-12 grid grid-cols-2 md:grid-cols-4 gap-12">
+<div class="flex flex-col">
+<span class="text-xs font-mono uppercase tracking-widest text-slate-600 mb-2">Total Nodes</span>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-headline font-bold text-primary tracking-tight">12,842</span>
+<span class="text-xs text-cyan-400">+4.2%</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-mono uppercase tracking-widest text-slate-600 mb-2">Active GPUs</span>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-headline font-bold text-primary tracking-tight">8,109</span>
+<span class="text-xs text-cyan-400">UP</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-mono uppercase tracking-widest text-slate-600 mb-2">Network Hashrate</span>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-headline font-bold text-primary tracking-tight">4.2 TH/s</span>
+<span class="text-xs text-slate-500">PEAK</span>
+</div>
+</div>
+<div class="flex flex-col">
+<span class="text-xs font-mono uppercase tracking-widest text-slate-600 mb-2">ALGO Index</span>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-headline font-bold text-primary tracking-tight">$0.18</span>
+<span class="text-xs text-error">-0.4%</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Marketplace Discovery -->
+<section class="py-24 px-12 max-w-[1920px] mx-auto w-full">
+<div class="flex justify-between items-end mb-16">
+<div class="space-y-2">
+<h2 class="text-4xl font-bold tracking-tight">FEATURED PROVIDERS</h2>
+<p class="text-slate-500 font-inter">Verified nodes with 99.9% uptime SLA guaranteed.</p>
+</div>
+<button class="text-cyan-400 font-headline font-bold tracking-tight hover:text-cyan-200 flex items-center gap-2 group transition-all">
+                    VIEW ALL CLUSTERS
+                    <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+<!-- Bento-style Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Provider Card 1 -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl border-r border-cyan-900/10 hover:bg-surface-container transition-all duration-500 overflow-hidden">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700" data-alt="high-tech server room with glowing blue led lights and futuristic hardware racks in a dark environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjFTDq0KYCuHb2WNfKl1HeT9U8Qc7V_1ocw-bVRqaQo2QJP6KJFc0mZMb0-ru8NXkZhUEDnamQL0tWf7aeI_xLxnPDmfPIOAt2uBk1lxc4m6dZb9sM1EL7FOVOeYGAaRJaFgCV-g46vr9MMknUUov3BnaiZmzAjyo_6mGYS1EpfSObYCDc0kdPaxLbIP8HQesZBPdJG8ec3SLS5FPzlGRw9Bkg1u_CBGp62mgUH0QKzDEOHu7yG9xP6RDgvLwIEbpaQAoHPde--_V5"/>
+</div>
+<div class="p-8 space-y-6">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xl font-bold text-primary">ARES CLUSTER-04</h3>
+<p class="text-xs font-mono text-cyan-400/70">Provider: 0x4f2...a9d1</p>
+</div>
+<div class="bg-cyan-400/10 text-cyan-400 px-2 py-1 rounded text-[10px] font-bold">VERIFIED</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<span class="text-[10px] uppercase text-slate-500 tracking-widest">Capacity</span>
+<p class="font-headline text-lg">8x RTX 4090</p>
+</div>
+<div class="space-y-1">
+<span class="text-[10px] uppercase text-slate-500 tracking-widest">Uptime</span>
+<p class="font-headline text-lg">99.98%</p>
+</div>
+</div>
+<div class="pt-6 border-t border-white/5 flex justify-between items-center">
+<div class="flex flex-col">
+<span class="text-xs text-slate-400">Price/Hr</span>
+<span class="text-xl font-bold text-primary">$1.42 <span class="text-sm font-normal text-slate-500">ALGO</span></span>
+</div>
+<button class="bg-surface-container-highest hover:bg-cyan-400 hover:text-on-primary px-6 py-2 rounded-lg font-bold transition-all">Provision</button>
+</div>
+</div>
+</div>
+<!-- Provider Card 2 -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl border-r border-cyan-900/10 hover:bg-surface-container transition-all duration-500 overflow-hidden">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700" data-alt="close up of advanced cpu chips on a motherboard with neon digital circuit lines glowing" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMR3LT0n4QCZ3nAhegD5la-93TWp8hbLAgE19K_hu1uzEm8dNED6RaaDS-qhOCfOPtE0nw0o3lf18J0RC4K2bvCq7AP-6B7vpWA5NGOkmWFsxLo_fIZLOpyXb0iy7qE3NphDzmJnNhFAyfbaq2_VT7l5yAu-Jo7cBOmFnTl5_pfhvz7PymDDoSTueSojAPtwzBdfGiA_viMuMmPfGwH6ONM-XgxakKpXlNhgev_zyLGnPvdwKqlRCNouEZkLRtinWHtvrES8PRYRjq"/>
+</div>
+<div class="p-8 space-y-6">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xl font-bold text-primary">NEBULA-X CORE</h3>
+<p class="text-xs font-mono text-cyan-400/70">Provider: 0x9a3...e211</p>
+</div>
+<div class="bg-cyan-400/10 text-cyan-400 px-2 py-1 rounded text-[10px] font-bold">VERIFIED</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<span class="text-[10px] uppercase text-slate-500 tracking-widest">Capacity</span>
+<p class="font-headline text-lg">H100 NVLINK</p>
+</div>
+<div class="space-y-1">
+<span class="text-[10px] uppercase text-slate-500 tracking-widest">Uptime</span>
+<p class="font-headline text-lg">100.00%</p>
+</div>
+</div>
+<div class="pt-6 border-t border-white/5 flex justify-between items-center">
+<div class="flex flex-col">
+<span class="text-xs text-slate-400">Price/Hr</span>
+<span class="text-xl font-bold text-primary">$4.85 <span class="text-sm font-normal text-slate-500">ALGO</span></span>
+</div>
+<button class="bg-surface-container-highest hover:bg-cyan-400 hover:text-on-primary px-6 py-2 rounded-lg font-bold transition-all">Provision</button>
+</div>
+</div>
+</div>
+<!-- Provider Card 3 -->
+<div class="group relative flex flex-col bg-surface-container-low rounded-xl border-r border-cyan-900/10 hover:bg-surface-container transition-all duration-500 overflow-hidden">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700" data-alt="abstract visualization of blockchain data nodes floating in a dark digital space with cyan particle effects" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBfwXrGuTiU1Uc5kZOenZ5eLSkXRG5CXbAZXsWyB35G7nxF0mrwy1Tv82mCXVhVEFI9jWMk9krPgjz11Y9AW3aVq06s6zUdlSTw2Yha23zwrJkX2Xhegtr5pEP0DN4MA8j8ohGzJx7HsHe_6-0288BkEf4-O9x80pBf7sfL2sdNQbOqTpbQZid5q6etufBbc-RQRFPex0zY-VEWL5pGQvbUP-dTrpk4RtwokkhEMxO8Y2OKMYCdCSKFHFebMFEh1DyLdM4L12P08gi3"/>
+</div>
+<div class="p-8 space-y-6">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xl font-bold text-primary">QUANTUM STORAGE</h3>
+<p class="text-xs font-mono text-cyan-400/70">Provider: 0x2b8...f5c0</p>
+</div>
+<div class="bg-cyan-400/10 text-cyan-400 px-2 py-1 rounded text-[10px] font-bold">VERIFIED</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-1">
+<span class="text-[10px] uppercase text-slate-500 tracking-widest">Capacity</span>
+<p class="font-headline text-lg">500TB NVMe</p>
+</div>
+<div class="space-y-1">
+<span class="text-[10px] uppercase text-slate-500 tracking-widest">Uptime</span>
+<p class="font-headline text-lg">99.95%</p>
+</div>
+</div>
+<div class="pt-6 border-t border-white/5 flex justify-between items-center">
+<div class="flex flex-col">
+<span class="text-xs text-slate-400">Price/Hr</span>
+<span class="text-xl font-bold text-primary">$0.65 <span class="text-sm font-normal text-slate-500">ALGO</span></span>
+</div>
+<button class="bg-surface-container-highest hover:bg-cyan-400 hover:text-on-primary px-6 py-2 rounded-lg font-bold transition-all">Provision</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="py-32 px-12 bg-surface">
+<div class="max-w-6xl mx-auto glass-panel rounded-[2rem] p-16 flex flex-col items-center text-center space-y-10 border border-white/5">
+<h2 class="text-5xl md:text-6xl font-black tracking-tighter max-w-2xl">READY TO DEPLOY YOUR OWN GRID?</h2>
+<p class="text-xl text-slate-400 max-w-xl font-light">Join the most advanced decentralized compute ecosystem and start earning ALGO by providing your unused hardware power.</p>
+<div class="flex flex-col md:flex-row gap-6">
+<button class="bg-primary-container text-on-primary-container font-bold px-12 py-5 rounded-xl text-lg hover:brightness-110 transition-all flex items-center gap-3">
+<span class="material-symbols-outlined">rocket_launch</span>
+                        START PROVIDING
+                    </button>
+<button class="bg-white/5 hover:bg-white/10 text-primary border border-white/10 font-bold px-12 py-5 rounded-xl text-lg transition-all">
+                        VIEW DOCS
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- SideNavBar (Hidden on desktop, logic as requested for top level) -->
+<div class="hidden md:flex flex-col h-full w-72 left-0 fixed border-r border-cyan-900/20 bg-surface-container-low dark:bg-[#1b1b1c] z-40 transform -translate-x-full hover:translate-x-0 transition-transform duration-300 ease-in-out p-6 group">
+<div class="mb-10">
+<span class="text-lg font-bold text-cyan-400 font-headline uppercase tracking-widest">Network Filters</span>
+<p class="text-[10px] text-slate-500 font-inter">ALGORAND TESTNET ACTIVE</p>
+</div>
+<nav class="flex flex-col gap-2 flex-grow">
+<a class="flex items-center gap-3 p-3 text-slate-500 hover:text-slate-200 transition-colors" href="#">
+<span class="material-symbols-outlined">memory</span>
+<span class="font-inter text-sm">Compute Nodes</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-slate-500 hover:text-slate-200 transition-colors" href="#">
+<span class="material-symbols-outlined">dns</span>
+<span class="font-inter text-sm">GPU Clusters</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-slate-500 hover:text-slate-200 transition-colors" href="#">
+<span class="material-symbols-outlined">database</span>
+<span class="font-inter text-sm">Storage</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-slate-500 hover:text-slate-200 transition-colors" href="#">
+<span class="material-symbols-outlined">speed</span>
+<span class="font-inter text-sm">My Provisioning</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-white/5 flex flex-col gap-2">
+<a class="flex items-center gap-3 p-3 text-slate-500 hover:text-slate-200 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-inter text-sm">Settings</span>
+</a>
+<a class="flex items-center gap-3 p-3 text-slate-500 hover:text-slate-200 transition-colors" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-inter text-sm">Support</span>
+</a>
+</div>
+</div>
+<!-- Footer -->
+<footer class="w-full py-8 border-t border-white/5 bg-surface-container-lowest dark:bg-[#0d0d0e] mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 w-full max-w-[1920px] mx-auto gap-6">
+<div class="flex items-center gap-8">
+<span class="font-space-grotesk font-bold text-cyan-400">KINETIC MARKETPLACE</span>
+<p class="font-inter text-[10px] uppercase tracking-widest text-slate-600">© 2024 Kinetic Marketplace. Powered by Algorand.</p>
+</div>
+<div class="flex gap-8 font-inter text-xs uppercase tracking-widest text-slate-600">
+<span class="text-cyan-400">ALGO: $0.18</span>
+<span class="text-cyan-400">Total Power: 4.2 TH/s</span>
+<a class="hover:text-cyan-300 transition-all opacity-80 hover:opacity-100" href="#">Privacy</a>
+<a class="hover:text-cyan-300 transition-all opacity-80 hover:opacity-100" href="#">Terms</a>
+</div>
+</div>
+</footer>
+</body></html>

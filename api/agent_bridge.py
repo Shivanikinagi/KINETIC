@@ -27,6 +27,7 @@ app.add_middleware(
 ROOT = Path(__file__).resolve().parents[1]
 AGENT_LOG = ROOT / "agent" / "agent.log"
 SPEND_DB = ROOT / "agent" / "spend_log.db"
+SETTINGS_FILE = ROOT / "agent" / "settings.json"
 TX_ID_PATTERN = re.compile(r"tx_id=([A-Z0-9]+)")
 
 load_dotenv(ROOT / ".env")
@@ -226,6 +227,36 @@ def _status_summary() -> dict:
     }
 
 
+def _default_settings() -> dict[str, Any]:
+    return {
+        "daily_budget_microalgo": int(os.getenv("AGENT_DAILY_BUDGET_MICROALGO", "5000000")),
+        "max_job_tokens": int(os.getenv("AGENT_MAX_TOKENS", "2000")),
+        "default_task_type": os.getenv("AGENT_DEFAULT_TASK_TYPE", "inference"),
+        "provider_endpoint": os.getenv("PROVIDER_ENDPOINT", "http://localhost:8000"),
+        "agent_bridge_url": os.getenv("AGENT_BRIDGE_URL", "http://localhost:3001"),
+    }
+
+
+def _load_settings() -> dict[str, Any]:
+    defaults = _default_settings()
+    if not SETTINGS_FILE.exists():
+        return defaults
+    try:
+        payload = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            return defaults
+        return {**defaults, **payload}
+    except Exception:
+        return defaults
+
+
+def _save_settings(settings: dict[str, Any]) -> dict[str, Any]:
+    merged = {**_default_settings(), **settings}
+    SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    SETTINGS_FILE.write_text(json.dumps(merged, indent=2), encoding="utf-8")
+    return merged
+
+
 @app.get("/agent/log")
 async def agent_log() -> list[dict]:
     return _parse_logs(50)
@@ -256,3 +287,20 @@ async def run_agent(payload: dict) -> dict:
     ]
     proc = subprocess.Popen(cmd, cwd=str(ROOT))
     return {"started": True, "pid": proc.pid}
+
+
+@app.get("/agent/settings")
+async def agent_settings() -> dict:
+    return _load_settings()
+
+
+@app.post("/agent/settings")
+async def update_agent_settings(payload: dict) -> dict:
+    normalized: dict[str, Any] = {}
+    for key, value in payload.items():
+        if key in {"daily_budget_microalgo", "max_job_tokens"}:
+            normalized[key] = _to_int(str(value), _default_settings()[key])
+        elif key in {"default_task_type", "provider_endpoint", "agent_bridge_url"}:
+            normalized[key] = str(value)
+    saved = _save_settings(normalized)
+    return {"ok": True, "settings": saved}

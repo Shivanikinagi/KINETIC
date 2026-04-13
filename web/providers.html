@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Kinetic Marketplace | Compute Providers</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="/static/js/config.js"></script>
+    <style>
+        .glass-panel {
+            background: rgba(53, 52, 54, 0.6);
+            backdrop-filter: blur(24px);
+        }
+        .glow-hover:hover {
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.15);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #131314;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #353436;
+            border-radius: 10px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="w-full top-0 sticky bg-surface dark:bg-[#131314] font-space-grotesk tracking-tight shadow-none z-50">
+    <div class="flex justify-between items-center px-8 py-4 max-w-[1920px] mx-auto">
+        <div class="flex items-center gap-12">
+            <a href="/" class="text-2xl font-black italic tracking-tighter text-cyan-400">KINETIC</a>
+            <div class="hidden md:flex gap-8 items-center">
+                <a class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1" href="/providers.html">Marketplace</a>
+                <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/activity.html">Activity</a>
+                <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/wallet.html">Wallet</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="bg-white/5 transition-all p-2 rounded-lg text-slate-400 hover:text-cyan-200">
+                <span class="material-symbols-outlined">settings_ethernet</span>
+            </button>
+            <button id="connectWalletBtn" class="px-6 py-2 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold rounded shadow-lg shadow-primary-container/10 active:scale-95 transition-all">
+                Connect Wallet
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="flex min-h-[calc(100vh-72px)] overflow-hidden">
+    <!-- SideNavBar / Filters -->
+    <aside class="h-full w-72 bg-surface-container-low dark:bg-[#1b1b1c] font-inter text-sm border-r border-cyan-900/20 flex flex-col p-6 sticky top-[72px]">
+        <div class="mb-8">
+            <h2 class="text-lg font-bold text-cyan-400 font-headline uppercase tracking-tight">Network Filters</h2>
+            <p class="text-slate-500 text-xs">Algorand TestNet</p>
+        </div>
+        <div class="space-y-8 flex-1 overflow-y-auto custom-scrollbar pr-2">
+            <!-- GPU Model -->
+            <section>
+                <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">GPU Model</label>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-3 group cursor-pointer">
+                        <input class="form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+                        <span class="text-on-surface-variant group-hover:text-primary transition-colors">NVIDIA H100</span>
+                    </label>
+                    <label class="flex items-center gap-3 group cursor-pointer">
+                        <input checked class="form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+                        <span class="text-primary font-medium">NVIDIA RTX 4090</span>
+                    </label>
+                    <label class="flex items-center gap-3 group cursor-pointer">
+                        <input class="form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+                        <span class="text-on-surface-variant group-hover:text-primary transition-colors">NVIDIA A100 (80GB)</span>
+                    </label>
+                </div>
+            </section>
+            <!-- VRAM -->
+            <section>
+                <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">VRAM Capacity</label>
+                <div class="flex flex-wrap gap-2">
+                    <button class="px-3 py-1 bg-surface-container-highest text-primary text-xs rounded-full border border-primary-container/30">8GB</button>
+                    <button class="px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">16GB</button>
+                    <button class="px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">24GB+</button>
+                    <button class="px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">48GB+</button>
+                </div>
+            </section>
+            <!-- Price Range -->
+            <section>
+                <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">Price per Hour ($)</label>
+                <input class="w-full accent-primary-container bg-surface-container rounded-lg h-1.5 appearance-none cursor-pointer" type="range"/>
+                <div class="flex justify-between mt-2 text-[10px] font-mono text-slate-500">
+                    <span>$0.15</span>
+                    <span>$4.50</span>
+                </div>
+            </section>
+            <!-- Verification -->
+            <section>
+                <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">Verification Status</label>
+                <label class="inline-flex items-center cursor-pointer">
+                    <input class="sr-only peer" type="checkbox"/>
+                    <div class="relative w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
+                    <span class="ml-3 text-sm font-medium text-slate-400">Verified Providers Only</span>
+                </label>
+            </section>
+        </div>
+        <button class="mt-8 w-full py-3 bg-cyan-400/10 text-cyan-400 rounded-lg font-medium hover:bg-cyan-400/20 transition-all border border-cyan-400/20 active:scale-95">
+            Optimize Performance
+        </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8 bg-surface overflow-y-auto">
+        <header class="flex justify-between items-end mb-12">
+            <div>
+                <h1 class="text-4xl font-headline font-bold text-primary tracking-tight">Compute Resources</h1>
+                <p class="text-on-surface-variant mt-2 max-w-xl">Provision on-demand high-performance GPU nodes directly from independent operators worldwide. Secure, verifiable, and instant.</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] text-slate-500 font-mono uppercase">Network Avg</span>
+                    <span class="text-2xl font-headline font-bold text-primary-fixed-dim">$0.42/hr</span>
+                </div>
+                <div class="w-px h-10 bg-outline-variant/30"></div>
+                <div class="flex flex-col items-end">
+                    <span class="text-[10px] text-slate-500 font-mono uppercase">Nodes Online</span>
+                    <span class="text-2xl font-headline font-bold text-primary-fixed-dim" id="nodesOnline">--</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Provider Grid -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6" id="providerGrid">
+            <!-- Cards will be dynamically loaded -->
+        </div>
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="w-full py-8 border-t border-white/5 bg-surface-container-lowest dark:bg-[#0d0d0e] font-inter text-xs uppercase tracking-widest mt-auto">
+    <div class="flex flex-col md:flex-row justify-between items-center px-12 w-full gap-4">
+        <div class="flex flex-col md:flex-row items-center gap-10">
+            <span class="font-space-grotesk font-bold text-cyan-400">KINETIC MARKETPLACE</span>
+            <p class="text-slate-600 normal-case tracking-normal">© 2024 Kinetic Marketplace. Powered by Algorand.</p>
+        </div>
+        <div class="flex items-center gap-8 text-slate-600">
+            <div class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                <span class="hover:text-cyan-300 transition-colors cursor-default">ALGO: $0.18</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-xs">bolt</span>
+                <span class="hover:text-cyan-300 transition-colors cursor-default">Total Power: 4.2 TH/s</span>
+            </div>
+            <a class="hover:text-cyan-300 transition-colors" href="#">Privacy</a>
+            <a class="hover:text-cyan-300 transition-colors" href="#">Terms</a>
+        </div>
+    </div>
+</footer>
+
+<script src="/static/js/app.js"></script>
+<script src="/static/js/providers.js"></script>
+</body>
+</html>
