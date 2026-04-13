@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>KINETIC | Wallet & Transactions</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols_Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="/static/js/config.js"></script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(53, 52, 54, 0.6);
+            backdrop-filter: blur(24px);
+        }
+        body { font-family: 'Inter', sans-serif; background-color: #131314; color: #e5e2e3; }
+        h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="w-full top-0 sticky z-50 bg-surface dark:bg-[#131314] flex justify-between items-center px-8 py-4 max-w-[1920px] mx-auto bg-surface-container-low shadow-none">
+    <div class="flex items-center gap-12">
+        <a href="/" class="text-2xl font-black italic tracking-tighter text-cyan-400 font-headline">KINETIC</a>
+        <div class="hidden md:flex gap-8 items-center">
+            <a class="text-slate-600 hover:text-cyan-200 transition-colors font-inter text-sm font-medium" href="/">Marketplace</a>
+            <a class="text-slate-600 hover:text-cyan-200 transition-colors font-inter text-sm font-medium" href="/activity.html">Activity</a>
+            <a class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1 font-inter text-sm" href="/wallet.html">Wallet</a>
+        </div>
+    </div>
+    <div class="flex items-center gap-4">
+        <button class="px-4 py-2 bg-surface-container-highest text-slate-400 font-inter text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-all">TestNet</button>
+        <button id="connectWalletBtn" class="px-6 py-2 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold font-headline scale-95 active:duration-150 transition-all rounded-sm">Connect Wallet</button>
+        <div class="flex items-center gap-2 ml-4">
+            <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:bg-white/5 p-2 rounded-full transition-all">account_balance_wallet</span>
+            <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:bg-white/5 p-2 rounded-full transition-all">settings_ethernet</span>
+        </div>
+    </div>
+</nav>
+
+<div class="flex min-h-screen pt-4">
+    <!-- SideNavBar -->
+    <aside class="hidden lg:flex flex-col h-full w-72 fixed border-r border-cyan-900/20 bg-surface-container-low dark:bg-[#1b1b1c] p-6 font-inter text-sm">
+        <div class="mb-8">
+            <h3 class="text-lg font-bold text-cyan-400 font-headline uppercase tracking-tighter">Network Filters</h3>
+            <p class="text-slate-500 text-xs mt-1">Algorand TestNet</p>
+        </div>
+        <nav class="space-y-2 flex-grow">
+            <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-200 hover:bg-cyan-400/5 transition-all duration-300 ease-in-out group" href="/">
+                <span class="material-symbols-outlined group-hover:text-cyan-400">memory</span>
+                Compute Nodes
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-200 hover:bg-cyan-400/5 transition-all duration-300 ease-in-out group" href="/providers.html">
+                <span class="material-symbols-outlined group-hover:text-cyan-400">dns</span>
+                GPU Clusters
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 bg-cyan-400/10 text-cyan-400 rounded-lg font-medium transition-all duration-300 ease-in-out" href="/wallet.html">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+                My Wallet
+            </a>
+        </nav>
+        <div class="mt-auto space-y-4">
+            <button class="w-full py-4 px-2 bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 font-bold uppercase tracking-widest text-[10px] hover:bg-cyan-400/20 transition-all">
+                Optimize Performance
+            </button>
+            <div class="flex flex-col gap-2 pt-4 border-t border-white/5">
+                <a class="flex items-center gap-3 text-slate-600 hover:text-cyan-300 transition-colors" href="#">
+                    <span class="material-symbols-outlined text-sm">settings</span>
+                    Settings
+                </a>
+                <a class="flex items-center gap-3 text-slate-600 hover:text-cyan-300 transition-colors" href="#">
+                    <span class="material-symbols-outlined text-sm">help_outline</span>
+                    Support
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow lg:ml-72 px-8 pb-24">
+        <!-- Hero Stats Row -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12 mt-8">
+            <!-- Wallet & Balance Card -->
+            <div class="md:col-span-5 bg-surface-container-low p-8 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                    <span class="material-symbols-outlined text-8xl text-primary">account_balance_wallet</span>
+                </div>
+                <div class="relative z-10">
+                    <p class="font-headline text-xs uppercase tracking-widest text-slate-400 mb-2">Available Balance</p>
+                    <div class="flex items-baseline gap-2">
+                        <h2 class="text-5xl font-black font-headline text-primary">14,208.50</h2>
+                        <span class="text-xl font-bold text-cyan-400/60 uppercase">ALGO</span>
+                    </div>
+                    <div class="mt-8 flex gap-3">
+                        <button class="flex-grow py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold rounded-sm text-xs uppercase tracking-widest hover:brightness-110 transition-all">Deposit Funds</button>
+                        <a class="px-4 flex items-center justify-center bg-surface-container-highest text-cyan-400 hover:text-white transition-all" href="#">
+                            <span class="material-symbols-outlined">faucet</span>
+                        </a>
+                    </div>
+                    <p class="mt-4 font-mono text-[10px] text-slate-500 truncate bg-surface-container-lowest p-2">ADDR: BK4P...7RX2-TESTNET</p>
+                </div>
+            </div>
+            <!-- Analytic Widgets -->
+            <div class="md:col-span-3 bg-surface-container-low p-8 flex flex-col justify-between">
+                <div>
+                    <p class="font-headline text-xs uppercase tracking-widest text-slate-400 mb-2">Total Compute Spent</p>
+                    <h3 class="text-3xl font-bold font-headline text-on-surface">3,492.12</h3>
+                    <p class="text-[10px] text-slate-500 mt-1">LIFETIME USAGE</p>
+                </div>
+            </div>
+            <div class="md:col-span-4 bg-surface-container-low p-8 border-l border-cyan-400/5">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="font-headline text-xs uppercase tracking-widest text-slate-400 mb-2">Uptime Score</p>
+                        <h3 class="text-6xl font-black font-headline text-primary-fixed-dim">99.8<span class="text-2xl">%</span></h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-full border-2 border-primary-fixed-dim/20 flex items-center justify-center">
+                        <div class="w-3 h-3 rounded-full bg-primary-fixed-dim animate-pulse"></div>
+                    </div>
+                </div>
+                <div class="mt-8 space-y-2">
+                    <div class="flex justify-between text-[10px] uppercase tracking-tighter">
+                        <span class="text-slate-500">Node Status: Operational</span>
+                        <span class="text-cyan-400">12 Active Nodes</span>
+                    </div>
+                    <div class="w-full bg-surface-container-lowest h-1">
+                        <div class="bg-primary-fixed-dim h-full w-[99.8%]"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Ledger Section -->
+        <div class="mt-16">
+            <div class="flex justify-between items-end mb-8">
+                <div>
+                    <h2 class="text-4xl font-black font-headline tracking-tighter uppercase italic">Transaction Ledger</h2>
+                    <p class="text-slate-500 text-sm mt-2">Comprehensive audit trail of decentralized compute rentals.</p>
+                </div>
+            </div>
+            <!-- Table -->
+            <div class="bg-surface-container-low overflow-hidden rounded-lg shadow-2xl shadow-black/50">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-surface-container-lowest border-b border-white/5">
+                            <th class="px-6 py-4 font-headline text-[10px] uppercase tracking-widest text-slate-400">Timestamp</th>
+                            <th class="px-6 py-4 font-headline text-[10px] uppercase tracking-widest text-slate-400">Transaction ID</th>
+                            <th class="px-6 py-4 font-headline text-[10px] uppercase tracking-widest text-slate-400">Provider</th>
+                            <th class="px-6 py-4 font-headline text-[10px] uppercase tracking-widest text-slate-400">Resources</th>
+                            <th class="px-6 py-4 font-headline text-[10px] uppercase tracking-widest text-slate-400 text-right">Cost (ALGO)</th>
+                            <th class="px-6 py-4 font-headline text-[10px] uppercase tracking-widest text-slate-400 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5 font-mono text-xs">
+                        <tr class="hover:bg-cyan-400/5 transition-colors group">
+                            <td class="px-6 py-6 text-slate-400">2024-05-12 14:22:01</td>
+                            <td class="px-6 py-6 text-cyan-200 truncate max-w-[120px]">OX7E...4A1B</td>
+                            <td class="px-6 py-6">Tokyo-Edge-04</td>
+                            <td class="px-6 py-6 text-slate-500">RTX 4090 x 2 (24h)</td>
+                            <td class="px-6 py-6 text-right font-bold text-on-surface">142.50</td>
+                            <td class="px-6 py-6 text-center">
+                                <span class="px-3 py-1 bg-primary-container/10 text-primary-container text-[10px] font-bold uppercase tracking-widest border border-primary-container/20">Confirmed</span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-cyan-400/5 transition-colors group">
+                            <td class="px-6 py-6 text-slate-400">2024-05-12 11:45:30</td>
+                            <td class="px-6 py-6 text-cyan-200 truncate max-w-[120px]">OX12...99CF</td>
+                            <td class="px-6 py-6">Berlin-Node-12</td>
+                            <td class="px-6 py-6 text-slate-500">128GB RAM / 32 vCPU</td>
+                            <td class="px-6 py-6 text-right font-bold text-on-surface">88.20</td>
+                            <td class="px-6 py-6 text-center">
+                                <span class="px-3 py-1 bg-tertiary-container/10 text-tertiary-container text-[10px] font-bold uppercase tracking-widest border border-tertiary-container/20">Pending</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="w-full py-8 border-t border-white/5 bg-surface-container-lowest dark:bg-[#0d0d0e] font-inter text-xs uppercase tracking-widest text-slate-600 mt-auto">
+    <div class="flex flex-col md:flex-row justify-between items-center px-12 w-full gap-4">
+        <div class="flex items-center gap-8 mb-4 md:mb-0">
+            <span class="font-space-grotesk font-bold text-cyan-400 text-lg">KINETIC</span>
+            <p>© 2024 Kinetic Marketplace. Powered by Algorand.</p>
+        </div>
+        <div class="flex gap-8 items-center">
+            <a class="text-cyan-400 hover:text-cyan-300 transition-colors" href="#">ALGO: $0.18</a>
+            <a class="hover:text-cyan-300 transition-colors" href="#">Total Power: 4.2 TH/s</a>
+            <a class="hover:text-cyan-300 transition-colors" href="#">Privacy</a>
+            <a class="hover:text-cyan-300 transition-colors" href="#">Terms</a>
+        </div>
+    </div>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>KINETIC | Agent Activity & Proofs</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="/static/js/config.js"></script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(53, 52, 54, 0.6);
+            backdrop-filter: blur(24px);
+        }
+        .cyber-gradient {
+            background: linear-gradient(135deg, #e9feff 0%, #00f5ff 100%);
+        }
+        .pulse-glow {
+            box-shadow: 0 0 15px rgba(0, 220, 229, 0.4);
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3a494a; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="w-full top-0 sticky z-50 bg-surface dark:bg-[#131314] shadow-none">
+    <div class="flex justify-between items-center px-8 py-4 max-w-[1920px] mx-auto">
+        <div class="flex items-center gap-8">
+            <a href="/" class="text-2xl font-black italic tracking-tighter text-cyan-400 font-headline">KINETIC</a>
+            <div class="hidden md:flex items-center gap-6 font-headline tracking-tight">
+                <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/">Marketplace</a>
+                <a class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1" href="/activity.html">Activity</a>
+                <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/wallet.html">Wallet</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="px-4 py-1.5 rounded-lg border border-outline-variant/20 text-xs font-mono text-cyan-400 hover:bg-white/5 transition-all">TestNet</button>
+            <button id="connectWalletBtn" class="cyber-gradient text-on-primary px-6 py-2 font-bold rounded-lg transition-all scale-95 active:duration-150 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
+                Connect Wallet
+            </button>
+            <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-cyan-200">settings_ethernet</span>
+        </div>
+    </div>
+</nav>
+
+<div class="flex min-h-screen">
+    <!-- SideNavBar -->
+    <aside class="h-full w-72 left-0 sticky top-[72px] bg-surface-container-low dark:bg-[#1b1b1c] border-r border-cyan-900/20 hidden lg:block">
+        <div class="flex flex-col h-[calc(100vh-72px)] p-6">
+            <div class="mb-8">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center">
+                        <span class="material-symbols-outlined text-cyan-400">speed</span>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-cyan-400 font-headline">Network Filters</h3>
+                        <p class="text-[10px] text-slate-500 font-mono">Algorand TestNet</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="space-y-2 flex-1">
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-200 hover:bg-cyan-400/5 transition-all rounded-lg font-inter text-sm" href="/">
+                    <span class="material-symbols-outlined text-lg">memory</span>
+                    Compute Nodes
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-200 hover:bg-cyan-400/5 transition-all rounded-lg font-inter text-sm" href="/providers.html">
+                    <span class="material-symbols-outlined text-lg">dns</span>
+                    GPU Clusters
+                </a>
+                <a class="flex items-center gap-3 px-4 py-3 bg-cyan-400/10 text-cyan-400 rounded-lg font-medium font-inter text-sm" href="/activity.html">
+                    <span class="material-symbols-outlined text-lg">speed</span>
+                    My Provisioning
+                </a>
+            </nav>
+            <div class="mt-auto space-y-4 pt-6">
+                <button class="w-full py-3 rounded-lg bg-surface-container-high text-cyan-400 text-sm font-bold border border-cyan-400/20 hover:bg-cyan-400/10 transition-all">
+                    Optimize Performance
+                </button>
+                <div class="space-y-1">
+                    <a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-slate-200 text-xs uppercase tracking-widest" href="#">
+                        <span class="material-symbols-outlined text-sm">settings</span>
+                        Settings
+                    </a>
+                    <a class="flex items-center gap-3 px-4 py-2 text-slate-500 hover:text-slate-200 text-xs uppercase tracking-widest" href="#">
+                        <span class="material-symbols-outlined text-sm">help_outline</span>
+                        Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Canvas -->
+    <main class="flex-1 p-8 overflow-hidden">
+        <div class="max-w-7xl mx-auto space-y-8">
+            <!-- Header / Job Status Panel -->
+            <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-surface-container-low p-6 rounded-xl border border-outline-variant/10 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <span class="material-symbols-outlined text-8xl text-cyan-400">query_stats</span>
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <h2 class="font-headline text-3xl font-bold text-primary mb-1 tracking-tight">Active Compute Cycle</h2>
+                            <p class="text-slate-400 font-mono text-xs mb-6">ID: KINETIC-JOB-99283-X</p>
+                        </div>
+                        <div class="grid grid-cols-3 gap-8">
+                            <div>
+                                <span class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">M2M Stream</span>
+                                <div class="flex items-end gap-1">
+                                    <span class="text-2xl font-headline font-bold text-cyan-400">0.0042</span>
+                                    <span class="text-xs text-slate-400 pb-1">ALGO/sec</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">Compute Power</span>
+                                <div class="flex items-end gap-1">
+                                    <span class="text-2xl font-headline font-bold text-cyan-400">4.2</span>
+                                    <span class="text-xs text-slate-400 pb-1">TH/s</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] uppercase tracking-widest text-slate-500 mb-1">Node Health</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse pulse-glow"></div>
+                                    <span class="text-sm font-mono text-cyan-400">OPERATIONAL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-surface-container-highest p-6 rounded-xl border border-primary-container/20 flex flex-col justify-center items-center text-center">
+                    <div class="mb-4">
+                        <div class="relative inline-block">
+                            <svg class="w-32 h-32 transform -rotate-90">
+                                <circle class="text-surface-container-low" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="4"></circle>
+                                <circle class="text-cyan-400" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364" stroke-dashoffset="120" stroke-width="4"></circle>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="text-2xl font-headline font-bold text-primary">68%</span>
+                                <span class="text-[8px] uppercase text-slate-400 tracking-tighter">Job Progress</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400 italic">"Processing high-density tensor shards..."</p>
+                </div>
+            </section>
+
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                <!-- Vertical Timeline of On-chain Activity -->
+                <section class="xl:col-span-8 space-y-6">
+                    <div class="flex justify-between items-end">
+                        <h3 class="font-headline text-xl font-bold text-primary flex items-center gap-2">
+                            <span class="material-symbols-outlined text-cyan-400">timeline</span>
+                            Proof of Compute Timeline
+                        </h3>
+                        <span class="text-[10px] text-slate-500 font-mono">Live Sync: 124ms</span>
+                    </div>
+                    <div class="relative pl-8 space-y-8 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-gradient-to-b before:from-cyan-400/40 before:via-cyan-400/10 before:to-transparent">
+                        <!-- Timeline Item 1 -->
+                        <div class="relative group">
+                            <div class="absolute -left-[30px] top-1 w-[24px] h-[24px] rounded-full bg-surface-container flex items-center justify-center border border-cyan-400/50 z-10">
+                                <div class="w-2 h-2 bg-cyan-400 rounded-full group-hover:scale-150 transition-transform"></div>
+                            </div>
+                            <div class="glass-panel p-5 rounded-lg border border-outline-variant/5 hover:border-cyan-400/20 transition-all">
+                                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="bg-primary-container/10 text-cyan-400 text-[10px] font-mono px-2 py-0.5 rounded uppercase">State Hash Generated</span>
+                                            <span class="text-[10px] text-slate-500 font-mono">2 mins ago</span>
+                                        </div>
+                                        <h4 class="text-sm font-medium text-on-surface mb-2">Block #4829103 Validation Complete</h4>
+                                        <div class="flex items-center gap-4 text-[11px] font-mono text-slate-400">
+                                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">key</span> TX: 0x4f...88a2</span>
+                                            <a class="text-cyan-400/60 hover:text-cyan-400 flex items-center gap-1 underline underline-offset-4 decoration-cyan-400/20" href="#">Explorer <span class="material-symbols-outlined text-[10px]">open_in_new</span></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Timeline Item 2 -->
+                        <div class="relative group">
+                            <div class="absolute -left-[30px] top-1 w-[24px] h-[24px] rounded-full bg-surface-container flex items-center justify-center border border-slate-700 z-10">
+                                <div class="w-2 h-2 bg-slate-500 rounded-full group-hover:scale-150 transition-transform"></div>
+                            </div>
+                            <div class="glass-panel p-5 rounded-lg border border-outline-variant/5 hover:border-cyan-400/20 transition-all">
+                                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="bg-surface-container-highest text-slate-400 text-[10px] font-mono px-2 py-0.5 rounded uppercase">Compute Cycle Start</span>
+                                            <span class="text-[10px] text-slate-500 font-mono">15 mins ago</span>
+                                        </div>
+                                        <h4 class="text-sm font-medium text-on-surface mb-2">Resource Allocation: GPU-88v @ 4.2 TH/s</h4>
+                                        <div class="flex items-center gap-4 text-[11px] font-mono text-slate-400">
+                                            <span class="flex items-center gap-1"><span class="material-symbols-outlined text-xs">link</span> TX: 0xa1...2b99</span>
+                                            <a class="text-cyan-400/60 hover:text-cyan-400 flex items-center gap-1 underline underline-offset-4 decoration-cyan-400/20" href="#">Explorer <span class="material-symbols-outlined text-[10px]">open_in_new</span></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Terminal Elements / Logs -->
+                <section class="xl:col-span-4 space-y-6">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-headline text-xl font-bold text-primary flex items-center gap-2">
+                            <span class="material-symbols-outlined text-cyan-400">terminal</span>
+                            Kernel Logs
+                        </h3>
+                        <div class="flex gap-2">
+                            <div class="w-2 h-2 rounded-full bg-error animate-pulse"></div>
+                            <div class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></div>
+                        </div>
+                    </div>
+                    <div class="bg-surface-container-lowest rounded-xl border border-white/5 overflow-hidden flex flex-col h-[600px]">
+                        <div class="bg-surface-container-high px-4 py-2 flex items-center justify-between border-b border-white/5">
+                            <span class="text-[10px] font-mono text-slate-400">agent_main_v2.0.sh</span>
+                            <div class="flex gap-1.5">
+                                <div class="w-2.5 h-2.5 rounded-full bg-white/10"></div>
+                                <div class="w-2.5 h-2.5 rounded-full bg-white/10"></div>
+                            </div>
+                        </div>
+                        <div class="flex-1 p-4 font-mono text-[11px] leading-relaxed overflow-y-auto space-y-1">
+                            <p class="text-cyan-400/80">[SYSTEM] Initializing Kinetic Handshake Protocol...</p>
+                            <p class="text-slate-500">[AUTH] Signature verified via Algorand MainNet.</p>
+                            <p class="text-slate-500">[INFO] Provisioning 4096 CUDA cores.</p>
+                            <p class="text-cyan-400/80">[SUCCESS] Connectivity established at 10Gbps.</p>
+                            <p class="text-slate-500">[PROCESS] Sharding data packet 0x992...</p>
+                            <p class="text-slate-500">[PROCESS] Sharding data packet 0x993...</p>
+                            <p class="text-slate-500">[PROCESS] Sharding data packet 0x994...</p>
+                            <p class="text-tertiary-fixed-dim">[WARN] Thermal threshold reaching 72°C.</p>
+                            <p class="text-slate-500">[INFO] Cooling fan RPM increased to 4500.</p>
+                            <p class="text-slate-500">[PROCESS] Generating ZK-Proof for cycle 442...</p>
+                            <p class="text-cyan-400/80 font-bold">[PROOF] 0x8823f...ab92 confirmed by network.</p>
+                            <p class="text-slate-500">[INFO] Distributing M2M rewards to provider wallet...</p>
+                            <p class="text-primary-fixed-dim">[STREAMS] Payment Stream: +0.00042 ALGO</p>
+                            <p class="text-slate-500">[PROCESS] Sharding data packet 0x995...</p>
+                            <p class="text-slate-500">[PROCESS] Sharding data packet 0x996...</p>
+                            <p class="text-slate-500">[PROCESS] Sharding data packet 0x997...</p>
+                            <p class="text-slate-500">[INFO] Heartbeat signal sent to marketplace oracle.</p>
+                            <p class="animate-pulse inline-block w-1.5 h-4 bg-cyan-400 align-middle ml-1"></p>
+                        </div>
+                        <div class="p-4 bg-surface-container-low border-t border-white/5">
+                            <div class="flex items-center gap-2 text-xs font-mono text-slate-500">
+                                <span class="text-cyan-400">$</span>
+                                <span class="text-slate-300">exec --watch kinetic-monitor</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="w-full py-8 border-t border-white/5 bg-surface-container-lowest dark:bg-[#0d0d0e] mt-auto">
+    <div class="flex flex-col md:flex-row justify-between items-center px-12 w-full mx-auto">
+        <div class="flex flex-col md:flex-row items-center gap-8 mb-4 md:mb-0">
+            <span class="font-headline font-bold text-cyan-400 tracking-tight">KINETIC MARKETPLACE</span>
+            <p class="font-inter text-xs uppercase tracking-widest text-slate-600">© 2024 Kinetic Marketplace. Powered by Algorand.</p>
+        </div>
+        <div class="flex items-center gap-8 font-inter text-xs uppercase tracking-widest">
+            <span class="text-cyan-400">ALGO: $0.18</span>
+            <span class="text-cyan-400">Total Power: 4.2 TH/s</span>
+            <a class="text-slate-600 hover:text-cyan-300 transition-colors" href="#">Privacy</a>
+            <a class="text-slate-600 hover:text-cyan-300 transition-colors" href="#">Terms</a>
+        </div>
+    </div>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -24,6 +24,9 @@ async function loadAllProviders() {
         
         // Render all provider cards
         grid.innerHTML = providers.map(provider => createProviderCardDetailed(provider)).join('');
+        
+        // Add event listeners to provision buttons
+        attachProvisionButtonListeners();
     } catch (error) {
         console.error('Error loading providers:', error);
         const grid = document.getElementById('providerGrid');
@@ -33,12 +36,27 @@ async function loadAllProviders() {
     }
 }
 
+// Attach event listeners to provision buttons
+function attachProvisionButtonListeners() {
+    const buttons = document.querySelectorAll('[data-provider-id]');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            const providerId = this.getAttribute('data-provider-id');
+            const providerName = this.getAttribute('data-provider-name');
+            window.kineticApp.provisionProvider(providerId, providerName);
+        });
+    });
+}
+
 // Create detailed provider card
 function createProviderCardDetailed(provider) {
     const isActive = provider.status === 'active';
     const statusClass = isActive ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-error/10 border-error/20 text-error';
     const statusText = isActive ? 'Active' : 'Reserved';
     const pulseClass = isActive ? 'animate-pulse' : '';
+    const buttonClass = isActive 
+        ? 'px-8 py-3 bg-primary-container text-on-primary-container hover:scale-105 font-black rounded uppercase text-xs tracking-widest active:scale-95 transition-all'
+        : 'px-8 py-3 bg-surface-container-highest text-slate-500 cursor-not-allowed font-black rounded uppercase text-xs tracking-widest';
     
     return `
         <div class="glass-panel border border-outline-variant/10 rounded-xl p-6 glow-hover transition-all relative overflow-hidden group">
@@ -84,9 +102,10 @@ function createProviderCardDetailed(provider) {
                     <span class="text-2xl font-headline font-bold text-primary-container tracking-tight">$${provider.price_per_hour.toFixed(2)}<span class="text-xs text-slate-400 font-normal"> /hr</span></span>
                 </div>
                 <button 
-                    class="px-8 py-3 ${isActive ? 'bg-primary-container text-on-primary-container hover:scale-105' : 'bg-surface-container-highest text-slate-500 cursor-not-allowed'} font-black rounded uppercase text-xs tracking-widest active:scale-95 transition-all"
+                    class="${buttonClass}"
                     ${!isActive ? 'disabled' : ''}
-                    onclick="window.kineticApp.provisionProvider('${provider.id}')"
+                    data-provider-id="${provider.id}"
+                    data-provider-name="${provider.name}"
                 >
                     ${isActive ? 'Rent' : 'In Use'}
                 </button>
