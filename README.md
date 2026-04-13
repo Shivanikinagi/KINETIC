@@ -10,7 +10,7 @@ A decentralized marketplace for high-performance computing resources built on th
 - **Automated Payments**: Machine-to-machine payment streams via Algorand
 - **Agent-Based Orchestration**: Autonomous job matching and execution
 - **Modern UI**: Kinetic design system with glassmorphism and quantum aesthetics
-- **Wallet Integration**: Pera Wallet and Defly support
+- **Wallet Integration**: Pera Wallet and Defly support 
 
 ## 🏗️ Architecture
 

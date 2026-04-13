@@ -1,5 +1,10 @@
 // Providers page specific logic
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize wallet
+    if (window.walletManager) {
+        await window.walletManager.initialize();
+    }
+    
     await loadAllProviders();
     setupWalletConnection();
 });
@@ -120,10 +125,14 @@ function setupWalletConnection() {
     if (!connectBtn) return;
     
     connectBtn.addEventListener('click', async () => {
-        if (window.kineticApp.walletConnected()) {
-            window.kineticApp.disconnectWallet();
+        if (window.walletManager) {
+            if (window.walletManager.isConnected()) {
+                await window.walletManager.disconnect();
+            } else {
+                await window.walletManager.connect();
+            }
         } else {
-            await window.kineticApp.connectWallet();
+            alert('Wallet SDK not loaded. Please refresh the page.');
         }
     });
 }

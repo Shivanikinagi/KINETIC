@@ -75,6 +75,15 @@ async def status():
     return HTMLResponse("<h1>Status</h1><p>Page not found</p>", status_code=404)
 
 
+@app.get("/sdk-test.html")
+async def sdk_test():
+    """Serve the SDK test page"""
+    test_file = WEB_DIR / "sdk-test.html"
+    if test_file.exists():
+        return FileResponse(test_file)
+    return HTMLResponse("<h1>SDK Test</h1><p>Page not found</p>", status_code=404)
+
+
 @app.get("/health")
 async def health():
     """Health check endpoint"""

@@ -35,6 +35,7 @@ agent/spend_log.db
 # Docker / LocalNet data
 data/
 *.pid
+node_modules/
 
 # OS/editor noise
 .DS_Store

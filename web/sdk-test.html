@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SDK Test - Kinetic Marketplace</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #131314;
+            color: #e5e2e3;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #00f5ff20; border: 1px solid #00f5ff; }
+        .error { background: #ff000020; border: 1px solid #ff0000; }
+        button {
+            background: #00f5ff;
+            color: #003739;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+    </style>
+    
+    <!-- Algorand SDK (Local) -->
+    <script src="/static/js/algosdk.min.js"></script>
+    
+    <!-- Pera Wallet SDK (Local) -->
+    <script src="/static/js/pera-wallet.js"></script>
+</head>
+<body>
+    <h1>🔍 SDK Loading Test</h1>
+    <p>This page tests if the Algorand and Pera Wallet SDKs are loading correctly.</p>
+    
+    <div id="results"></div>
+    
+    <h2>Actions:</h2>
+    <button onclick="testConnection()">Test Pera Wallet Connection</button>
+    <button onclick="location.href='/'">Go to Homepage</button>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(message, isSuccess) {
+            const div = document.createElement('div');
+            div.className = 'status ' + (isSuccess ? 'success' : 'error');
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        // Test on load
+        window.addEventListener('load', function() {
+            console.log('Testing SDKs...');
+            
+            // Test Algorand SDK
+            if (typeof algosdk !== 'undefined') {
+                addResult('✅ Algorand SDK loaded successfully', true);
+                console.log('algosdk version:', algosdk.ALGORAND_MIN_TX_FEE);
+            } else {
+                addResult('❌ Algorand SDK failed to load', false);
+            }
+            
+            // Test Pera Wallet SDK
+            if (typeof PeraWalletConnect !== 'undefined') {
+                addResult('✅ Pera Wallet SDK loaded successfully', true);
+                console.log('PeraWalletConnect:', PeraWalletConnect);
+            } else {
+                addResult('❌ Pera Wallet SDK failed to load', false);
+            }
+            
+            // Test initialization
+            try {
+                if (typeof PeraWalletConnect !== 'undefined') {
+                    const peraWallet = new PeraWalletConnect({
+                        chainId: 416002
+                    });
+                    addResult('✅ Pera Wallet initialized successfully', true);
+                    console.log('Pera Wallet instance:', peraWallet);
+                }
+            } catch (error) {
+                addResult('❌ Failed to initialize Pera Wallet: ' + error.message, false);
+                console.error(error);
+            }
+        });
+        
+        // Test connection
+        async function testConnection() {
+            try {
+                addResult('🔄 Attempting to connect to Pera Wallet...', true);
+                
+                const peraWallet = new PeraWalletConnect({
+                    chainId: 416002
+                });
+                
+                const accounts = await peraWallet.connect();
+                
+                if (accounts && accounts.length > 0) {
+                    addResult('✅ Connected! Address: ' + accounts[0], true);
+                    console.log('Connected accounts:', accounts);
+                } else {
+                    addResult('❌ No accounts returned', false);
+                }
+            } catch (error) {
+                addResult('❌ Connection failed: ' + error.message, false);
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>

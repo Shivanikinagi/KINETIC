@@ -3,13 +3,17 @@ const API_BASE_URL = window.location.origin.includes('localhost') || window.loca
     ? 'http://localhost:8000'
     : window.location.origin;
 
-// Wallet State
-let walletConnected = false;
-let walletAddress = null;
-
 // Initialize the app
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Kinetic Marketplace initialized');
+    
+    // Wait for wallet manager to be available
+    await waitForWalletManager();
+    
+    // Initialize real wallet
+    if (window.walletManager) {
+        await window.walletManager.initialize();
+    }
     
     // Load providers on homepage
     if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
@@ -20,6 +24,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Setup wallet connection
     setupWalletConnection();
 });
+
+// Wait for wallet manager to be available
+function waitForWalletManager() {
+    return new Promise((resolve) => {
+        if (window.walletManager) {
+            resolve();
+            return;
+        }
+        
+        const checkInterval = setInterval(() => {
+            if (window.walletManager) {
+                clearInterval(checkInterval);
+                resolve();
+            }
+        }, 100);
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+            clearInterval(checkInterval);
+            resolve();
+        }, 5000);
+    });
+}
 
 // Load featured providers from API
 async function loadFeaturedProviders() {
@@ -144,90 +171,120 @@ function setupWalletConnection() {
     if (!connectBtn) return;
     
     connectBtn.addEventListener('click', async () => {
-        if (walletConnected) {
-            disconnectWallet();
+        if (window.walletManager) {
+            if (window.walletManager.isConnected()) {
+                await window.walletManager.disconnect();
+            } else {
+                await window.walletManager.connect();
+            }
         } else {
-            await connectWallet();
+            showNotification('Wallet SDK not loaded. Please refresh the page.', 'error');
         }
     });
 }
 
-// Connect wallet (placeholder - integrate with Pera/Defly later)
-async function connectWallet() {
-    try {
-        // TODO: Integrate with @txnlab/use-wallet or similar
-        // For now, simulate connection
-        walletConnected = true;
-        walletAddress = 'ALGO...TESTNET';
-        
-        const connectBtn = document.getElementById('connectWalletBtn');
-        if (connectBtn) {
-            connectBtn.textContent = 'Connected';
-            connectBtn.classList.add('bg-green-500');
-        }
-        
-        console.log('Wallet connected (simulated)');
-    } catch (error) {
-        console.error('Error connecting wallet:', error);
-        alert('Failed to connect wallet. Please try again.');
-    }
-}
-
-// Disconnect wallet
-function disconnectWallet() {
-    walletConnected = false;
-    walletAddress = null;
-    
-    const connectBtn = document.getElementById('connectWalletBtn');
-    if (connectBtn) {
-        connectBtn.textContent = 'Connect Wallet';
-        connectBtn.classList.remove('bg-green-500');
-    }
-    
-    console.log('Wallet disconnected');
-}
-
 // Provision a provider
-function provisionProvider(providerId, providerName) {
-    if (!walletConnected) {
-        // Show a styled notification instead of alert
+async function provisionProvider(providerId, providerName) {
+    if (!window.walletManager || !window.walletManager.isConnected()) {
         showNotification('Please connect your wallet first', 'warning');
         return;
     }
     
-    console.log('Provisioning provider:', providerId);
-    
-    // Show success notification
-    showNotification(`Provisioning ${providerName || providerId}...`, 'info');
-    
-    // Simulate provisioning process
-    setTimeout(() => {
+    try {
+        console.log('Provisioning provider:', providerId);
+        
+        // Get provider details
+        const response = await fetch(`${API_BASE_URL}/providers`);
+        const providers = await response.json();
+        const provider = providers.find(p => p.id === providerId);
+        
+        if (!provider) {
+            showNotification('Provider not found', 'error');
+            return;
+        }
+        
+        // Show loading notification
+        showNotification(`Preparing transaction for ${providerName || providerId}...`, 'info');
+        
+        // Create payment transaction
+        const walletAddress = window.walletManager.getAddress();
+        const algodClient = getAlgodClient();
+        const params = await algodClient.getTransactionParams().do();
+        
+        // Calculate amount (price per hour in ALGO)
+        const amountInAlgos = provider.price_per_hour;
+        const amountInMicroAlgos = Math.floor(amountInAlgos * 1000000);
+        
+        // Create transaction
+        const txn = window.algosdk.makePaymentTxnWithSuggestedParamsFromObject({
+            from: walletAddress,
+            to: 'ESCROW_ADDRESS_PLACEHOLDER', // TODO: Replace with actual escrow contract address
+            amount: amountInMicroAlgos,
+            note: new Uint8Array(Buffer.from(`Provision:${providerId}`)),
+            suggestedParams: params
+        });
+        
+        // Sign transaction with wallet
+        const signedTxn = await window.walletManager.signTransaction([{txn: txn, signers: [walletAddress]}]);
+        
+        // Send transaction
+        const { txId } = await algodClient.sendRawTransaction(signedTxn).do();
+        
         showNotification(`
-✅ Provisioning Request Submitted!
+✅ Transaction Submitted!
 
 Provider: ${providerName || providerId}
+Amount: ${amountInAlgos} ALGO
+Transaction ID: ${txId.slice(0, 8)}...
 
-Next Steps:
-• Smart contract integration pending
-• Escrow will hold funds
-• Payment streams will be initiated
-
-This is currently a UI demonstration.
+Waiting for confirmation...
         `.trim(), 'success');
-    }, 1000);
-    
-    // TODO: Integrate with escrow contract
-    // Example flow:
-    // 1. Create escrow transaction
-    // 2. Sign with wallet
-    // 3. Submit to blockchain
-    // 4. Monitor job status
+        
+        // Wait for confirmation
+        const confirmedTxn = await window.algosdk.waitForConfirmation(algodClient, txId, 4);
+        
+        showNotification(`
+✅ Provisioning Complete!
+
+Provider: ${providerName || providerId}
+Block: ${confirmedTxn['confirmed-round']}
+Transaction: ${txId}
+
+Your compute resources are being allocated.
+        `.trim(), 'success');
+        
+        console.log('Transaction confirmed:', confirmedTxn);
+        
+    } catch (error) {
+        console.error('Error provisioning provider:', error);
+        
+        if (error.message.includes('rejected')) {
+            showNotification('Transaction rejected by user', 'error');
+        } else if (error.message.includes('insufficient')) {
+            showNotification('Insufficient balance in wallet', 'error');
+        } else {
+            showNotification(`Failed to provision: ${error.message}`, 'error');
+        }
+    }
 }
 
-// Show notification
+// Get Algod client
+function getAlgodClient() {
+    const server = 'https://testnet-api.algonode.cloud';
+    const port = '';
+    const token = '';
+    
+    return new window.algosdk.Algodv2(token, server, port);
+}
+
+// Show notification (use wallet.js implementation)
 function showNotification(message, type = 'info') {
-    // For now, use alert - can be replaced with a toast notification library
-    alert(message);
+    if (window.walletManager && window.walletManager.showNotification) {
+        window.walletManager.showNotification(message, type);
+    } else {
+        // Fallback to alert
+        alert(message);
+    }
 }
 
 // Export functions for use in other pages
@@ -235,9 +292,7 @@ window.kineticApp = {
     API_BASE_URL,
     loadFeaturedProviders,
     loadMarketStats,
-    connectWallet,
-    disconnectWallet,
     provisionProvider,
-    walletConnected: () => walletConnected,
-    walletAddress: () => walletAddress
+    getAlgodClient,
+    showNotification
 };

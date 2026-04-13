@@ -1,0 +1,27 @@
+{
+  "name": "kinetic-marketplace-web",
+  "version": "1.0.0",
+  "description": "Kinetic Marketplace - P2P Compute Marketplace Frontend",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 3000",
+    "build": "vite build",
+    "preview": "vite preview --port 3000"
+  },
+  "keywords": [
+    "algorand",
+    "blockchain",
+    "marketplace",
+    "compute"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@perawallet/connect": "^1.5.2",
+    "algosdk": "^3.5.2",
+    "buffer": "^6.0.3"
+  },
+  "devDependencies": {
+    "vite": "^8.0.8"
+  }
+}
