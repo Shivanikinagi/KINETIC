@@ -274,6 +274,14 @@ async def agent_proofs() -> dict:
 
 @app.post("/agent/run")
 async def run_agent(payload: dict) -> dict:
+    settings = _load_settings()
+
+    requested_tokens = _to_int(str(payload.get("tokens", 100)), 100)
+    max_tokens = _to_int(str(settings.get("max_job_tokens", 2000)), 2000)
+    safe_tokens = max(1, min(requested_tokens, max_tokens))
+
+    provider_endpoint = str(payload.get("provider_endpoint") or settings.get("provider_endpoint") or "").strip()
+
     python_executable = os.getenv("PYTHON_EXECUTABLE", sys.executable)
     cmd = [
         python_executable,
@@ -281,12 +289,31 @@ async def run_agent(payload: dict) -> dict:
         "--type",
         str(payload.get("type", "inference")),
         "--tokens",
-        str(payload.get("tokens", 100)),
+        str(safe_tokens),
         "--payload",
         str(payload.get("payload", "demo")),
     ]
-    proc = subprocess.Popen(cmd, cwd=str(ROOT))
-    return {"started": True, "pid": proc.pid}
+
+    preferred_provider_endpoint = str(payload.get("preferred_provider_endpoint") or provider_endpoint).strip()
+    if preferred_provider_endpoint:
+        cmd.extend(["--provider-endpoint", preferred_provider_endpoint])
+
+    env = os.environ.copy()
+    if provider_endpoint:
+        env["PROVIDER_ENDPOINT"] = provider_endpoint
+    env["AGENT_DAILY_BUDGET_MICROALGO"] = str(
+        _to_int(str(settings.get("daily_budget_microalgo", env.get("AGENT_DAILY_BUDGET_MICROALGO", "5000000"))), 5000000)
+    )
+
+    proc = subprocess.Popen(cmd, cwd=str(ROOT), env=env)
+    return {
+        "started": True,
+        "pid": proc.pid,
+        "dispatch_mode": "agent_to_agent",
+        "payment_mode": "x402_m2m",
+        "tokens": safe_tokens,
+        "provider_endpoint": provider_endpoint,
+    }
 
 
 @app.get("/agent/settings")
@@ -304,3 +331,53 @@ async def update_agent_settings(payload: dict) -> dict:
             normalized[key] = str(value)
     saved = _save_settings(normalized)
     return {"ok": True, "settings": saved}
+
+
+# ─── Phase 5: Verification & Distribution Endpoints ───────────────────────
+
+@app.post("/agent/verify")
+async def verify_job(payload: dict) -> dict:
+    """Verify a compute job result and generate a proof certificate."""
+    from scripts.verification_system import ComputeVerifier
+
+    verifier = ComputeVerifier()
+    task = payload.get("task", {})
+    result = payload.get("result", {})
+    verification = verifier.verify_job_output(task, result)
+    certificate = verifier.generate_proof_certificate(verification)
+    verification["certificate"] = certificate
+    return verification
+
+
+@app.get("/agent/provider-scores")
+async def provider_scores() -> list[dict]:
+    """Get provider reputation scores from verification history."""
+    from scripts.verification_system import SLAEnforcer
+
+    enforcer = SLAEnforcer()
+    logs = _parse_logs(500)
+
+    for entry in logs:
+        msg = entry.get("message", "")
+        if "Job completed" in msg or "ESCROW_RELEASED" in msg:
+            provider = entry.get("provider_endpoint", "unknown")
+            enforcer.record_job(provider, {
+                "verified": "ESCROW_RELEASED" in msg,
+                "hash_match": True,
+                "within_sla": True,
+                "duration_ms": 200,
+            })
+
+    provider_ids = list(enforcer.provider_records.keys())
+    return [enforcer.get_provider_score(pid) for pid in provider_ids]
+
+
+@app.post("/agent/distribute-badges")
+async def distribute_badges(payload: dict) -> dict:
+    """Distribute badges to qualifying providers."""
+    from scripts.verification_system import BadgeDistributor
+
+    distributor = BadgeDistributor()
+    provider_scores_data = payload.get("provider_scores", [])
+    results = distributor.process_distribution(provider_scores_data)
+    return {"distributed": len(results), "results": results}

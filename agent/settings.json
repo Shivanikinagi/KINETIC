@@ -1,0 +1,7 @@
+{
+  "daily_budget_microalgo": 5000000,
+  "max_job_tokens": 2000,
+  "default_task_type": "inference",
+  "provider_endpoint": "http://localhost:8001",
+  "agent_bridge_url": "http://localhost:3001"
+}

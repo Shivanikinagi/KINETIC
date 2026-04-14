@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from api.payment_verifier import verify_payment
+from api.wallet_utils import resolve_provider_wallet
 
 
 class X402Middleware(BaseHTTPMiddleware):
@@ -23,10 +24,19 @@ class X402Middleware(BaseHTTPMiddleware):
         if request.method != "POST" or request.url.path != "/job":
             return await call_next(request)
 
-        provider_wallet = os.getenv("PROVIDER_WALLET", "")
+        provider_wallet = resolve_provider_wallet()
         price_per_token = int(os.getenv("JOB_PRICE_PER_TOKEN_MICROALGO", "100"))
         algod_url = os.getenv("ALGOD_URL", "https://testnet-api.algonode.cloud")
         algod_token = os.getenv("ALGOD_TOKEN", "")
+
+        if not provider_wallet:
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": "provider_wallet_not_configured",
+                    "message": "Set PROVIDER_WALLET or PROVIDER_MNEMONIC in backend environment",
+                },
+            )
 
         raw_body = await request.body()
         try:

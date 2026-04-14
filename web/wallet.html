@@ -14,7 +14,7 @@
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols_Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <script src="/static/js/config.js"></script>
     <style>
         .material-symbols-outlined {
@@ -36,6 +36,7 @@
         <div class="hidden md:flex gap-8 items-center">
             <a class="text-slate-600 hover:text-cyan-200 transition-colors font-inter text-sm font-medium" href="/">Marketplace</a>
             <a class="text-slate-600 hover:text-cyan-200 transition-colors font-inter text-sm font-medium" href="/activity.html">Activity</a>
+            <a class="text-slate-600 hover:text-cyan-200 transition-colors font-inter text-sm font-medium" href="/dashboard.html">Dashboard</a>
             <a class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1 font-inter text-sm" href="/wallet.html">Wallet</a>
         </div>
     </div>
@@ -92,50 +93,50 @@
         <!-- Hero Stats Row -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-12 mt-8">
             <!-- Wallet & Balance Card -->
-            <div class="md:col-span-5 bg-surface-container-low p-8 relative overflow-hidden group">
+            <div class="md:col-span-5 bg-surface-container-low p-6 md:p-8 relative overflow-hidden group rounded-2xl border border-white/5">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <span class="material-symbols-outlined text-8xl text-primary">account_balance_wallet</span>
                 </div>
                 <div class="relative z-10">
                     <p class="font-headline text-xs uppercase tracking-widest text-slate-400 mb-2">Available Balance</p>
                     <div class="flex items-baseline gap-2">
-                        <h2 class="text-5xl font-black font-headline text-primary">14,208.50</h2>
-                        <span class="text-xl font-bold text-cyan-400/60 uppercase">ALGO</span>
+                        <h2 class="text-4xl font-black font-headline text-primary">14,208.50</h2>
+                        <span class="text-lg font-bold text-cyan-400/60 uppercase">ALGO</span>
                     </div>
                     <div class="mt-8 flex gap-3">
-                        <button class="flex-grow py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold rounded-sm text-xs uppercase tracking-widest hover:brightness-110 transition-all">Deposit Funds</button>
-                        <a class="px-4 flex items-center justify-center bg-surface-container-highest text-cyan-400 hover:text-white transition-all" href="#">
+                        <button class="flex-grow py-3 bg-gradient-to-r from-primary to-primary-container text-on-primary font-bold rounded-lg text-xs uppercase tracking-widest hover:brightness-110 transition-all">Deposit Funds</button>
+                        <a class="px-4 rounded-lg flex items-center justify-center bg-surface-container-highest text-cyan-400 hover:text-white transition-all" href="#">
                             <span class="material-symbols-outlined">faucet</span>
                         </a>
                     </div>
-                    <p class="mt-4 font-mono text-[10px] text-slate-500 truncate bg-surface-container-lowest p-2">ADDR: BK4P...7RX2-TESTNET</p>
+                    <p class="mt-4 font-mono text-[10px] text-slate-500 bg-surface-container-lowest p-2 rounded border border-white/5 inline-block">ADDR: BK4P...7RX2</p>
                 </div>
             </div>
             <!-- Analytic Widgets -->
-            <div class="md:col-span-3 bg-surface-container-low p-8 flex flex-col justify-between">
+            <div class="md:col-span-3 bg-surface-container-low p-6 md:p-8 flex flex-col justify-between rounded-2xl border border-white/5">
                 <div>
                     <p class="font-headline text-xs uppercase tracking-widest text-slate-400 mb-2">Total Compute Spent</p>
                     <h3 class="text-3xl font-bold font-headline text-on-surface">3,492.12</h3>
-                    <p class="text-[10px] text-slate-500 mt-1">LIFETIME USAGE</p>
+                    <p class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">Lifetime Usage</p>
                 </div>
             </div>
-            <div class="md:col-span-4 bg-surface-container-low p-8 border-l border-cyan-400/5">
+            <div class="md:col-span-4 bg-surface-container-low p-6 md:p-8 rounded-2xl border border-white/5">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="font-headline text-xs uppercase tracking-widest text-slate-400 mb-2">Uptime Score</p>
-                        <h3 class="text-6xl font-black font-headline text-primary-fixed-dim">99.8<span class="text-2xl">%</span></h3>
+                        <h3 class="text-5xl font-black font-headline text-primary-fixed-dim">99.8<span class="text-2xl">%</span></h3>
                     </div>
-                    <div class="w-12 h-12 rounded-full border-2 border-primary-fixed-dim/20 flex items-center justify-center">
-                        <div class="w-3 h-3 rounded-full bg-primary-fixed-dim animate-pulse"></div>
+                    <div class="w-10 h-10 rounded-full border border-primary-fixed-dim/20 flex items-center justify-center bg-primary-fixed-dim/5">
+                        <div class="w-2 h-2 rounded-full bg-primary-fixed-dim animate-pulse"></div>
                     </div>
                 </div>
                 <div class="mt-8 space-y-2">
                     <div class="flex justify-between text-[10px] uppercase tracking-tighter">
-                        <span class="text-slate-500">Node Status: Operational</span>
-                        <span class="text-cyan-400">12 Active Nodes</span>
+                        <span class="text-slate-500">Global Operational</span>
+                        <span class="text-cyan-400 font-bold">12 Active Nodes</span>
                     </div>
-                    <div class="w-full bg-surface-container-lowest h-1">
-                        <div class="bg-primary-fixed-dim h-full w-[99.8%]"></div>
+                    <div class="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-primary-fixed-dim h-full w-[99.8%] shadow-[0_0_10px_rgba(0,245,255,0.8)]"></div>
                     </div>
                 </div>
             </div>
@@ -146,7 +147,7 @@
             <div class="flex justify-between items-end mb-8">
                 <div>
                     <h2 class="text-4xl font-black font-headline tracking-tighter uppercase italic">Transaction Ledger</h2>
-                    <p class="text-slate-500 text-sm mt-2">Comprehensive audit trail of decentralized compute rentals.</p>
+                    <p class="text-slate-500 text-sm mt-2">Audit trail of decentralized compute rentals.</p>
                 </div>
             </div>
             <!-- Table -->

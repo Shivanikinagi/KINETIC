@@ -158,7 +158,14 @@ async function signTransaction(txn) {
     
     try {
         if (walletProvider === 'pera' && peraWallet) {
-            const signedTxn = await peraWallet.signTransaction([txn]);
+            const requests = Array.isArray(txn) ? txn : [txn];
+            const signedTxn = await peraWallet.signTransaction(requests);
+
+            if (Array.isArray(signedTxn)) {
+                const signedOnly = signedTxn.filter(Boolean);
+                return signedOnly.length === 1 ? signedOnly[0] : signedOnly;
+            }
+
             return signedTxn;
         }
         

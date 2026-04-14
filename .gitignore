@@ -22,10 +22,14 @@ venv/
 env/
 
 # Node / frontend
+node_modules/
+web/node_modules/
 frontend/node_modules/
+dist/
 frontend/dist/
+.vite/
 frontend/.vite/
-frontend/*.tsbuildinfo
+*.tsbuildinfo
 
 # Logs and runtime artifacts
 *.log
@@ -35,10 +39,30 @@ agent/spend_log.db
 # Docker / LocalNet data
 data/
 *.pid
-node_modules/
 
 # OS/editor noise
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+
+# Temporary documentation (keep only essential docs)
+BUTTONS_FIXED.md
+WALLET_FIX.md
+WALLET_TROUBLESHOOTING.md
+FIXES_APPLIED.md
+INTEGRATION_COMPLETE.md
+INTEGRATION_SUMMARY.md
+SETUP_COMPLETE.md
+FINAL_STATUS.md
+START_MANUALLY.md
+
+# Build artifacts
+*.pyc
+*.pyo
+*.so
+*.dylib
+*.dll
+*.exe
+build/
+dist/

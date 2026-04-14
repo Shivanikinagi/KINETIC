@@ -280,6 +280,14 @@ class ComputeAgent:
             raise RuntimeError("No providers found in registry")
 
         ranked = job_matcher.score_providers(self.task, providers)
+
+        preferred_endpoint = str(self.task.get("preferred_provider_endpoint", "")).strip().rstrip("/")
+        if preferred_endpoint:
+            preferred = [p for p in ranked if str(p.get("endpoint", "")).rstrip("/") == preferred_endpoint]
+            if preferred:
+                ranked = preferred + [p for p in ranked if p not in preferred]
+                self.log(f"Preferred provider selected: {preferred_endpoint}")
+
         self.log(f"Found {len(ranked)} providers, trying in ranked order")
 
         for provider in ranked:
@@ -310,6 +318,9 @@ class ComputeAgent:
             except BudgetExceededError as exc:
                 self.log(f"Budget exceeded: {exc}")
                 raise
+            except Exception as exc:
+                self.log(f"Provider {provider['endpoint']} network/execution failure: {exc.__class__.__name__}, trying next")
+                continue
 
         raise RuntimeError("All providers failed")
 
@@ -333,6 +344,7 @@ if __name__ == "__main__":
     parser.add_argument("--tokens", type=int, default=500)
     parser.add_argument("--payload", default="Hello world test payload")
     parser.add_argument("--vram", type=int, default=4)
+    parser.add_argument("--provider-endpoint", default="")
     args = parser.parse_args()
 
     task = {
@@ -340,6 +352,7 @@ if __name__ == "__main__":
         "tokens": args.tokens,
         "payload": args.payload,
         "required_vram": args.vram,
+        "preferred_provider_endpoint": args.provider_endpoint,
     }
 
     agent = ComputeAgent(

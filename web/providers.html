@@ -49,6 +49,7 @@
             <div class="hidden md:flex gap-8 items-center">
                 <a class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1" href="/providers.html">Marketplace</a>
                 <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/activity.html">Activity</a>
+                <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/dashboard.html">Dashboard</a>
                 <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/wallet.html">Wallet</a>
             </div>
         </div>
@@ -76,15 +77,15 @@
                 <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">GPU Model</label>
                 <div class="space-y-2">
                     <label class="flex items-center gap-3 group cursor-pointer">
-                        <input class="form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+                        <input value="H100" class="gpu-checkbox form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
                         <span class="text-on-surface-variant group-hover:text-primary transition-colors">NVIDIA H100</span>
                     </label>
                     <label class="flex items-center gap-3 group cursor-pointer">
-                        <input checked class="form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
-                        <span class="text-primary font-medium">NVIDIA RTX 4090</span>
+                        <input value="RTX" class="gpu-checkbox form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+                        <span class="text-on-surface-variant group-hover:text-primary transition-colors">NVIDIA RTX 4090</span>
                     </label>
                     <label class="flex items-center gap-3 group cursor-pointer">
-                        <input class="form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
+                        <input value="A100" class="gpu-checkbox form-checkbox bg-surface-container rounded border-outline-variant text-primary-container focus:ring-primary-container" type="checkbox"/>
                         <span class="text-on-surface-variant group-hover:text-primary transition-colors">NVIDIA A100 (80GB)</span>
                     </label>
                 </div>
@@ -93,26 +94,26 @@
             <section>
                 <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">VRAM Capacity</label>
                 <div class="flex flex-wrap gap-2">
-                    <button class="px-3 py-1 bg-surface-container-highest text-primary text-xs rounded-full border border-primary-container/30">8GB</button>
-                    <button class="px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">16GB</button>
-                    <button class="px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">24GB+</button>
-                    <button class="px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">48GB+</button>
+                    <button data-vram="8" class="vram-btn px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">8GB</button>
+                    <button data-vram="16" class="vram-btn px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">16GB</button>
+                    <button data-vram="24" class="vram-btn px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">24GB+</button>
+                    <button data-vram="48" class="vram-btn px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant">48GB+</button>
                 </div>
             </section>
             <!-- Price Range -->
             <section>
                 <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">Price per Hour ($)</label>
-                <input class="w-full accent-primary-container bg-surface-container rounded-lg h-1.5 appearance-none cursor-pointer" type="range"/>
+                <input id="priceFilter" min="0.15" max="4.50" step="0.05" value="4.50" class="w-full accent-primary-container bg-surface-container rounded-lg h-1.5 appearance-none cursor-pointer" type="range"/>
                 <div class="flex justify-between mt-2 text-[10px] font-mono text-slate-500">
                     <span>$0.15</span>
-                    <span>$4.50</span>
+                    <span id="priceDisplay">$4.50</span>
                 </div>
             </section>
             <!-- Verification -->
             <section>
                 <label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">Verification Status</label>
                 <label class="inline-flex items-center cursor-pointer">
-                    <input class="sr-only peer" type="checkbox"/>
+                    <input id="verifiedFilter" class="sr-only peer" type="checkbox"/>
                     <div class="relative w-11 h-6 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-container"></div>
                     <span class="ml-3 text-sm font-medium text-slate-400">Verified Providers Only</span>
                 </label>
@@ -128,7 +129,7 @@
         <header class="flex justify-between items-end mb-12">
             <div>
                 <h1 class="text-4xl font-headline font-bold text-primary tracking-tight">Compute Resources</h1>
-                <p class="text-on-surface-variant mt-2 max-w-xl">Provision on-demand high-performance GPU nodes directly from independent operators worldwide. Secure, verifiable, and instant.</p>
+                <p class="text-on-surface-variant mt-2 max-w-xl">Provision high-performance GPU nodes instantly. Verifiable and secure.</p>
             </div>
             <div class="flex gap-4">
                 <div class="flex flex-col items-end">

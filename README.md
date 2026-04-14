@@ -1,273 +1,211 @@
-# KINETIC - P2P Algorand Compute Marketplace
+# Kinetic - Decentralized P2P Compute Marketplace
 
-A decentralized marketplace for high-performance computing resources built on the Algorand blockchain. Provision GPUs, CPUs, and storage instantly with cryptographic proof of compute and automated payments.
+> A fully autonomous, peer-to-peer marketplace for high-performance computing resources built on Algorand blockchain.
 
-## 🌟 Features
+[![Algorand](https://img.shields.io/badge/Algorand-TestNet-00D1FF?style=flat&logo=algorand)](https://testnet.algoexplorer.io/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 
-- **Decentralized Compute Marketplace**: Browse and rent GPU/CPU resources from independent providers
-- **Algorand Smart Contracts**: Escrow, registry, and badge minting contracts
-- **Proof of Compute**: Cryptographic verification of work completion
-- **Automated Payments**: Machine-to-machine payment streams via Algorand
-- **Agent-Based Orchestration**: Autonomous job matching and execution
-- **Modern UI**: Kinetic design system with glassmorphism and quantum aesthetics
-- **Wallet Integration**: Pera Wallet and Defly support 
+## 🌟 Overview
+
+Kinetic is a decentralized marketplace where anyone can rent or provide GPU/CPU compute resources. Built on Algorand, it features:
+
+- **True P2P Architecture** - No central server, providers and consumers connect directly
+- **Autonomous Agents** - Zero human intervention, agents handle everything
+- **Cryptographic Proofs** - Verifiable proof-of-compute at every step
+- **Real-Time Updates** - Live job status via Server-Sent Events
+- **Smart Contract Escrow** - Secure payments with automatic release
 
 ## 🏗️ Architecture
 
-```
-p2p-compute-marketplace/
-├── web/              # Static HTML frontend with Stitch design system
-├── api/              # FastAPI backend
-├── agent/            # Autonomous agent for job orchestration
-├── contracts/        # Algorand smart contracts (PyTeal)
-└── scripts/          # Deployment and utility scripts
-```
+### Decentralized by Design
+
+Kinetic operates as a truly decentralized network:
+
+1. **Permissionless Provider Registration**
+   - Any hardware operator can join by registering on-chain
+   - No central authority approval needed
+   - Provider info stored in Algorand smart contract
+
+2. **Autonomous Discovery**
+   - Consumer agents query blockchain registry
+   - Automatic health checks and ranking
+   - Direct P2P connection to best provider
+
+3. **Ephemeral Wallets**
+   - Users generate local autonomous wallets
+   - Agents handle micro-transactions independently
+   - No central wallet management
 
 ### Components
 
-1. **Frontend (Static HTML + Vanilla JS)**
-   - Stitch Algorand Compute Exchange design system
-   - Tailwind CSS via CDN
-   - Wallet integration (Pera, Defly)
-   - Real-time provider marketplace
-   - Transaction ledger and activity monitoring
-
-2. **Backend API (FastAPI)**
-   - Provider registration and discovery
-   - Job submission and execution
-   - Payment verification
-   - Heartbeat and telemetry
-
-3. **Agent (Python)**
-   - Autonomous job matching
-   - Budget management
-   - Proof verification
-   - Payment orchestration
-
-4. **Smart Contracts (Algorand)**
-   - Provider Registry
-   - Escrow Contract
-   - Badge Minter (reputation system)
+```
+├── api/              # FastAPI backend with SSE
+├── agent/            # Autonomous job orchestration
+├── contracts/        # Algorand smart contracts (PyTeal)
+├── web/              # Real-time frontend (Vite + ES modules)
+└── docs/             # Documentation
+```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.8+
-- Algorand wallet (Pera or Defly)
-- AlgoKit (optional, for contract deployment)
+- Node.js 16+ (for frontend)
+- Algorand wallet (Pera Wallet)
 
 ### Installation
 
-1. **Clone the repository**
 ```bash
+# Clone repository
 git clone <repository-url>
 cd p2p-compute-marketplace
-```
 
-2. **Setup Environment**
-```bash
-# Create virtual environment
-python -m venv .venv
-
-# Activate (Windows PowerShell)
-.\.venv\Scripts\Activate.ps1
-
-# Activate (Linux/Mac)
-source .venv/bin/activate
-
-# Install dependencies
+# Install Python dependencies
 pip install -e .
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your configuration
+# Install frontend dependencies
+cd web
+npm install
 ```
 
-3. **Start the Marketplace**
+### Running
 
-**Option 1: One-Command Startup (Recommended)**
-
-Windows PowerShell:
-```powershell
-.\start_marketplace.ps1
-```
-
-Linux/Mac:
+**Terminal 1 - Backend:**
 ```bash
-chmod +x start_marketplace.sh
-./start_marketplace.sh
+python -m uvicorn api.main:app --reload
 ```
 
-**Option 2: Manual Startup**
-
-Terminal 1 - Backend API:
+**Terminal 2 - Frontend:**
 ```bash
-python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+cd web
+npm run dev
 ```
 
-Terminal 2 - Frontend Server:
-```bash
-python web/server.py
-```
-
-4. **Access the Application**
+**Access:**
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 
-## 📖 Usage
+## 📖 Features
 
-### As a Consumer
+### For Consumers
 
-1. **Connect Wallet**: Click "Connect Wallet" and select Pera or Defly
-2. **Browse Providers**: Navigate to the marketplace to see available compute resources
-3. **Provision Resources**: Select a provider and click "Rent" to start a compute job
-4. **Monitor Activity**: View real-time job progress and proofs in the Activity page
-5. **Track Spending**: Check transaction history and balance in Transactions page
+- Browse available compute providers
+- Real-time pricing and availability
+- One-click provisioning with Pera Wallet
+- Live job progress monitoring
+- Cryptographic proof of execution
+- Automatic payment from escrow
 
-### As a Provider
+### For Providers
 
-1. **Register**: Configure your provider details in `.env`
-```env
-PROVIDER_WALLET=YOUR_ALGORAND_ADDRESS
-PROVIDER_GPU_MODEL=RTX4090
-PROVIDER_VRAM_GB=24
-PROVIDER_ENDPOINT=https://your-endpoint.com
-```
+- Register on-chain permissionlessly
+- Set your own pricing
+- Automatic job matching
+- Proof generation for trust
+- Instant payment on completion
 
-2. **Start Provider API**
-```bash
-python -m uvicorn api.main:app --host 0.0.0.0 --port 8000
-```
+### For Developers
 
-3. **Register on Chain**: Deploy provider info to the registry contract
-```bash
-python scripts/register_provider.py
-```
+- RESTful API with OpenAPI docs
+- Server-Sent Events for real-time updates
+- Comprehensive proof system
+- Smart contract integration
+- Extensible agent framework
 
-### Running the Agent
+## 🔐 Proof of Compute
 
-The agent autonomously matches jobs and manages payments:
+Every job generates a cryptographic proof chain:
 
-```bash
-python -m agent.orchestrator
-```
+1. Job Received ✓
+2. Escrow Locked ✓
+3. Resources Allocated ✓
+4. Execution Started ✓
+5. Processing (with checkpoints) ✓
+6. Execution Completed ✓
+7. Results Verified ✓
+8. Proof Generated ✓
+9. Payment Released ✓
 
-Configure agent settings:
-```env
-AGENT_WALLET_MNEMONIC=your 25 word mnemonic
-AGENT_MAX_BUDGET_ALGO=100
-AGENT_JOB_REQUIREMENTS={"gpu_model": "RTX4090", "min_vram_gb": 16}
-```
+Each step is:
+- Hashed with SHA-256
+- Linked to previous step
+- Broadcast in real-time
+- Independently verifiable
 
-## 🔧 Configuration
+See [docs/PROOF_SYSTEM.md](docs/PROOF_SYSTEM.md) for details.
 
-### Environment Variables
+## 📡 Real-Time Updates
 
-**Backend (.env)**
-```env
-# Algorand
-ALGOD_SERVER=https://testnet-api.algonode.cloud
-ALGOD_TOKEN=
-INDEXER_SERVER=https://testnet-idx.algonode.cloud
+The system provides live updates via Server-Sent Events:
 
-# Provider
-PROVIDER_WALLET=YOUR_ADDRESS
-PROVIDER_GPU_MODEL=RTX4090
-PROVIDER_VRAM_GB=24
-PROVIDER_ENDPOINT=https://your-endpoint.com
-JOB_PRICE_PER_TOKEN_MICROALGO=100
+- Job status changes
+- Progress updates (0-100%)
+- Proof generation
+- Payment transactions
+- Provider availability
 
-# Agent
-AGENT_WALLET_MNEMONIC=your mnemonic
-AGENT_MAX_BUDGET_ALGO=100
-```
+Connect to `/realtime/stream` to receive all events.
 
-**Frontend**
-
-The frontend automatically detects the API URL:
-- Development: http://localhost:8000
-- Production: Same origin as frontend
-
-No additional configuration needed.
-
-## 📝 Smart Contracts
+## 🎯 Smart Contracts
 
 ### Provider Registry
-Stores provider information and reputation scores.
+Stores provider information and reputation on-chain.
 
 ### Escrow Contract
-Holds funds in escrow until job completion is verified.
+Holds funds until job completion is verified.
 
 ### Badge Minter
-Issues reputation badges (NFTs) to providers based on performance.
+Issues reputation NFTs to providers.
 
-### Deployment
-
+Deploy contracts:
 ```bash
-# Deploy all contracts
 python contracts/deploy.py
-
-# Or use AlgoKit
-algokit deploy
 ```
 
-## 🧪 Testing
+## 📚 Documentation
 
-```bash
-# Backend tests
-pytest
+- [Quick Start Guide](docs/QUICKSTART.md)
+- [Proof System](docs/PROOF_SYSTEM.md)
+- [Real-Time Implementation](docs/REALTIME_IMPLEMENTATION.md)
+- [Deployment Guide](docs/DEPLOYMENT.md)
+- [API Reference](http://localhost:8000/docs)
 
-# Test API endpoints
-curl http://localhost:8000/health
-curl http://localhost:8000/providers
-```
+## 🛠️ Technology Stack
 
-## 📊 API Documentation
+**Backend:**
+- FastAPI - Modern Python web framework
+- Uvicorn - ASGI server
+- sse-starlette - Server-Sent Events
+- py-algorand-sdk - Algorand integration
 
-Once the backend is running, visit:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+**Frontend:**
+- Vite - Fast build tool
+- ES Modules - Modern JavaScript
+- Pera Wallet Connect - Wallet integration
+- Tailwind CSS - Styling
 
-### Key Endpoints
-
-- `GET /providers` - List all providers
-- `POST /job` - Submit a compute job
-- `GET /agent/status` - Agent status
-- `GET /telemetry` - Provider telemetry
-- `GET /health` - Health check
-
-## 🎨 Design System
-
-The frontend uses the **Stitch Algorand Compute Exchange** design system:
-
-- **Colors**: Deep obsidian backgrounds (#131314) with electric cyan accents (#00f5ff, #e9feff)
-- **Typography**: Space Grotesk (headlines), Inter (body), JetBrains Mono (code)
-- **Effects**: Glassmorphism, gradients, and subtle animations
-- **Layout**: Spatial layering with nested surface containers
-- **Philosophy**: "The Quantum Ledger" - high-end editorial feel for blockchain infrastructure
-
-See `web/README.md` and `stitch_algorand_compute_exchange/algorand_compute_terminal/DESIGN.md` for detailed design guidelines.
-
-## 🔐 Security
-
-- All transactions are signed with Algorand wallets
-- Smart contracts enforce payment and verification logic
-- Provider endpoints can be protected with X-402 payment headers
-- Agent wallets should use separate accounts with limited funds
+**Blockchain:**
+- Algorand TestNet
+- PyTeal - Smart contracts
+- AlgoNode API - Blockchain access
 
 ## 🤝 Contributing
+
+Contributions are welcome! Please:
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests
+4. Add tests if applicable
 5. Submit a pull request
 
 ## 📄 License
 
-MIT License - see LICENSE file for details
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -277,10 +215,12 @@ MIT License - see LICENSE file for details
 
 ## 📞 Support
 
-- Documentation: [Link to docs]
-- Issues: [GitHub Issues]
-- Discord: [Community link]
+- Documentation: [docs/](docs/)
+- Issues: [GitHub Issues](../../issues)
+- API Docs: http://localhost:8000/docs
 
 ---
 
-Built with ❤️ on Algorand
+**Built with ❤️ on Algorand**
+
+*Kinetic Marketplace - Decentralized Compute for Everyone*
