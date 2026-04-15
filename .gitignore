@@ -106,13 +106,21 @@ CHANGELOG.md
 PROJECT_SUBMISSION.md
 
 # ============================================================
-# Deployment Scripts (keep local only)
+# Deployment and Setup Scripts (keep local only)
 # ============================================================
 deploy-vercel.ps1
-start_*.ps1
-start_*.sh
+start_agent_bridge.ps1
+start_agent_bridge.sh
+start_all_services.ps1
+start_marketplace.ps1
+start_marketplace.sh
 setup.ps1
 setup.sh
+
+# ============================================================
+# Docker (optional - uncomment if not using)
+# ============================================================
+docker-compose.yml
 
 # ============================================================
 # Build Artifacts
