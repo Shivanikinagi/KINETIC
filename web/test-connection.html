@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinetic - Connection Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #00ffff; }
+        .test { 
+            margin: 20px 0; 
+            padding: 15px; 
+            background: #1a1a1a; 
+            border-left: 4px solid #00ff00;
+        }
+        .test.error { border-left-color: #ff0000; color: #ff6666; }
+        .test.success { border-left-color: #00ff00; }
+        .test.pending { border-left-color: #ffff00; color: #ffff66; }
+        pre { 
+            background: #000; 
+            padding: 10px; 
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        button {
+            background: #00ffff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        button:hover { background: #00cccc; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Kinetic Backend Connection Test</h1>
+    <p>Testing connectivity to backend API...</p>
+    
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="location.href='/activity.html'">Go to Activity Page</button>
+    
+    <div id="results"></div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        async function runTest(name, testFn) {
+            const resultsDiv = document.getElementById('results');
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test pending';
+            testDiv.innerHTML = `<strong>${name}</strong><br>Testing...`;
+            resultsDiv.appendChild(testDiv);
+            
+            try {
+                const result = await testFn();
+                testDiv.className = 'test success';
+                testDiv.innerHTML = `<strong>✅ ${name}</strong><br>${result}`;
+            } catch (error) {
+                testDiv.className = 'test error';
+                testDiv.innerHTML = `<strong>❌ ${name}</strong><br>Error: ${error.message}`;
+            }
+        }
+        
+        async function runAllTests() {
+            document.getElementById('results').innerHTML = '';
+            
+            // Test 1: Health endpoint
+            await runTest('Health Check', async () => {
+                const response = await fetch(`${API_BASE}/health`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                return `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+            
+            // Test 2: Providers endpoint
+            await runTest('Providers List', async () => {
+                const response = await fetch(`${API_BASE}/providers`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                return `Found ${data.length} providers<pre>${JSON.stringify(data[0], null, 2)}</pre>`;
+            });
+            
+            // Test 3: Jobs endpoint
+            await runTest('Jobs List', async () => {
+                const response = await fetch(`${API_BASE}/jobs?limit=5`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                return `Found ${data.length} jobs<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+            
+            // Test 4: Analytics endpoint
+            await runTest('Analytics', async () => {
+                const response = await fetch(`${API_BASE}/analytics`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                return `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+            
+            // Test 5: Network stats
+            await runTest('Network Stats', async () => {
+                const response = await fetch(`${API_BASE}/network/stats`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
+                return `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            });
+            
+            // Test 6: SSE Connection
+            await runTest('SSE Stream Connection', async () => {
+                return new Promise((resolve, reject) => {
+                    const eventSource = new EventSource(`${API_BASE}/realtime/stream`);
+                    const timeout = setTimeout(() => {
+                        eventSource.close();
+                        reject(new Error('Connection timeout after 5 seconds'));
+                    }, 5000);
+                    
+                    eventSource.onopen = () => {
+                        clearTimeout(timeout);
+                        eventSource.close();
+                        resolve('SSE connection successful!');
+                    };
+                    
+                    eventSource.onerror = (error) => {
+                        clearTimeout(timeout);
+                        eventSource.close();
+                        reject(new Error('SSE connection failed'));
+                    };
+                    
+                    eventSource.addEventListener('connected', (event) => {
+                        clearTimeout(timeout);
+                        const data = JSON.parse(event.data);
+                        eventSource.close();
+                        resolve(`Connected: ${data.message}`);
+                    });
+                });
+            });
+        }
+        
+        // Auto-run tests on load
+        window.addEventListener('DOMContentLoaded', runAllTests);
+    </script>
+</body>
+</html>

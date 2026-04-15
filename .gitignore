@@ -1,9 +1,16 @@
-# Environment and secrets
+# ============================================================
+# Environment and Secrets
+# ============================================================
 .env
 .env.local
 .env.*.local
+*.key
+*.pem
+*mnemonic*
 
+# ============================================================
 # Python
+# ============================================================
 __pycache__/
 *.py[cod]
 *.pyo
@@ -15,13 +22,21 @@ __pycache__/
 .coverage
 coverage.xml
 htmlcov/
+*.pyc
+*.so
+*.dylib
 
-# Virtual environments
+# ============================================================
+# Virtual Environments
+# ============================================================
 .venv/
 venv/
 env/
+ENV/
 
-# Node / frontend
+# ============================================================
+# Node / Frontend
+# ============================================================
 node_modules/
 web/node_modules/
 frontend/node_modules/
@@ -30,23 +45,47 @@ frontend/dist/
 .vite/
 frontend/.vite/
 *.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
 
-# Logs and runtime artifacts
+# ============================================================
+# Databases and Logs
+# ============================================================
 *.log
+*.db
+*.sqlite
+*.sqlite3
 agent/agent.log
 agent/spend_log.db
+data/jobs.db
 
-# Docker / LocalNet data
-data/
+# ============================================================
+# Runtime Artifacts
+# ============================================================
 *.pid
+balances.txt
+out.txt
+run_out.txt
+deploy_out.txt
+check_bals.py
 
-# OS/editor noise
+# ============================================================
+# OS and Editor
+# ============================================================
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+*.swp
+*.swo
+*~
 
-# Temporary documentation (keep only essential docs)
+# ============================================================
+# Temporary/Generated Documentation
+# ============================================================
 BUTTONS_FIXED.md
 WALLET_FIX.md
 WALLET_TROUBLESHOOTING.md
@@ -56,13 +95,48 @@ INTEGRATION_SUMMARY.md
 SETUP_COMPLETE.md
 FINAL_STATUS.md
 START_MANUALLY.md
+FIXED_ISSUES.md
+FUND_WALLET.md
+SERVICES_GUIDE.md
 
-# Build artifacts
-*.pyc
-*.pyo
-*.so
-*.dylib
-*.dll
+# ============================================================
+# Build Artifacts
+# ============================================================
 *.exe
+*.dll
 build/
 dist/
+*.egg
+
+# ============================================================
+# Test Files
+# ============================================================
+test_*.py
+*_test.py
+tests/
+.pytest_cache/
+
+# ============================================================
+# Docker
+# ============================================================
+*.pid
+docker-compose.override.yml
+
+# ============================================================
+# Vercel
+# ============================================================
+.vercel
+
+# ============================================================
+# Git
+# ============================================================
+.git/
+*.orig
+
+# ============================================================
+# Backup Files
+# ============================================================
+*.bak
+*.backup
+*.old
+*~

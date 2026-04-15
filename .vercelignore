@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.db
+*.log
+agent/spend_log.db
+agent/agent.log
+data/jobs.db
+balances.txt
+out.txt
+run_out.txt
+deploy_out.txt
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Scripts (not needed for deployment)
+scripts/
+setup.sh
+setup.ps1
+start_*.sh
+start_*.ps1
+check_*.ps1
+
+# Git
+.git/
+.gitignore
+
+# Testing
+.pytest_cache/
+tests/
