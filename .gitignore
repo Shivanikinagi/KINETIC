@@ -98,6 +98,21 @@ START_MANUALLY.md
 FIXED_ISSUES.md
 FUND_WALLET.md
 SERVICES_GUIDE.md
+CLEANUP_SUMMARY.md
+PROJECT_STRUCTURE.md
+VERCEL_DEPLOYMENT.md
+CONTRIBUTING.md
+CHANGELOG.md
+PROJECT_SUBMISSION.md
+
+# ============================================================
+# Deployment Scripts (keep local only)
+# ============================================================
+deploy-vercel.ps1
+start_*.ps1
+start_*.sh
+setup.ps1
+setup.sh
 
 # ============================================================
 # Build Artifacts
