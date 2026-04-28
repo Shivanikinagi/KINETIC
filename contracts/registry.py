@@ -9,6 +9,8 @@ class ProviderInfo(arc4.Struct):
     uptime_score: UInt64
     active: UInt64
     badge_app_id: UInt64
+    org_name: arc4.DynamicBytes
+    logo_url: arc4.DynamicBytes
 
 
 class ProviderRegistry(ARC4Contract):
@@ -28,6 +30,8 @@ class ProviderRegistry(ARC4Contract):
         gpu_model: arc4.DynamicBytes,
         price_per_hour: UInt64,
         endpoint_url: arc4.DynamicBytes,
+        org_name: arc4.DynamicBytes,
+        logo_url: arc4.DynamicBytes,
     ) -> None:
         # TODO: Replace this creator bypass with inner app call to BadgeMinter.verify_badge.
         assert Txn.sender == Global.creator_address or self.badge_app_id > UInt64(0), "badge check failed"
@@ -40,6 +44,8 @@ class ProviderRegistry(ARC4Contract):
             uptime_score=UInt64(100),
             active=UInt64(1),
             badge_app_id=self.badge_app_id,
+            org_name=org_name.copy(),
+            logo_url=logo_url.copy(),
         )
 
     @arc4.abimethod
@@ -54,6 +60,8 @@ class ProviderRegistry(ARC4Contract):
             uptime_score=data.uptime_score,
             active=UInt64(0),
             badge_app_id=data.badge_app_id,
+            org_name=data.org_name.copy(),
+            logo_url=data.logo_url.copy(),
         )
 
     @arc4.abimethod
@@ -71,6 +79,8 @@ class ProviderRegistry(ARC4Contract):
             uptime_score=score,
             active=data.active,
             badge_app_id=data.badge_app_id,
+            org_name=data.org_name.copy(),
+            logo_url=data.logo_url.copy(),
         )
 
     @arc4.abimethod(readonly=True)

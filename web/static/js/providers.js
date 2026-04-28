@@ -12,97 +12,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     await loadAllProviders();
     setupWalletConnection();
-    setupFilters();
 });
-
-let allProviders = [];
-
-// Filter state
-const filters = {
-    gpus: [],
-    minVram: 0,
-    maxPrice: 4.50,
-    verifiedOnly: false
-};
-
-function setupFilters() {
-    // GPU Checkboxes
-    document.querySelectorAll('.gpu-checkbox').forEach(cb => {
-        cb.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                filters.gpus.push(e.target.value);
-            } else {
-                filters.gpus = filters.gpus.filter(v => v !== e.target.value);
-            }
-            applyFilters();
-        });
-        if (cb.checked) filters.gpus.push(cb.value);
-    });
-
-    // VRAM Buttons
-    document.querySelectorAll('.vram-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.vram-btn').forEach(b => {
-                b.className = 'vram-btn px-3 py-1 bg-surface-container text-on-surface-variant text-xs rounded-full border border-transparent hover:border-outline-variant';
-            });
-            e.target.className = 'vram-btn px-3 py-1 bg-surface-container-highest text-primary text-xs rounded-full border border-primary-container/30';
-            filters.minVram = parseInt(e.target.getAttribute('data-vram'));
-            applyFilters();
-        });
-    });
-
-    // Price Slider
-    const priceFilter = document.getElementById('priceFilter');
-    const priceDisplay = document.getElementById('priceDisplay');
-    if (priceFilter) {
-        priceFilter.addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            priceDisplay.textContent = `$${val.toFixed(2)}`;
-            filters.maxPrice = val;
-            applyFilters();
-        });
-    }
-
-    // Verified Toggle
-    const verifiedFilter = document.getElementById('verifiedFilter');
-    if (verifiedFilter) {
-        verifiedFilter.addEventListener('change', (e) => {
-            filters.verifiedOnly = e.target.checked;
-            applyFilters();
-        });
-    }
-}
-
-function applyFilters() {
-    const grid = document.getElementById('providerGrid');
-    if (!grid) return;
-
-    const filtered = allProviders.filter(p => {
-        // Verified
-        if (filters.verifiedOnly && (!p.verified_member)) return false;
-        // Price
-        if (p.price_per_hour > filters.maxPrice) return false;
-        // VRAM
-        if (p.vram_gb < filters.minVram) return false;
-        // GPU
-        if (filters.gpus.length > 0) {
-            let match = false;
-            for (const gpu of filters.gpus) {
-                if (p.gpu_model.includes(gpu)) match = true;
-            }
-            if (!match) return false;
-        }
-        return true;
-    });
-
-    if (filtered.length === 0) {
-        grid.innerHTML = '<p class="text-slate-500 col-span-full text-center py-12">No nodes found matching your filters.</p>';
-        return;
-    }
-
-    grid.innerHTML = filtered.map(provider => createProviderCardDetailed(provider)).join('');
-    attachProvisionButtonListeners();
-}
 
 // Wait for wallet manager to be available
 function waitForWalletManager() {
@@ -134,9 +44,10 @@ async function loadAllProviders() {
         if (!response.ok) throw new Error('Failed to fetch providers');
         
         const providers = await response.json();
-        allProviders = providers;
-        
+        const grid = document.getElementById('providerGrid');
         const nodesOnlineEl = document.getElementById('nodesOnline');
+        
+        if (!grid) return;
         
         // Update nodes online count
         if (nodesOnlineEl) {
@@ -144,8 +55,11 @@ async function loadAllProviders() {
             nodesOnlineEl.textContent = activeCount.toLocaleString();
         }
         
-        // Initial render
-        applyFilters();
+        // Render all provider cards
+        grid.innerHTML = providers.map(provider => createProviderCardDetailed(provider)).join('');
+        
+        // Add event listeners to provision buttons
+        attachProvisionButtonListeners();
     } catch (error) {
         console.error('Error loading providers:', error);
         const grid = document.getElementById('providerGrid');
@@ -173,6 +87,9 @@ function createProviderCardDetailed(provider) {
     const statusClass = isActive ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-error/10 border-error/20 text-error';
     const statusText = isActive ? 'Active' : 'Reserved';
     const pulseClass = isActive ? 'animate-pulse' : '';
+    const orgBadge = provider.org_name
+        ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 border rounded bg-cyan-500/10 text-cyan-300 border-cyan-400/30"><span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">business</span>✓ ${provider.org_name}</span>`
+        : '';
     const isVerifiedMember = provider.verified_member !== false;
     const verifiedText = isVerifiedMember ? 'Verified Member' : 'Unverified';
     const verifiedClass = isVerifiedMember
@@ -196,12 +113,15 @@ function createProviderCardDetailed(provider) {
                 </div>
             </div>
             <div class="flex gap-4 mb-6">
-                <div class="w-14 h-14 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary-container border border-primary-container/20">
-                    <span class="material-symbols-outlined text-3xl">memory</span>
+                <div class="w-14 h-14 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary-container border border-primary-container/20 overflow-hidden">
+                    ${provider.logo_url 
+                        ? `<img src="${provider.logo_url}" class="w-full h-full object-contain p-2" alt="${provider.org_name || provider.name} logo">` 
+                        : `<span class="material-symbols-outlined text-3xl">memory</span>`}
                 </div>
                 <div>
                     <h3 class="text-lg font-headline font-bold text-on-surface leading-tight">${provider.name}</h3>
                     <div class="flex items-center gap-2 text-[10px] font-mono mt-2 uppercase">
+                        ${orgBadge}
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 border rounded ${verifiedClass}">
                             <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">school</span>
                             ${verifiedText}

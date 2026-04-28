@@ -100,6 +100,9 @@ function createProviderCard(provider) {
     const uptime = Number(provider.uptime || 0);
     const uptimePercent = Math.max(0, Math.min(100, uptime));
     const uptimeBarClass = uptimePercent >= 99 ? 'bg-green-400' : uptimePercent >= 95 ? 'bg-yellow-400' : 'bg-red-400';
+    const orgBadge = provider.org_name
+        ? `<div class="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded bg-cyan-500/15 text-cyan-300 text-[10px] uppercase tracking-wider border border-cyan-400/25">✓ ${provider.org_name}</div>`
+        : '';
 
     const statusBadge = provider.status === 'active' 
         ? '<div class="bg-cyan-400/10 text-cyan-400 px-2 py-1 rounded text-[10px] font-bold">VERIFIED</div>'
@@ -122,6 +125,7 @@ function createProviderCard(provider) {
                     <div>
                         <h3 class="text-xl font-bold text-primary">${provider.name}</h3>
                         <p class="text-xs font-mono text-cyan-400/70">Provider: ${provider.id}</p>
+                        ${orgBadge}
                         <p class="text-[10px] font-mono mt-2 ${isVerifiedMember ? 'text-cyan-400' : 'text-slate-500'} uppercase">
                             ${isVerifiedMember ? 'Verified Member • ARC-3 Soulbound Badge' : 'No Campus Badge'}
                         </p>
@@ -225,116 +229,49 @@ async function runAutonomousProvision(provider) {
     return response.json();
 }
 
-function createTerminalOverlay(providerName) {
-    const overlay = document.createElement('div');
-    overlay.id = 'agent-terminal-overlay';
-    overlay.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center pointer-events-auto transition-opacity duration-300';
-    overlay.innerHTML = `
-        <div class="bg-[#0b0c10] border border-cyan-500/30 w-full max-w-3xl rounded-xl shadow-[0_0_50px_rgba(0,255,255,0.1)] overflow-hidden flex flex-col font-mono text-sm h-[500px] mb-12">
-            <div class="bg-cyan-500/10 border-b border-cyan-500/30 px-6 py-4 flex justify-between items-center text-cyan-400">
-                <span class="flex items-center gap-3 font-bold tracking-widest"><span class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></span>KINETIC ON-CHAIN COMPUTE TERMINAL</span>
-                <span class="text-xs border border-cyan-400/30 px-2 py-1 rounded bg-cyan-400/5">X-402 PROTOCOL</span>
-            </div>
-            <div id="term-content" class="p-6 overflow-y-auto flex-1 space-y-3 text-slate-300">
-                <div><span class="text-slate-600">[SYSTEM]</span> Initializing peer-to-peer compute sequence for ${providerName}...</div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-    
-    return function log(msg, type = 'default') {
-        const term = document.getElementById('term-content');
-        if (!term) return;
-        const line = document.createElement('div');
-        const time = new Date().toISOString().split('T')[1].substring(0, 8) + '.' + new Date().getMilliseconds().toString().padStart(3, '0');
-        let color = 'text-slate-300';
-        if (type === 'success') color = 'text-emerald-400 font-bold';
-        if (type === 'error') color = 'text-red-400 font-bold';
-        if (type === 'info') color = 'text-cyan-400';
-        
-        line.innerHTML = `<span class="text-slate-600">[${time}]</span> <span class="${color}">${msg}</span>`;
-        term.appendChild(line);
-        term.scrollTop = term.scrollHeight; // auto scroll
-    }
-}
-
-function removeTerminalOverlay() {
-    const overlay = document.getElementById('agent-terminal-overlay');
-    if (overlay) {
-        overlay.classList.add('opacity-0');
-        setTimeout(() => overlay.remove(), 300);
-    }
-}
-
-// Provision a provider with terminal UI
+// Provision a provider
 export async function provisionProvider(providerId, providerName) {
-    let termLog = () => {};
     try {
         console.log('Autonomous provisioning requested:', providerId);
         
-        termLog = createTerminalOverlay(providerName || providerId);
-        
-        termLog('Fetching provider cluster public keys...', 'info');
-        await new Promise(r => setTimeout(r, 600));
-        
+        // Get provider details
         const response = await fetch(`${API_BASE_URL}/providers`);
-        if (!response.ok) throw new Error('Failed to load providers');
+        if (!response.ok) {
+            throw new Error('Failed to load providers');
+        }
         const providers = await response.json();
         const provider = providers.find(p => p.id === providerId);
         
         if (!provider) {
-            termLog('Error: Provider not found.', 'error');
-            setTimeout(removeTerminalOverlay, 3000);
+            showNotification('Provider not found', 'error');
             return;
         }
-
-        termLog(`Negotiating ARC-3 SLA with agent at [${provider.region}]...`, 'info');
-        await new Promise(r => setTimeout(r, 1200));
         
-        const tokens = Math.max(1, Math.floor(Number(provider?.price_per_hour || 1) * 100));
-        termLog(`Locking ${tokens} microALGO into Kinetic Escrow Smart Contract...`, 'info');
-        await new Promise(r => setTimeout(r, 1500));
-        termLog(`TxID: ${Math.random().toString(36).substring(2, 60).toUpperCase()} [CONFIRMED]`, 'success');
-        
-        termLog(`Dispatching encrypted compute payload via Agent OS...`, 'info');
+        showNotification(`Dispatching autonomous consumer agent for ${providerName || providerId}...`, 'info');
         const runResult = await runAutonomousProvision(provider);
-        termLog(`Agent session running. Virtual PID: ${runResult?.pid || 'n/a'}`);
-        
-        await new Promise(r => setTimeout(r, 1500));
-        termLog('<span class="animate-pulse">Awaiting matrix multiplication execution results...</span>', 'info');
-        await new Promise(r => setTimeout(r, 2500));
-        
-        termLog('Receiving payload... Verifying Sha256 Proof-of-Compute (PoC)', 'info');
-        await new Promise(r => setTimeout(r, 1400));
-        
-        const mockHash = '0x' + Array(64).fill(0).map(()=>Math.floor(Math.random()*16).toString(16)).join('');
-        termLog(`Proof verified matching hash: ${mockHash}`, 'success');
-        
-        termLog('Triggering ALGO release from Escrow to Provider...', 'info');
-        await new Promise(r => setTimeout(r, 1000));
-        termLog(`TxID: ${Math.random().toString(36).substring(2, 60).toUpperCase()} [CONFIRMED]`, 'success');
-        
-        termLog(`✅ JOB FULLY SETTLED ON ALGORAND TESTNET`, 'success');
-        
-        setTimeout(() => {
-            removeTerminalOverlay();
-            showNotification(`
-✅ Job Completed Successfully!
+
+        showNotification(`
+✅ Agent Dispatched!
 
 Provider: ${providerName || providerId}
-Paid: ${tokens} microALGO
-Tx Hash: ${mockHash.substring(0, 16)}...
-            `.trim(), 'success');
-        }, 3000);
+Mode: Agent-to-agent dispatch
+Payments: x402 machine-to-machine
+Agent PID: ${runResult?.pid || 'n/a'}
+
+No human wallet approval required.
+Track execution in Activity.
+        `.trim(), 'success');
+        console.log('Agent dispatch started:', runResult);
         
     } catch (error) {
         console.error('Error provisioning provider:', error);
+
         const message = String(error?.message || error);
-        termLog(`FATAL ERROR: ${message}`, 'error');
         if (message.includes('Failed to fetch') || message.includes('NetworkError')) {
-            termLog('Could not reach Agent Bridge. Please start api/agent_bridge.py on port 3001.', 'error');
+            showNotification('Could not reach Agent Bridge. Start api.agent_bridge on port 3001.', 'error');
+        } else {
+            showNotification(`Autonomous dispatch failed: ${message}`, 'error');
         }
-        setTimeout(removeTerminalOverlay, 5000);
     }
 }
 
@@ -348,85 +285,3 @@ export function showNotification(message, type = 'info') {
     }
 }
 
-
-
-/**
- * Start job execution with proof generation
- */
-async function startJobWithProofs(jobId, providerId, consumerAddress, provider, txId) {
-    try {
-        console.log('Starting job with proofs:', jobId);
-        
-        // Submit job to backend
-        const response = await fetch(`${API_BASE_URL}/job/execute`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                job_id: jobId,
-                provider_id: providerId,
-                consumer_address: consumerAddress,
-                type: 'compute',
-                requirements: {
-                    gpu_model: provider.gpu_model,
-                    vram_gb: provider.vram_gb
-                },
-                payment_amount: provider.price_per_hour,
-                escrow_address: txId
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to start job execution');
-        }
-        
-        const result = await response.json();
-        console.log('Job execution started:', result);
-        
-        showNotification(`
-🚀 Job Execution Started!
-
-Job ID: ${jobId.slice(0, 16)}...
-Provider: ${providerId}
-
-Watch real-time progress on the Activity page!
-        `.trim(), 'info');
-        
-    } catch (error) {
-        console.error('Error starting job with proofs:', error);
-        showNotification(`Failed to start job execution: ${error.message}`, 'error');
-    }
-}
-
-/**
- * Get proof for a job
- */
-export async function getJobProof(jobId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/job/${jobId}/proof`);
-        if (!response.ok) {
-            throw new Error('Failed to get proof');
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error getting job proof:', error);
-        return null;
-    }
-}
-
-/**
- * Verify job proof
- */
-export async function verifyJobProof(jobId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/job/${jobId}/verify`);
-        if (!response.ok) {
-            throw new Error('Failed to verify proof');
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error verifying job proof:', error);
-        return null;
-    }
-}

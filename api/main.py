@@ -2,23 +2,30 @@ from __future__ import annotations
 
 import os
 import time
+import uuid
 from datetime import UTC, datetime
+from typing import Any
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Header, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.heartbeat import get_last_heartbeat, get_telemetry, start_heartbeat
+from api.hub import router as hub_router
 from api.job_runner import run_job
-from api.job_history import record_job, complete_job, get_recent_jobs, get_analytics
+from api.orgs import get_marketplace_org_providers, router as orgs_router
+from api.roadmap_store import RoadmapValidationError, get_roadmap, update_roadmap
 from api.wallet_utils import resolve_provider_wallet
 from api.x402_middleware import X402Middleware
-from api.realtime import router as realtime_router, publish_job_update, publish_proof, publish_payment
-from api.proof_system import proof_generator, execute_job_with_proofs
+
+try:
+    from api.realtime import router as realtime_router
+except Exception:  # pragma: no cover
+    realtime_router = None
 
 
 load_dotenv()
-app = FastAPI(title="P2P Compute Provider API", version="2.0.0")
+app = FastAPI(title="P2P Compute Provider API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,20 +35,28 @@ app.add_middleware(
 )
 app.add_middleware(X402Middleware)
 
-# Include real-time SSE router
-app.include_router(realtime_router, prefix="/realtime", tags=["realtime"])
+app.include_router(orgs_router, prefix="/orgs", tags=["organisations"])
+app.include_router(hub_router, prefix="/hub", tags=["hub"])
+if realtime_router is not None:
+    app.include_router(realtime_router, tags=["realtime"])
 
 start_heartbeat(app)
 
 
 @app.middleware("http")
 async def request_logger(request: Request, call_next):
+    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+    request.state.request_id = request_id
     start = time.perf_counter()
     response = await call_next(request)
     elapsed_ms = int((time.perf_counter() - start) * 1000)
+    response.headers["X-Request-ID"] = request_id
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     print(
-        f"[{datetime.now(UTC).isoformat()}] {request.method} {request.url.path} "
-        f"{response.status_code} {elapsed_ms}ms"
+        f"[{datetime.now(UTC).isoformat()}] req={request_id} "
+        f"{request.method} {request.url.path} {response.status_code} {elapsed_ms}ms"
     )
     return response
 
@@ -55,13 +70,55 @@ async def health() -> dict:
         "provider_wallet": provider_wallet,
         "wallet_configured": bool(provider_wallet),
         "last_heartbeat": get_last_heartbeat(),
-        "version": "2.0.0",
+        "version": "1.0.0",
     }
 
 
 @app.get("/telemetry")
 async def telemetry() -> dict:
     return get_telemetry()
+
+
+@app.get("/roadmap")
+async def roadmap() -> dict:
+    return get_roadmap()
+
+
+def _check_roadmap_admin_key(authorization: str | None, x_admin_key: str | None) -> None:
+    configured_key = os.getenv("ROADMAP_ADMIN_KEY", "").strip()
+    if not configured_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Roadmap admin key is not configured.",
+        )
+
+    bearer_token = ""
+    if authorization:
+        parts = authorization.split(" ", 1)
+        if len(parts) == 2 and parts[0].lower() == "bearer":
+            bearer_token = parts[1].strip()
+
+    provided = (x_admin_key or "").strip() or bearer_token
+    if provided != configured_key:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+
+
+@app.put("/roadmap")
+async def set_roadmap(
+    payload: dict[str, Any],
+    response: Response,
+    authorization: str | None = Header(default=None),
+    x_admin_key: str | None = Header(default=None),
+) -> dict:
+    _check_roadmap_admin_key(authorization, x_admin_key)
+
+    try:
+        updated = update_roadmap(payload)
+    except RoadmapValidationError as error:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(error))
+
+    response.status_code = status.HTTP_200_OK
+    return updated
 
 
 @app.get("/providers")
@@ -83,6 +140,8 @@ async def list_providers() -> list[dict]:
             "payment_address": provider_wallet,
             "verified_member": True,
             "campus_badge": "ARC3_SBT",
+            "org_name": "Ares Compute Ltd",
+            "logo_url": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png",
         },
         {
             "id": "provider_002",
@@ -97,6 +156,8 @@ async def list_providers() -> list[dict]:
             "payment_address": provider_wallet,
             "verified_member": True,
             "campus_badge": "ARC3_SBT",
+            "org_name": "Nebula AI Labs",
+            "logo_url": "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg",
         },
         {
             "id": "provider_003",
@@ -176,6 +237,14 @@ async def list_providers() -> list[dict]:
         provider.setdefault("payment_mode", "x402_m2m")
         provider.setdefault("dispatch_mode", "agent_to_agent")
 
+    providers.extend(get_marketplace_org_providers())
+    providers.sort(
+        key=lambda provider: (
+            0 if provider.get("org_verified") else 1,
+            -float(provider.get("uptime", 0.0)),
+        )
+    )
+
     return providers
 
 
@@ -197,164 +266,5 @@ async def provider_info() -> dict:
 
 @app.post("/job")
 async def submit_job(task: dict, request: Request) -> dict:
-    job_id = task.get("job_id") or getattr(request.state, "job_id", "")
-    task["job_id"] = job_id
-
-    # Record job start
-    record_job(
-        job_id=str(job_id),
-        task_type=str(task.get("type", "inference")),
-        tokens=int(task.get("tokens", 0)),
-        amount_microalgo=int(task.get("tokens", 0)) * int(os.getenv("JOB_PRICE_PER_TOKEN_MICROALGO", "100")),
-        status="running",
-    )
-
-    result = await run_job(task)
-
-    # Record job completion
-    complete_job(
-        job_id=str(job_id),
-        result_hash=str(result.get("result_hash", "")),
-        duration_ms=int(result.get("duration_ms", 0)),
-        status="completed",
-    )
-
-    return result
-
-
-# ─── Phase 3: New Endpoints ──────────────────────────────────────────────────
-
-@app.get("/jobs")
-async def list_jobs(limit: int = 50) -> list[dict]:
-    """List recent jobs with history"""
-    return get_recent_jobs(limit=min(limit, 200))
-
-
-@app.get("/analytics")
-async def analytics_endpoint() -> dict:
-    """Get aggregated analytics about jobs, spending, and performance"""
-    return get_analytics()
-
-
-@app.get("/network/stats")
-async def network_stats() -> dict:
-    """Live network statistics for the marketplace dashboard"""
-    provider_wallet = resolve_provider_wallet()
-    providers = await list_providers()
-    active_count = sum(1 for p in providers if p.get("status") == "active")
-    total_gpus = sum(int(p.get("gpu_count", 0)) for p in providers)
-    total_vram = sum(int(p.get("vram_gb", 0)) for p in providers)
-    avg_price = sum(float(p.get("price_per_hour", 0)) for p in providers) / max(len(providers), 1)
-
-    analytics = get_analytics()
-
-    return {
-        "total_providers": len(providers),
-        "active_providers": active_count,
-        "total_gpus": total_gpus,
-        "total_vram_gb": total_vram,
-        "avg_price_per_hour": round(avg_price, 2),
-        "total_jobs_processed": analytics["total_jobs"],
-        "total_algo_volume": analytics["total_algo_spent"],
-        "network_uptime": 99.97,
-        "timestamp": datetime.now(UTC).isoformat(),
-    }
-
-
-@app.post("/job/execute")
-async def execute_job_endpoint(job_data: dict):
-    """
-    Execute a job with full proof generation and real-time updates
-    
-    Request body:
-    {
-        "job_id": "unique_job_id",
-        "provider_id": "provider_001",
-        "consumer_address": "ALGO_ADDRESS",
-        "type": "compute",
-        "requirements": {"gpu_model": "RTX4090", "vram_gb": 24},
-        "payment_amount": 0.5,
-        "escrow_address": "ESCROW_ADDRESS"
-    }
-    """
-    import asyncio
-    
-    job_id = job_data.get("job_id")
-    provider_id = job_data.get("provider_id")
-    consumer_address = job_data.get("consumer_address")
-    
-    if not all([job_id, provider_id, consumer_address]):
-        return {"error": "Missing required fields"}
-    
-    # Execute job with proofs in background
-    async def execute_with_events():
-        await execute_job_with_proofs(
-            job_id=job_id,
-            provider_id=provider_id,
-            consumer_address=consumer_address,
-            job_data=job_data,
-            publish_event_func=lambda event_type, data: publish_event(event_type, data)
-        )
-    
-    # Helper to publish events
-    async def publish_event(event_type, data):
-        if event_type == "job_update":
-            await publish_job_update(
-                job_id=data["job_id"],
-                status=data["status"],
-                progress=data.get("progress"),
-                details={"message": data.get("message", "")}
-            )
-        elif event_type == "proof":
-            await publish_proof(data)
-        elif event_type == "payment":
-            await publish_payment(
-                tx_id=data["tx_id"],
-                amount=data["amount"],
-                from_addr=data["from"],
-                to_addr=data["to"],
-                details={"message": data.get("message", "")}
-            )
-    
-    # Start execution in background
-    asyncio.create_task(execute_with_events())
-    
-    return {
-        "status": "started",
-        "job_id": job_id,
-        "message": "Job execution started with proof generation"
-    }
-
-
-@app.get("/job/{job_id}/proof")
-async def get_job_proof(job_id: str):
-    """Get the complete proof chain for a job"""
-    proof = proof_generator.get_proof(job_id)
-    
-    if not proof:
-        return {"error": "Proof not found for job"}
-    
-    return proof_generator.export_proof(job_id)
-
-
-@app.get("/job/{job_id}/verify")
-async def verify_job_proof(job_id: str):
-    """Verify the integrity of a job's proof chain"""
-    is_valid = proof_generator.verify_proof_chain(job_id)
-    
-    return {
-        "job_id": job_id,
-        "chain_valid": is_valid,
-        "proof": proof_generator.export_proof(job_id) if is_valid else None
-    }
-
-
-@app.get("/proofs/active")
-async def get_active_proofs():
-    """Get all active proof chains"""
-    return {
-        "active_proofs": [
-            proof_generator.export_proof(job_id)
-            for job_id in proof_generator.active_proofs.keys()
-        ]
-    }
+    task["job_id"] = task.get("job_id") or getattr(request.state, "job_id", "")
+    return await run_job(task)

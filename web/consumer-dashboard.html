@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KINETIC Hub | Consumer Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/static/js/config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-main: #0a1123;
+            --surface: rgba(10, 19, 40, 0.84);
+            --surface-soft: rgba(12, 24, 48, 0.75);
+            --line: rgba(94, 133, 194, 0.3);
+            --text-main: #eaf3ff;
+            --text-muted: #9db3cf;
+            --brand: #37c7e7;
+            --brand-strong: #14b4d0;
+            --good: #35d0a7;
+        }
+
+        body {
+            font-family: Inter, sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(900px 540px at 92% -8%, rgba(39, 198, 231, 0.22), transparent 68%),
+                radial-gradient(760px 600px at -6% 14%, rgba(65, 113, 221, 0.17), transparent 70%),
+                linear-gradient(180deg, #0a1123 0%, #0d172e 100%);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .panel {
+            border-radius: 1rem;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+        }
+
+        .card {
+            border-radius: 0.95rem;
+            border: 1px solid rgba(89, 128, 190, 0.3);
+            background: var(--surface-soft);
+            box-shadow: 0 12px 24px rgba(3, 8, 20, 0.35);
+        }
+
+        .field {
+            width: 100%;
+            border-radius: 0.72rem;
+            border: 1px solid rgba(89, 127, 182, 0.48);
+            background: rgba(2, 10, 25, 0.96);
+            color: var(--text-main);
+            padding: 0.62rem 0.72rem;
+            font-size: 0.95rem;
+        }
+
+        .field::placeholder {
+            color: #7893b8;
+        }
+
+        .field:focus {
+            outline: none;
+            border-color: rgba(58, 198, 231, 0.82);
+            box-shadow: 0 0 0 3px rgba(58, 198, 231, 0.2);
+        }
+
+        .btn-primary {
+            border-radius: 0.72rem;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 100%);
+            color: #06222c;
+            font-weight: 700;
+            padding: 0.62rem 0.9rem;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+    </style>
+</head>
+<body>
+    <header class="max-w-7xl mx-auto px-5 sm:px-7 py-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-cyan-100/65 mb-1">Kinetic Hub</p>
+            <h1 class="text-3xl sm:text-4xl text-cyan-200 font-bold">Consumer Dashboard</h1>
+            <p class="text-slate-300/80">Track jobs, spending, and provider decisions from one workspace.</p>
+        </div>
+        <nav class="flex flex-wrap gap-4 text-sm text-slate-300">
+            <a class="hover:text-cyan-200" href="/explore.html">Explore</a>
+            <a class="hover:text-cyan-200" href="/templates.html">Templates</a>
+            <a class="text-cyan-200 font-semibold" href="/consumer-dashboard.html">Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-5 sm:px-7 pb-10 grid grid-cols-1 xl:grid-cols-12 gap-5">
+        <section class="xl:col-span-8 panel p-4 sm:p-5">
+            <div class="flex flex-wrap sm:flex-nowrap gap-2 mb-4">
+                <input id="consumerId" placeholder="consumer_001" class="field flex-1" />
+                <button id="loadBtn" class="btn-primary min-w-[120px]">Load Dashboard</button>
+            </div>
+
+            <div id="summary" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5"></div>
+
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xl font-semibold">Recent Jobs</h3>
+                <span class="text-xs uppercase tracking-[0.16em] text-slate-300/65">Live history</span>
+            </div>
+            <div id="jobs" class="space-y-2"></div>
+        </section>
+
+        <aside class="xl:col-span-4 space-y-4">
+            <section class="panel p-4 sm:p-5">
+                <h3 class="text-xl font-semibold mb-1">Compare Providers</h3>
+                <p class="text-sm text-slate-300/78 mb-4">Estimate best option by token budget and provider set.</p>
+                <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Provider IDs</label>
+                <input id="compareIds" placeholder="provider_001,provider_002" class="field mt-1 mb-3" />
+                <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Token budget</label>
+                <input id="compareTokens" type="number" min="1" value="1000" class="field mt-1 mb-4" />
+                <button id="compareBtn" class="btn-primary w-full">Compare Providers</button>
+                <pre id="compareResult" class="mono mt-4 text-xs text-slate-200 whitespace-pre-wrap bg-slate-950/60 border border-slate-700/60 rounded-xl p-3 min-h-[82px]"></pre>
+            </section>
+
+            <section class="panel p-4 sm:p-5">
+                <h3 class="text-xl font-semibold mb-1">API Keys</h3>
+                <p class="text-sm text-slate-300/78 mb-4">Generate scoped keys for programmatic job submission.</p>
+                <button id="createKeyBtn" class="btn-primary w-full">Create API Key</button>
+                <pre id="keyResult" class="mono mt-4 text-xs text-slate-200 whitespace-pre-wrap bg-slate-950/60 border border-slate-700/60 rounded-xl p-3 min-h-[82px]"></pre>
+            </section>
+        </aside>
+    </main>
+
+    <script type="module" src="/static/js/consumer-dashboard.js"></script>
+</body>
+</html>

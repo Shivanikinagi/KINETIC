@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>KINETIC | Register Organisation</title>
+    <meta name="description" content="Register your organisation on the KINETIC P2P decentralised compute marketplace. Provide and consume GPU resources on Algorand."/>
+
+    <script>
+        window.global = window.globalThis = window;
+        window.process = { env: {} };
+        window.Buffer = window.Buffer || { isBuffer: () => false };
+    </script>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script src="/static/js/config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0b0d10; }
+        h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; }
+        .glass-panel { background: rgba(18, 22, 28, 0.78); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+        .hero-glow { background: radial-gradient(ellipse 60% 50% at 30% 20%, rgba(0, 245, 255, 0.07), transparent 70%), radial-gradient(ellipse 40% 40% at 80% 80%, rgba(99, 102, 241, 0.05), transparent); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .step-active { background: linear-gradient(135deg, rgba(0, 245, 255, 0.2), rgba(0, 245, 255, 0.05)); border-color: rgba(0, 245, 255, 0.4); }
+        .step-done  { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.4); }
+        .input-field { transition: border-color 0.3s, box-shadow 0.3s; }
+        .input-field:focus { box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.12); }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .float-anim { animation: float 4s ease-in-out infinite; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp 0.5s ease-out both; }
+        .org-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .org-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 245, 255, 0.08); }
+    </style>
+</head>
+<body class="text-slate-200 min-h-screen hero-glow">
+<header class="w-full top-0 sticky bg-[#0b0d10]/90 backdrop-blur-lg z-50 border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-10">
+            <a href="/" class="text-2xl font-black italic tracking-tight text-cyan-400">KINETIC</a>
+            <nav class="hidden md:flex items-center gap-7 text-sm font-medium">
+                <a class="text-slate-400 hover:text-cyan-300 transition-colors" href="/index.html">Marketplace</a>
+                <a class="text-slate-400 hover:text-cyan-300 transition-colors" href="/providers.html">Providers</a>
+                <a class="text-cyan-400 border-b border-cyan-400 pb-1" href="/org-register.html">Organisations</a>
+                <a class="text-slate-400 hover:text-cyan-300 transition-colors" href="/roadmap.html">Roadmap</a>
+                <a class="text-slate-400 hover:text-cyan-300 transition-colors" href="/activity.html">Activity</a>
+                <a class="text-slate-400 hover:text-cyan-300 transition-colors" href="/dashboard.html">Dashboard</a>
+            </nav>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="/org-dashboard.html" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs uppercase tracking-wider transition-all border border-white/10">My Org</a>
+            <button id="connectWalletBtn" class="bg-gradient-to-r from-cyan-500 to-cyan-700 text-white px-5 py-2 rounded-lg font-semibold hover:brightness-110 transition-all">Connect Wallet</button>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-12 space-y-16">
+    <!-- Hero -->
+    <section class="text-center space-y-6 fade-up">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/8 text-cyan-300 text-xs uppercase tracking-[0.18em]">
+            <span class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></span>
+            Two-Sided Participation • Provider + Consumer
+        </div>
+        <h1 class="text-5xl md:text-6xl font-black leading-tight tracking-tight">
+            Register Your <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Organisation</span>
+        </h1>
+        <p class="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+            Join the KINETIC marketplace as a registered organisation. List GPU resources, rent compute from others, 
+            and earn an on-chain verified badge after <strong class="text-cyan-300">50 completed jobs</strong>.
+        </p>
+    </section>
+
+    <!-- Process Steps -->
+    <section class="grid md:grid-cols-3 gap-4 fade-up" style="animation-delay: 0.1s">
+        <div class="step-active border rounded-xl p-5 flex gap-4">
+            <div class="w-10 h-10 rounded-lg bg-cyan-400/15 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-cyan-400" style="font-variation-settings: 'FILL' 1;">edit_note</span>
+            </div>
+            <div>
+                <h4 class="font-bold text-sm">1. Fill Profile</h4>
+                <p class="text-xs text-slate-400 mt-1">Name, description, logo, and connect your Algorand wallet as the owner.</p>
+            </div>
+        </div>
+        <div class="border border-white/10 rounded-xl p-5 flex gap-4 bg-white/[0.02]">
+            <div class="w-10 h-10 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-blue-400" style="font-variation-settings: 'FILL' 1;">cloud_upload</span>
+            </div>
+            <div>
+                <h4 class="font-bold text-sm">2. On-Chain Write</h4>
+                <p class="text-xs text-slate-400 mt-1">Organisation stored in API and written to the Algorand org registry smart contract.</p>
+            </div>
+        </div>
+        <div class="border border-white/10 rounded-xl p-5 flex gap-4 bg-white/[0.02]">
+            <div class="w-10 h-10 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-emerald-400" style="font-variation-settings: 'FILL' 1;">verified</span>
+            </div>
+            <div>
+                <h4 class="font-bold text-sm">3. Start Operating</h4>
+                <p class="text-xs text-slate-400 mt-1">List resources, rent compute, and work toward your verified badge.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Grid: Form + Sidebar -->
+    <div class="grid lg:grid-cols-[1fr_380px] gap-8">
+
+        <!-- Registration Form -->
+        <section class="glass-panel border border-white/10 rounded-2xl p-8 fade-up" style="animation-delay: 0.2s" id="formSection">
+            <h2 class="text-2xl font-bold mb-1">Organisation Profile</h2>
+            <p class="text-sm text-slate-400 mb-8">All fields are stored on-chain via the Algorand Smart Contract.</p>
+
+            <form id="orgRegisterForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-slate-300" for="orgName">Organisation Name <span class="text-red-400">*</span></label>
+                    <input id="orgName" class="input-field w-full rounded-lg bg-black/30 border border-white/10 focus:border-cyan-400 px-4 py-3 text-sm placeholder:text-slate-500" placeholder="e.g. Astra Compute Labs" required type="text" maxlength="80" minlength="2"/>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-slate-300" for="orgDescription">Description <span class="text-red-400">*</span></label>
+                    <textarea id="orgDescription" class="input-field w-full rounded-lg bg-black/30 border border-white/10 focus:border-cyan-400 px-4 py-3 h-28 text-sm placeholder:text-slate-500 resize-none" placeholder="High-performance distributed GPU provider and AI workload renter" required maxlength="600"></textarea>
+                    <p class="text-[11px] text-slate-500 mt-1"><span id="descCharCount">0</span>/600 characters</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-slate-300" for="logoUrl">Logo URL</label>
+                    <div class="flex gap-3 items-center">
+                        <input id="logoUrl" class="input-field flex-1 rounded-lg bg-black/30 border border-white/10 focus:border-cyan-400 px-4 py-3 text-sm placeholder:text-slate-500" placeholder="https://example.com/logo.png" type="url"/>
+                        <div id="logoPreview" class="w-12 h-12 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                            <span class="material-symbols-outlined text-slate-600 text-xl">image</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-slate-300" for="ownerWallet">Owner Wallet <span class="text-red-400">*</span></label>
+                    <div class="flex gap-2">
+                        <input id="ownerWallet" class="input-field flex-1 rounded-lg bg-black/30 border border-white/10 focus:border-cyan-400 px-4 py-3 text-sm font-mono placeholder:text-slate-500" placeholder="Connect Pera Wallet to auto-fill" required type="text" minlength="58" maxlength="58"/>
+                        <button id="useConnectedWalletBtn" class="px-4 py-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-300 text-xs uppercase tracking-wider border border-cyan-400/20 transition-all shrink-0 flex items-center gap-1.5" type="button">
+                            <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
+                            Use Connected
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button id="submitBtn" class="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-slate-950 font-bold uppercase tracking-wider text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
+                        <span class="material-symbols-outlined text-lg">rocket_launch</span>
+                        Register Organisation
+                    </button>
+                </div>
+            </form>
+
+            <div id="registerStatus" class="mt-5 text-sm text-slate-300 min-h-[24px]"></div>
+        </section>
+
+        <!-- Sidebar: Registered Orgs List -->
+        <aside class="space-y-6 fade-up" style="animation-delay: 0.3s">
+            <div class="glass-panel border border-white/10 rounded-2xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-bold">Registered Orgs</h3>
+                    <span id="orgCount" class="text-xs text-slate-400 bg-white/5 px-2 py-1 rounded-full">0 orgs</span>
+                </div>
+                <div id="orgList" class="space-y-3 max-h-[420px] overflow-auto pr-1">
+                    <p class="text-slate-500 text-sm">Loading organisations...</p>
+                </div>
+            </div>
+
+            <div class="glass-panel border border-cyan-900/20 rounded-2xl p-6 space-y-4">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-cyan-400" style="font-variation-settings: 'FILL' 1;">info</span>
+                    How It Works
+                </h3>
+                <ul class="text-xs text-slate-400 space-y-2.5 leading-relaxed">
+                    <li class="flex gap-2"><span class="text-cyan-400 shrink-0">→</span> Your org wallet can both <strong class="text-slate-300">list resources</strong> and <strong class="text-slate-300">rent compute</strong>.</li>
+                    <li class="flex gap-2"><span class="text-cyan-400 shrink-0">→</span> Org resources appear on the main marketplace alongside individual providers.</li>
+                    <li class="flex gap-2"><span class="text-cyan-400 shrink-0">→</span> The autonomous agent handles job matching — orgs use the same pipeline.</li>
+                    <li class="flex gap-2"><span class="text-cyan-400 shrink-0">→</span> Payments flow through the existing escrow contract — no new logic needed.</li>
+                    <li class="flex gap-2"><span class="text-cyan-400 shrink-0">→</span> After <strong class="text-cyan-300">50 jobs</strong>, your org earns a verified badge and priority ranking.</li>
+                </ul>
+                <a href="/org-dashboard.html" class="inline-flex items-center gap-2 text-cyan-300 hover:text-cyan-100 text-sm transition-colors mt-2">
+                    Open Organisation Dashboard
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </a>
+            </div>
+        </aside>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="w-full py-6 border-t border-white/5 bg-[#08090b] mt-16">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-6">
+            <span class="font-bold text-cyan-400 text-sm tracking-tight" style="font-family: 'Space Grotesk'">KINETIC</span>
+            <p class="text-[10px] uppercase tracking-widest text-slate-600">© 2024 Kinetic Marketplace. Powered by Algorand.</p>
+        </div>
+        <div class="flex gap-6 text-[10px] uppercase tracking-widest text-slate-600">
+            <a class="hover:text-cyan-300 transition-colors" href="#">Privacy</a>
+            <a class="hover:text-cyan-300 transition-colors" href="#">Terms</a>
+        </div>
+    </div>
+</footer>
+
+<script type="module" src="/static/js/wallet.js"></script>
+<script type="module" src="/static/js/org-register.js"></script>
+</body>
+</html>

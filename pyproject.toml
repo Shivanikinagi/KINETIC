@@ -17,6 +17,7 @@ dependencies = [
   "pytest",
   "pytest-asyncio",
   "httpx",
+  "requests",
   "psutil",
 ]
 

@@ -1,23 +1,26 @@
-# Kinetic - Decentralized P2P Compute Marketplace
+# Kinetic - The "Hugging Face" of P2P Compute
 
-> A fully autonomous, peer-to-peer marketplace for high-performance computing resources built on Algorand blockchain.
+> A fully autonomous, peer-to-peer marketplace for high-performance computing resources built on the Algorand blockchain.
 
 [![Algorand](https://img.shields.io/badge/Algorand-TestNet-00D1FF?style=flat&logo=algorand)](https://testnet.algoexplorer.io/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 
-## 🌟 Overview
+## 🌟 The Vision
 
-Kinetic is a decentralized marketplace where anyone can rent or provide GPU/CPU compute resources. Built on Algorand, it features:
+Kinetic aims to be the **"Hugging Face" of decentralized compute**—a professional, high-trust marketplace where organizations and individuals seamlessly rent and supply GPU/CPU compute resources. 
 
-- **True P2P Architecture** - No central server, providers and consumers connect directly
-- **Autonomous Agents** - Zero human intervention, agents handle everything
-- **Cryptographic Proofs** - Verifiable proof-of-compute at every step
-- **Real-Time Updates** - Live job status via Server-Sent Events
-- **Smart Contract Escrow** - Secure payments with automatic release
+Moving beyond traditional Web3 crypto protocols, Kinetic is designed for real-world business adoption. It bridges the gap between massive decentralized hardware networks and everyday AI researchers/DevOps engineers who just need one-click "Deploy Llama-3" templates without understanding smart contracts.
 
-## 🏗️ Architecture
+### Core Value Propositions
+- **True P2P Architecture** - No central server. Providers and consumers connect directly, reducing overhead to near zero.
+- **Organization-Grade Trust Model** - A manual verification/KYC system for professional hardware vendors to list their organizations, complete with branding and SLAs.
+- **Autonomous Agents** - Zero human intervention. Agents handle the negotiation, execution, and verification dynamically.
+- **Cryptographic Proofs** - Verifiable proof-of-compute (SHA-256) at every step, tied to ARC-3 Trust Badges.
+- **Ephemeral Wallets** - Users generate local autonomous wallets that seamlessly interact with X-402 micro-transactions.
+
+## 🏗️ Architecture & Decentralization
 
 ### Decentralized by Design
 
@@ -89,24 +92,35 @@ npm run dev
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 
+## 🛣️ 18-Week Roadmap
+
+Based on our product vision, we are executing a phased approach to MainNet launch:
+
+- **Phase 0: Foundation (Weeks 1-2)** - Codebase stabilization, error handling, and robust P2P testing.
+- **Phase 1: Organizations (Weeks 3-5)** - Smart contract upgrades for Org profiles (`org_name`, `logo_url`), backend registration, and branded frontend Hub.
+- **Phase 2: The Hub Core (Weeks 6-9)** - Explore page for browsing compute via advanced filtering. Implementation of "Trust Signals" (uptime, jobs completed, user reviews).
+- **Phase 3: Job Templates (Weeks 10-12)** - "One-click" deployment templates (e.g., Stable Diffusion, LLM fine-tuning) for non-technical consumers.
+- **Phase 4: Consumer Dashboard (Weeks 13-16)** - Comprehensive history, Provider Comparison tool, and programmatic API key management.
+- **Phase 5: MainNet Launch (Weeks 17-18)** - Final audits, MainNet transition, and Genesis organization onboarding.
+
 ## 📖 Features
+
+### For Organizations & Providers
+
+- Register on-chain with verified organizational profiles (Logos, Websites)
+- Set your own pricing and specific hardware parameters
+- Automatic job matching and dynamic discovery
+- Proof generation for trust and reputation (ARC-3 Badges)
+- Instant payment on completion directly to treasury wallets
 
 ### For Consumers
 
-- Browse available compute providers
+- "Hugging Face" style Hub to browse available compute providers
 - Real-time pricing and availability
-- One-click provisioning with Pera Wallet
+- One-click provisioning via Templates
 - Live job progress monitoring
 - Cryptographic proof of execution
 - Automatic payment from escrow
-
-### For Providers
-
-- Register on-chain permissionlessly
-- Set your own pricing
-- Automatic job matching
-- Proof generation for trust
-- Instant payment on completion
 
 ### For Developers
 
@@ -173,6 +187,15 @@ python contracts/deploy.py
 - [Real-Time Implementation](docs/REALTIME_IMPLEMENTATION.md)
 - [Deployment Guide](docs/DEPLOYMENT.md)
 - [API Reference](http://localhost:8000/docs)
+
+### Key Product Pages
+
+- Marketplace: `http://localhost:3000/`
+- Providers: `http://localhost:3000/providers.html`
+- Activity: `http://localhost:3000/activity.html`
+- Dashboard: `http://localhost:3000/dashboard.html`
+- Roadmap: `http://localhost:3000/roadmap.html`
+- Wallet: `http://localhost:3000/wallet.html`
 
 ## 🛠️ Technology Stack
 

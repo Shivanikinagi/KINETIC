@@ -23,6 +23,10 @@ export default defineConfig({
         main: './index.html',
         providers: './providers.html',
         activity: './activity.html',
+        dashboard: './dashboard.html',
+        roadmap: './roadmap.html',
+        orgDashboard: './org-dashboard.html',
+        orgRegister: './org-register.html',
         wallet: './wallet.html'
       }
     }

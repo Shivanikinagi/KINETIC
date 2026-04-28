@@ -53,20 +53,26 @@ class ComputeAgent:
 
     @staticmethod
     def _decode_provider_info(raw_value: bytes) -> dict:
-        abi = Method.from_signature("get_provider(address)(uint64,byte[],uint64,byte[],uint64,uint64,uint64)")
+        abi = Method.from_signature("get_provider(address)(uint64,byte[],uint64,byte[],uint64,uint64,uint64,byte[],byte[])")
         decoded = abi.returns.type.decode(raw_value)
         gpu_raw = bytes(decoded[1]) if not isinstance(decoded[1], (bytes, bytearray)) else decoded[1]
         endpoint_raw = bytes(decoded[3]) if not isinstance(decoded[3], (bytes, bytearray)) else decoded[3]
+        org_raw = bytes(decoded[7]) if not isinstance(decoded[7], (bytes, bytearray)) else decoded[7]
+        logo_raw = bytes(decoded[8]) if not isinstance(decoded[8], (bytes, bytearray)) else decoded[8]
         gpu_model = gpu_raw.decode("utf-8", errors="ignore").rstrip("\x00")
         endpoint = endpoint_raw.decode("utf-8", errors="ignore").rstrip("\x00")
+        org_name = org_raw.decode("utf-8", errors="ignore").rstrip("\x00")
+        logo_url = logo_raw.decode("utf-8", errors="ignore").rstrip("\x00")
         return {
             "vram_gb": int(decoded[0]),
             "gpu_model": gpu_model,
             "price_per_hour": int(decoded[2]),
-            "endpoint": endpoint.rstrip("\x00"),
+            "endpoint": endpoint,
             "uptime_score": int(decoded[4]),
             "active": int(decoded[5]),
             "badge_app_id": int(decoded[6]),
+            "org_name": org_name,
+            "logo_url": logo_url,
         }
 
     @staticmethod
@@ -318,9 +324,6 @@ class ComputeAgent:
             except BudgetExceededError as exc:
                 self.log(f"Budget exceeded: {exc}")
                 raise
-            except Exception as exc:
-                self.log(f"Provider {provider['endpoint']} network/execution failure: {exc.__class__.__name__}, trying next")
-                continue
 
         raise RuntimeError("All providers failed")
 
@@ -332,7 +335,9 @@ class ComputeAgent:
             "task_tokens": int(self.task.get("tokens", 0)),
         }
         print(json.dumps(entry))
-        with open("agent/agent.log", "a", encoding="utf-8") as log_file:
+        log_path = os.path.join(os.path.dirname(__file__), "agent.log")
+        os.makedirs(os.path.dirname(log_path), exist_ok=True)
+        with open(log_path, "a", encoding="utf-8") as log_file:
             log_file.write(json.dumps(entry) + "\n")
 
 
