@@ -60,7 +60,9 @@ yarn.lock
 *.sqlite3
 agent/agent.log
 agent/spend_log.db
-data/jobs.db
+data/
+data/*.db
+data/*.sqlite
 
 # ============================================================
 # Runtime Artifacts
@@ -104,6 +106,9 @@ VERCEL_DEPLOYMENT.md
 CONTRIBUTING.md
 CHANGELOG.md
 PROJECT_SUBMISSION.md
+ORGANISATIONS_FEATURE.md
+QUICKSTART_ORGANISATIONS.md
+VERIFICATION_CHECKLIST.md
 
 # ============================================================
 # Deployment and Setup Scripts (keep local only)
@@ -120,7 +125,7 @@ setup.sh
 # ============================================================
 # Docker (optional - uncomment if not using)
 # ============================================================
-docker-compose.yml
+# docker-compose.yml
 
 # ============================================================
 # Build Artifacts
@@ -138,6 +143,7 @@ test_*.py
 *_test.py
 tests/
 .pytest_cache/
+test_org_flow.py
 
 # ============================================================
 # Docker
