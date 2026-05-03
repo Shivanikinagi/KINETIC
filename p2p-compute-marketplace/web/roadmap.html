@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>KINETIC | Product Roadmap</title>
+
+    <script>
+        window.global = window.globalThis = window;
+        window.process = { env: {} };
+        window.Buffer = window.Buffer || { isBuffer: () => false };
+    </script>
+
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="/static/js/config.js"></script>
+
+    <style>
+        :root {
+            --shell-bg: #080a0f;
+            --surface-glass: rgba(13, 18, 30, 0.78);
+            --surface-soft: rgba(255, 255, 255, 0.05);
+            --text-primary: #ecf2ff;
+            --text-secondary: #9caecb;
+            --border-soft: rgba(139, 171, 224, 0.22);
+            --phase-0: #7f77dd;
+            --phase-1: #1d9e75;
+            --phase-2: #d85a30;
+            --phase-3: #ba7517;
+            --phase-4: #378add;
+            --phase-5: #639922;
+        }
+
+        body { font-family: 'Inter', sans-serif; color: var(--text-primary); }
+        h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+
+        .roadmap-shell {
+            background:
+                radial-gradient(900px 560px at 88% -2%, rgba(55, 138, 221, 0.22), transparent 66%),
+                radial-gradient(900px 580px at -10% 4%, rgba(29, 158, 117, 0.2), transparent 62%),
+                linear-gradient(180deg, #080a0f 0%, #0b1019 100%);
+            min-height: 100vh;
+        }
+
+        .hero-panel {
+            border: 1px solid var(--border-soft);
+            border-radius: 1.5rem;
+            background: linear-gradient(140deg, rgba(14, 19, 31, 0.96), rgba(12, 17, 29, 0.78));
+            box-shadow: 0 30px 70px rgba(4, 8, 16, 0.58);
+            backdrop-filter: blur(14px);
+        }
+
+        .timeline-wrap {
+            border: 1px solid var(--border-soft);
+            border-radius: 1rem;
+            background: var(--surface-glass);
+            padding: 1rem;
+        }
+
+        .timeline-track {
+            display: flex;
+            gap: 0.3rem;
+            height: 0.56rem;
+        }
+
+        .timeline-segment {
+            border-radius: 999px;
+            min-width: 0;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+        }
+
+        .timeline-labels {
+            margin-top: 0.55rem;
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 0.5rem;
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+
+        .phase-list {
+            border-radius: 1.5rem;
+            border: 1px solid rgba(108, 147, 210, 0.26);
+            overflow: hidden;
+            background: rgba(9, 14, 23, 0.74);
+        }
+
+        .phase-item {
+            border-top: 1px solid rgba(139, 171, 224, 0.16);
+        }
+
+        .phase-item:first-child {
+            border-top: 0;
+        }
+
+        .phase-toggle {
+            width: 100%;
+            border: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.1rem;
+            gap: 0.8rem;
+            text-align: left;
+            background: transparent;
+            transition: background 0.18s ease;
+        }
+
+        .phase-toggle:hover {
+            background: rgba(142, 180, 239, 0.08);
+        }
+
+        .phase-title-row {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            min-width: 0;
+        }
+
+        .phase-badge {
+            display: inline-flex;
+            border-radius: 999px;
+            padding: 0.16rem 0.56rem;
+            font-size: 0.68rem;
+            font-weight: 700;
+            white-space: nowrap;
+            letter-spacing: 0.03em;
+        }
+
+        .phase-title {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .phase-weeks {
+            font-size: 0.74rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .phase-toggle .chev {
+            font-size: 0.8rem;
+            color: #89a9d8;
+            transition: transform 0.2s ease;
+        }
+
+        .phase-item.open .phase-toggle .chev {
+            transform: rotate(90deg);
+        }
+
+        .phase-panel {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.24s ease;
+        }
+
+        .phase-item.open .phase-panel {
+            grid-template-rows: 1fr;
+        }
+
+        .phase-panel-inner {
+            overflow: hidden;
+            padding: 0 1.1rem;
+        }
+
+        .task-grid {
+            margin-top: 0.1rem;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.7rem;
+        }
+
+        .task-card {
+            background: var(--surface-soft);
+            border: 1px solid rgba(131, 170, 232, 0.24);
+            border-radius: 0.75rem;
+            padding: 0.8rem;
+        }
+
+        .task-card h4 {
+            font-size: 0.76rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin: 0 0 0.4rem;
+            color: #cce1ff;
+        }
+
+        .task-card ul {
+            margin: 0;
+            padding-left: 1rem;
+        }
+
+        .task-card li {
+            color: #9eb3d5;
+            font-size: 0.77rem;
+            line-height: 1.45;
+            margin-bottom: 0.2rem;
+        }
+
+        .deliverable {
+            margin: 0.7rem 0 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid;
+            padding: 0.7rem 0.8rem;
+            display: flex;
+            align-items: baseline;
+            gap: 0.45rem;
+            font-size: 0.78rem;
+            line-height: 1.42;
+        }
+
+        .deliverable strong {
+            color: #eff6ff;
+            white-space: nowrap;
+        }
+
+        .deliverable span {
+            color: #d5e7ff;
+        }
+
+        @media (max-width: 920px) {
+            .task-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .phase-title {
+                white-space: normal;
+                overflow: visible;
+            }
+
+            .phase-toggle {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body class="roadmap-shell selection:bg-primary-container selection:text-on-primary-container">
+<header class="w-full top-0 sticky bg-surface dark:bg-[#070708] z-50 flex justify-between items-center px-8 py-4 max-w-[1920px] mx-auto">
+    <div class="flex items-center gap-12">
+        <a href="/" class="text-2xl font-black italic tracking-tighter text-cyan-400 font-space-grotesk">KINETIC</a>
+        <nav class="hidden md:flex items-center gap-8 font-space-grotesk tracking-tight">
+            <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/">Marketplace</a>
+            <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/providers.html">Providers</a>
+            <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/activity.html">Activity</a>
+            <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/dashboard.html">Dashboard</a>
+            <a class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1" href="/roadmap.html">Roadmap</a>
+            <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/wallet.html">Wallet</a>
+        </nav>
+    </div>
+    <div class="flex items-center gap-4">
+        <button class="px-4 py-2 text-slate-400 hover:text-cyan-200 font-inter text-sm uppercase tracking-widest transition-all">TestNet</button>
+        <button id="connectWalletBtn" class="bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold px-6 py-2 rounded-lg hover:brightness-110 transition-all">
+            Connect Wallet
+        </button>
+    </div>
+</header>
+
+<main class="max-w-[1260px] mx-auto px-4 sm:px-8 pb-20 pt-8" id="roadmapRoot">
+    <section class="hero-panel px-5 py-6 sm:px-8 sm:py-9 mb-8">
+        <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
+            <div>
+                <p class="text-[11px] font-mono uppercase tracking-[0.2em] text-slate-400 mb-1">Kinetic Hub Execution Plan</p>
+                <h1 class="text-3xl sm:text-5xl font-black tracking-tight">Build, trust, ship</h1>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">18-week rollout from foundation hardening to MainNet launch.</p>
+            </div>
+            <div class="text-[11px] font-mono uppercase tracking-[0.2em] text-slate-400" id="roadmapHealth">Loading roadmap...</div>
+        </div>
+
+        <div class="timeline-wrap">
+            <p class="text-[11px] uppercase tracking-[0.18em] font-mono text-slate-400 mb-2">Total timeline</p>
+            <div class="timeline-track" id="timelineTrack"></div>
+            <div class="timeline-labels" id="timelineLabels"></div>
+        </div>
+    </section>
+
+    <section id="phaseList" class="phase-list">
+        <p class="text-slate-500 px-5 py-6">Loading phases...</p>
+    </section>
+</main>
+
+<footer class="w-full py-8 border-t border-white/5 bg-surface-container-lowest dark:bg-[#0d0d0e]">
+    <div class="flex flex-col md:flex-row justify-between items-center px-12 w-full max-w-[1920px] mx-auto gap-6">
+        <div class="flex items-center gap-8">
+            <span class="font-space-grotesk font-bold text-cyan-400">KINETIC MARKETPLACE</span>
+            <p class="font-inter text-[10px] uppercase tracking-widest text-slate-600">Roadmap execution for production readiness.</p>
+        </div>
+        <div class="flex gap-8 font-inter text-xs uppercase tracking-widest text-slate-600">
+            <a class="hover:text-cyan-300 transition-all" href="/dashboard.html">Dashboard</a>
+            <a class="hover:text-cyan-300 transition-all" href="/activity.html">Activity</a>
+            <a class="hover:text-cyan-300 transition-all" href="/providers.html">Providers</a>
+        </div>
+    </div>
+</footer>
+
+<script type="module" src="/static/js/wallet.js"></script>
+<script type="module" src="/static/js/app.js"></script>
+<script type="module" src="/static/js/roadmap.js"></script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>KINETIC | Agent Activity & Proofs</title>
+    
+    <!-- Polyfills for browser compatibility -->
+    <script>
+        window.global = window.globalThis = window;
+        window.process = { env: {} };
+        window.Buffer = window.Buffer || { isBuffer: () => false };
+    </script>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="/static/js/config.js"></script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(53, 52, 54, 0.6);
+            backdrop-filter: blur(24px);
+        }
+        .cyber-gradient {
+            background: linear-gradient(135deg, #e9feff 0%, #00f5ff 100%);
+        }
+        .pulse-glow {
+            box-shadow: 0 0 15px rgba(0, 220, 229, 0.4);
+        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #3a494a; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<nav class="w-full top-0 sticky z-50 bg-surface dark:bg-[#131314] shadow-none">
+    <div class="flex justify-between items-center px-8 py-4 max-w-[1920px] mx-auto">
+        <div class="flex items-center gap-8">
+            <a href="/" class="text-2xl font-black italic tracking-tighter text-cyan-400 font-headline">KINETIC</a>
+            <div class="hidden md:flex items-center gap-6 font-headline tracking-tight">
+                <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/">Marketplace</a>
+                <a class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1" href="/activity.html">Activity</a>
+                <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/roadmap.html">Roadmap</a>
+                <a class="text-slate-400 hover:text-cyan-200 transition-colors" href="/wallet.html">Wallet</a>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button id="agentStatusPill" class="px-3 py-1 rounded-full text-[10px] font-mono border bg-slate-600/40 text-slate-300 border-slate-500/30">AGENT IDLE</button>
+            <button id="connectWalletBtn" class="cyber-gradient text-on-primary px-6 py-2 font-bold rounded-lg transition-all scale-95 active:duration-150 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
+                Connect Wallet
+            </button>
+        </div>
+    </div>
+</nav>
+
+<main class="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8">
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 glass-panel rounded-xl border border-outline-variant/10 p-6">
+            <div class="flex items-start justify-between gap-4 mb-4">
+                <div>
+                    <h1 class="font-headline text-3xl font-bold text-primary tracking-tight">AgentActivityFeed</h1>
+                    <p class="text-slate-400 mt-1">Autonomous consumer agents dispatch jobs, stream x402 payments, verify outputs, and release escrow without human approval.</p>
+                </div>
+                <button id="runTestJobBtn" class="px-4 py-2 rounded-lg bg-primary-container text-on-primary-container font-bold hover:brightness-110 transition-all">Run Test Job</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/20 p-4">
+                    <p class="text-[10px] font-mono uppercase tracking-widest text-slate-500">Jobs Completed Today</p>
+                    <p id="metricJobs" class="text-2xl font-headline font-bold text-cyan-400 mt-1">0</p>
+                </div>
+                <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/20 p-4">
+                    <p class="text-[10px] font-mono uppercase tracking-widest text-slate-500">ALGO Spent</p>
+                    <p id="metricSpent" class="text-2xl font-headline font-bold text-cyan-400 mt-1">0.0000 ALGO</p>
+                </div>
+                <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/20 p-4">
+                    <p class="text-[10px] font-mono uppercase tracking-widest text-slate-500">Verifications Passed</p>
+                    <p id="metricVerified" class="text-2xl font-headline font-bold text-cyan-400 mt-1">0</p>
+                </div>
+                <div class="bg-surface-container-lowest rounded-lg border border-outline-variant/20 p-4">
+                    <p class="text-[10px] font-mono uppercase tracking-widest text-slate-500">Fraud Caught</p>
+                    <p id="metricFraud" class="text-2xl font-headline font-bold text-cyan-400 mt-1">0</p>
+                </div>
+            </div>
+        </div>
+
+        <aside class="glass-panel rounded-xl border border-outline-variant/10 p-6">
+            <h2 class="font-headline text-xl font-bold text-primary mb-4">On-chain Proofs</h2>
+            <div id="proofList" class="space-y-3">
+                <p class="text-slate-500 text-xs">Loading proofs...</p>
+            </div>
+        </aside>
+    </section>
+
+    <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div class="xl:col-span-7 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="font-headline text-xl font-bold text-primary flex items-center gap-2">
+                    <span class="material-symbols-outlined text-cyan-400">timeline</span>
+                    Autonomous Payment Timeline
+                </h3>
+                <p class="text-[10px] font-mono text-slate-500">Live polling every 3s</p>
+            </div>
+            <div id="activityTimeline" class="space-y-3">
+                <p class="text-slate-400 text-sm">Loading activity events...</p>
+            </div>
+        </div>
+
+        <div class="xl:col-span-5">
+            <div class="bg-surface-container-lowest rounded-xl border border-white/5 overflow-hidden h-[580px] flex flex-col">
+                <div class="px-4 py-3 border-b border-white/5 bg-surface-container-low flex items-center justify-between">
+                    <h3 class="font-headline text-base font-bold text-primary flex items-center gap-2">
+                        <span class="material-symbols-outlined text-cyan-400">terminal</span>
+                        Kernel Logs
+                    </h3>
+                    <div class="flex gap-2">
+                        <span class="w-2 h-2 rounded-full bg-red-400"></span>
+                        <span class="w-2 h-2 rounded-full bg-yellow-300"></span>
+                        <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                    </div>
+                </div>
+                <div id="kernelLogs" class="flex-1 overflow-y-auto p-4 font-mono text-[11px] leading-relaxed space-y-1 text-slate-300">
+                    <p class="text-slate-500">Loading logs...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="w-full py-8 border-t border-white/5 bg-surface-container-lowest dark:bg-[#0d0d0e] mt-auto">
+    <div class="flex flex-col md:flex-row justify-between items-center px-12 w-full mx-auto">
+        <span class="font-headline font-bold text-cyan-400 tracking-tight">KINETIC MARKETPLACE</span>
+        <p class="font-inter text-xs uppercase tracking-widest text-slate-600">x402 Machine-to-Machine Payments • Autonomous Budget-Capped Agents • ARC-3 Campus Badge Gating</p>
+    </div>
+</footer>
+
+<script type="module" src="/static/js/wallet.js"></script>
+<script type="module" src="/static/js/app.js"></script>
+<script type="module" src="/static/js/activity.js"></script>
+</body>
+</html>

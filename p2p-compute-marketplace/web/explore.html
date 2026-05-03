@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KINETIC Hub | Explore</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/static/js/config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-main: #070d1d;
+            --surface: rgba(11, 21, 44, 0.86);
+            --surface-soft: rgba(13, 26, 52, 0.7);
+            --line: rgba(94, 136, 197, 0.28);
+            --text-main: #eaf2ff;
+            --text-muted: #9cb1ce;
+            --brand: #32c6ea;
+            --brand-strong: #17afd0;
+            --warn: #f9c36a;
+        }
+
+        body {
+            font-family: Inter, sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(940px 520px at 92% -8%, rgba(50, 198, 234, 0.24), transparent 68%),
+                radial-gradient(760px 560px at -8% 10%, rgba(89, 123, 255, 0.14), transparent 72%),
+                linear-gradient(180deg, #070d1d 0%, #0a1227 100%);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .panel {
+            border-radius: 1rem;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+        }
+
+        .card {
+            border-radius: 1rem;
+            border: 1px solid rgba(92, 140, 209, 0.3);
+            background: var(--surface-soft);
+            box-shadow: 0 12px 22px rgba(3, 8, 19, 0.35);
+        }
+
+        .field,
+        .select {
+            width: 100%;
+            background: rgba(2, 10, 25, 0.96);
+            border: 1px solid rgba(88, 125, 179, 0.48);
+            color: var(--text-main);
+            border-radius: 0.72rem;
+            padding: 0.62rem 0.72rem;
+            font-size: 0.95rem;
+        }
+
+        .field::placeholder {
+            color: #7d95b8;
+        }
+
+        .field:focus,
+        .select:focus {
+            outline: none;
+            border-color: rgba(50, 198, 234, 0.82);
+            box-shadow: 0 0 0 3px rgba(50, 198, 234, 0.2);
+        }
+
+        .btn-primary {
+            border-radius: 0.72rem;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 100%);
+            color: #05242f;
+            font-weight: 700;
+            padding: 0.62rem 0.9rem;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.07);
+        }
+
+        .tag {
+            border-radius: 999px;
+            border: 1px solid rgba(102, 142, 198, 0.5);
+            background: rgba(80, 120, 181, 0.18);
+            color: #b8cff0;
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 0.2rem 0.58rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <header class="max-w-7xl mx-auto px-5 sm:px-7 py-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <p class="text-xs uppercase tracking-[0.2em] text-cyan-100/65 mb-1">Kinetic Hub Marketplace</p>
+            <h1 class="text-3xl sm:text-4xl font-bold text-cyan-200">Explore Providers</h1>
+            <p class="text-slate-300/80">Compare trust signals, performance, and price before you deploy.</p>
+        </div>
+        <nav class="flex flex-wrap gap-4 text-sm text-slate-300">
+            <a class="hover:text-cyan-200" href="/index.html">Marketplace</a>
+            <a class="text-cyan-200 font-semibold" href="/explore.html">Explore</a>
+            <a class="hover:text-cyan-200" href="/templates.html">Templates</a>
+            <a class="hover:text-cyan-200" href="/consumer-dashboard.html">Consumer Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-5 sm:px-7 pb-10">
+        <section class="panel p-4 sm:p-5 mb-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
+                <div class="xl:col-span-2">
+                    <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Search</label>
+                    <input id="q" placeholder="Org, provider, GPU" class="field mt-1" />
+                </div>
+                <div>
+                    <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">GPU model</label>
+                    <input id="gpu" placeholder="H100, RTX 4090" class="field mt-1" />
+                </div>
+                <div>
+                    <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Max price ($/hr)</label>
+                    <input id="maxPrice" type="number" min="0" step="0.1" value="5" class="field mt-1" />
+                </div>
+                <div>
+                    <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Sort by</label>
+                    <select id="sortBy" class="select mt-1">
+                        <option value="reputation">Reputation</option>
+                        <option value="rating">Rating</option>
+                        <option value="price">Price</option>
+                        <option value="uptime">Uptime</option>
+                        <option value="availability">Availability</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button id="refreshBtn" class="btn-primary w-full">Refresh Results</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <p id="resultsMeta" class="text-sm text-slate-300/85">Loading providers...</p>
+            <div class="tag">Trust-ranked catalog</div>
+        </section>
+
+        <section id="providerGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></section>
+    </main>
+
+    <script type="module" src="/static/js/explore.js"></script>
+</body>
+</html>

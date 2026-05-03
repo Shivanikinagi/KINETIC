@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KINETIC Hub | Templates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/static/js/config.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg-main: #060d1f;
+            --bg-soft: rgba(10, 21, 45, 0.72);
+            --bg-card: rgba(8, 17, 37, 0.9);
+            --text-main: #e8f5ff;
+            --text-muted: #9bb3d2;
+            --line-soft: rgba(93, 140, 210, 0.28);
+            --brand: #32c6ea;
+            --brand-strong: #10aecd;
+            --ok: #27c2a4;
+        }
+
+        body {
+            font-family: Inter, sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(800px 420px at 84% -6%, rgba(31, 148, 212, 0.24), transparent 65%),
+                radial-gradient(780px 520px at -5% 10%, rgba(39, 194, 164, 0.18), transparent 68%),
+                linear-gradient(180deg, #060d1f 0%, #0a1226 100%);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .panel {
+            background: var(--bg-soft);
+            border: 1px solid var(--line-soft);
+            border-radius: 1rem;
+            backdrop-filter: blur(14px);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid rgba(83, 132, 205, 0.26);
+            border-radius: 1rem;
+            box-shadow: 0 16px 30px rgba(4, 8, 18, 0.34);
+        }
+
+        .field {
+            width: 100%;
+            border-radius: 0.72rem;
+            border: 1px solid rgba(90, 129, 186, 0.44);
+            background: rgba(2, 9, 24, 0.94);
+            color: var(--text-main);
+            padding: 0.62rem 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .field::placeholder {
+            color: #7a97bd;
+        }
+
+        .field:focus {
+            outline: none;
+            border-color: rgba(61, 203, 230, 0.75);
+            box-shadow: 0 0 0 3px rgba(61, 203, 230, 0.2);
+        }
+
+        .btn-primary {
+            border-radius: 0.72rem;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 100%);
+            color: #06212b;
+            font-weight: 700;
+            padding: 0.62rem 0.9rem;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-secondary {
+            border-radius: 0.72rem;
+            border: 1px solid rgba(92, 131, 189, 0.56);
+            padding: 0.55rem 0.84rem;
+            color: #bcd4f4;
+            font-weight: 600;
+        }
+
+        .tag {
+            border-radius: 999px;
+            border: 1px solid rgba(97, 214, 204, 0.36);
+            background: rgba(39, 194, 164, 0.15);
+            color: #83f4d8;
+            font-size: 0.67rem;
+            font-weight: 600;
+            padding: 0.18rem 0.56rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+    </style>
+</head>
+<body>
+    <header class="max-w-7xl mx-auto px-5 sm:px-7 py-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <p class="text-xs tracking-[0.2em] uppercase text-cyan-200/70 mb-1">Kinetic Hub</p>
+            <h1 class="text-3xl sm:text-4xl text-cyan-200 font-bold">Job Templates</h1>
+            <p class="text-slate-300/80">Launch common workloads in one click with cost-aware deployment.</p>
+        </div>
+        <nav class="flex flex-wrap gap-4 text-sm text-slate-300">
+            <a class="hover:text-cyan-200" href="/explore.html">Explore</a>
+            <a class="text-cyan-200 font-semibold" href="/templates.html">Templates</a>
+            <a class="hover:text-cyan-200" href="/consumer-dashboard.html">Consumer Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-5 sm:px-7 pb-10 grid grid-cols-1 xl:grid-cols-12 gap-5">
+        <section class="xl:col-span-8 2xl:col-span-9 space-y-4">
+            <div class="panel p-4 sm:p-5">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-xl font-semibold">Template Library</h2>
+                        <p class="text-sm text-slate-300/80">Choose a template, review baseline cost, and deploy in seconds.</p>
+                    </div>
+                    <span id="templateCount" class="tag">Loading templates...</span>
+                </div>
+            </div>
+            <div id="templateGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <aside class="xl:col-span-4 2xl:col-span-3">
+            <section class="panel p-4 sm:p-5 sticky top-5">
+                <h3 class="text-xl font-semibold mb-1">Deploy Template</h3>
+                <p class="text-sm text-slate-300/75 mb-4">Use a consumer profile and template ID to start a deployment.</p>
+                <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Consumer ID</label>
+                <input id="consumerId" placeholder="consumer_001" class="field mt-1 mb-3" />
+
+                <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Template ID</label>
+                <input id="templateId" placeholder="tmpl_llm_finetune_v1" class="field mt-1 mb-3" />
+
+                <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Token override (optional)</label>
+                <input id="tokenOverride" type="number" min="1" placeholder="1000" class="field mt-1 mb-4" />
+
+                <button id="deployBtn" class="btn-primary w-full">Deploy Template</button>
+                <pre id="deployResult" class="mono mt-4 text-xs text-slate-200 whitespace-pre-wrap bg-slate-950/60 border border-slate-700/60 rounded-xl p-3 min-h-[78px]"></pre>
+            </section>
+        </aside>
+    </main>
+
+    <script type="module" src="/static/js/templates.js"></script>
+</body>
+</html>
