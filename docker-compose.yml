@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kinetic-postgres
+    environment:
+      POSTGRES_DB: kinetic
+      POSTGRES_USER: kinetic
+      POSTGRES_PASSWORD: kinetic
+    ports:
+      - "5432:5432"
+    volumes:
+      - kinetic_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kinetic -d kinetic"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  provider-api:
+    image: python:3.11-slim
+    container_name: provider-api
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c "pip install -e . && uvicorn api.main:app --host 0.0.0.0 --port 8000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://kinetic:kinetic@postgres:5432/kinetic}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  agent-bridge:
+    image: python:3.11-slim
+    container_name: agent-bridge
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: sh -c "pip install -e . && uvicorn api.agent_bridge:app --host 0.0.0.0 --port 3001"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://kinetic:kinetic@postgres:5432/kinetic}
+    ports:
+      - "3001:3001"
+    depends_on:
+      - provider-api
+
+volumes:
+  kinetic_postgres_data:

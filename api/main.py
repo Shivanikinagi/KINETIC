@@ -10,9 +10,11 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.db import db_ping, get_database_url
 from api.heartbeat import get_last_heartbeat, get_telemetry, start_heartbeat
 from api.hub import router as hub_router
 from api.job_runner import run_job
+from api.observability import configure_structlog, install_exception_handlers, request_context_middleware
 from api.orgs import get_marketplace_org_providers, router as orgs_router
 from api.roadmap_store import RoadmapValidationError, get_roadmap, update_roadmap
 from api.wallet_utils import resolve_provider_wallet
@@ -25,7 +27,9 @@ except Exception:  # pragma: no cover
 
 
 load_dotenv()
+configure_structlog()
 app = FastAPI(title="P2P Compute Provider API", version="1.0.0")
+install_exception_handlers(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,6 +39,8 @@ app.add_middleware(
 )
 app.add_middleware(X402Middleware)
 
+app.middleware("http")(request_context_middleware())
+
 app.include_router(orgs_router, prefix="/orgs", tags=["organisations"])
 app.include_router(hub_router, prefix="/hub", tags=["hub"])
 if realtime_router is not None:
@@ -43,32 +49,18 @@ if realtime_router is not None:
 start_heartbeat(app)
 
 
-@app.middleware("http")
-async def request_logger(request: Request, call_next):
-    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
-    request.state.request_id = request_id
-    start = time.perf_counter()
-    response = await call_next(request)
-    elapsed_ms = int((time.perf_counter() - start) * 1000)
-    response.headers["X-Request-ID"] = request_id
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    print(
-        f"[{datetime.now(UTC).isoformat()}] req={request_id} "
-        f"{request.method} {request.url.path} {response.status_code} {elapsed_ms}ms"
-    )
-    return response
-
-
 @app.get("/health")
 async def health() -> dict:
     provider_wallet = resolve_provider_wallet()
+    database_url = get_database_url()
+    db_ok = await db_ping() if database_url else False
     return {
         "status": "ok",
         "provider": provider_wallet,
         "provider_wallet": provider_wallet,
         "wallet_configured": bool(provider_wallet),
+        "db_configured": bool(database_url),
+        "db_ok": bool(db_ok),
         "last_heartbeat": get_last_heartbeat(),
         "version": "1.0.0",
     }

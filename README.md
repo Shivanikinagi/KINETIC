@@ -1,4 +1,4 @@
-# Kinetic - The "Hugging Face" of P2P Compute
+# Kinetic - P2P Compute Marketplace
 
 > A fully autonomous, peer-to-peer marketplace for high-performance computing resources built on the Algorand blockchain.
 

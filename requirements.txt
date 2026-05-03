@@ -5,3 +5,7 @@ pydantic==2.5.3
 py-algorand-sdk==2.6.0
 sse-starlette==1.8.2
 requests==2.32.3
+structlog==24.1.0
+SQLAlchemy==2.0.41
+alembic==1.16.1
+asyncpg==0.30.0
