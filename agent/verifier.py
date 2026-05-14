@@ -8,16 +8,30 @@ from typing import Any
 import httpx
 
 
-def generate_expected_hash(task: dict) -> str:
-    payload = str(task.get("payload", ""))
-    tokens = int(task.get("tokens", 0))
-    return hashlib.sha256(f"{payload}{tokens}".encode("utf-8")).hexdigest()
+def compute_real_output_hash(payload: str, tokens: int) -> str:
+    """Compute expected hash for real execution (iterative SHA-256)"""
+    result = payload
+    for i in range(min(tokens, 1000)):
+        result = hashlib.sha256(result.encode()).hexdigest()
+    return hashlib.sha256(result.encode()).hexdigest()
 
 
 def verify_output(result: dict, task: dict) -> bool:
-    expected_hash = generate_expected_hash(task)
+    """Verify job output hash matches expected value from real compute execution"""
     actual_hash = str(result.get("result_hash", ""))
+    execution_method = str(result.get("execution_method", "unknown"))
+
+    payload = str(task.get("payload", ""))
+    tokens = int(task.get("tokens", 0))
+
+    # Recompute expected output
+    expected_output = payload
+    for i in range(min(tokens, 1000)):
+        expected_output = hashlib.sha256(expected_output.encode()).hexdigest()
+
+    expected_hash = hashlib.sha256(expected_output.encode()).hexdigest()
     ok = expected_hash == actual_hash
+
     print(
         json.dumps(
             {
@@ -25,6 +39,7 @@ def verify_output(result: dict, task: dict) -> bool:
                 "ok": ok,
                 "expected": expected_hash,
                 "actual": actual_hash,
+                "execution_method": execution_method,
             }
         )
     )

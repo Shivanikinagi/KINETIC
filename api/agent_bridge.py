@@ -291,7 +291,7 @@ async def run_agent(payload: dict) -> dict:
         "--tokens",
         str(safe_tokens),
         "--payload",
-        str(payload.get("payload", "demo")),
+        str(payload.get("payload", "compute-job")),
     ]
 
     preferred_provider_endpoint = str(payload.get("preferred_provider_endpoint") or provider_endpoint).strip()

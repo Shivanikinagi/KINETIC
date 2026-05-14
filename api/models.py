@@ -84,7 +84,7 @@ class ProviderHeartbeat(Base):
 
     cpu_percent: Mapped[float] = mapped_column(Numeric(6, 2), default=0)
     memory_percent: Mapped[float] = mapped_column(Numeric(6, 2), default=0)
-    metadata: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict)
+    meta: Mapped[dict[str, Any]] = mapped_column("metadata", JSONB, default=dict)
 
     provider: Mapped[Provider] = relationship(back_populates="heartbeats")
 
