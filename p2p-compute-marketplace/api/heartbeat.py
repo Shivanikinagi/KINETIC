@@ -42,7 +42,6 @@ async def _heartbeat_loop() -> None:
         memory = psutil.virtual_memory().percent
         node_telemetry["cpu_percent"] = cpu
         node_telemetry["memory_percent"] = memory
-        print(f"PROVIDER ALIVE {datetime.now(UTC).isoformat()}")
         await asyncio.sleep(30)
 
 

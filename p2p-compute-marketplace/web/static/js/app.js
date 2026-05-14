@@ -164,24 +164,32 @@ function createProviderCard(provider) {
     `;
 }
 
-// Load market statistics
+// Load market statistics from real API endpoints
 async function loadMarketStats() {
     try {
-        const response = await fetch(`${API_BASE_URL}/providers`);
-        if (!response.ok) throw new Error('Failed to fetch stats');
-        
-        const providers = await response.json();
-        
-        // Calculate stats
+        const [providersResp, analyticsResp] = await Promise.all([
+            fetch(`${API_BASE_URL}/providers`),
+            fetch(`${API_BASE_URL}/analytics`),
+        ]);
+
+        if (!providersResp.ok) throw new Error('Failed to fetch providers');
+
+        const providers = await providersResp.json();
         const totalNodes = providers.length;
         const activeGPUs = providers.reduce((sum, p) => sum + (p.status === 'active' ? p.gpu_count : 0), 0);
-        
-        // Update DOM
+
         const totalNodesEl = document.getElementById('totalNodes');
         const activeGPUsEl = document.getElementById('activeGPUs');
-        
         if (totalNodesEl) totalNodesEl.textContent = totalNodes.toLocaleString();
         if (activeGPUsEl) activeGPUsEl.textContent = activeGPUs.toLocaleString();
+
+        if (analyticsResp.ok) {
+            const analytics = await analyticsResp.json();
+            const totalJobsEl = document.getElementById('totalJobs');
+            const totalAlgoEl = document.getElementById('totalAlgoSpent');
+            if (totalJobsEl) totalJobsEl.textContent = (analytics.total_jobs ?? 0).toLocaleString();
+            if (totalAlgoEl) totalAlgoEl.textContent = (analytics.total_algo_spent ?? 0).toFixed(4) + ' Ⱥ';
+        }
     } catch (error) {
         console.error('Error loading market stats:', error);
     }

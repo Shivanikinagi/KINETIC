@@ -208,7 +208,7 @@ async function runTestJob() {
             body: JSON.stringify({
                 type: 'inference',
                 tokens: 120,
-                payload: `judge-demo-${Date.now()}`,
+                payload: `compute-job-${Date.now()}`,
             }),
         });
 
@@ -217,7 +217,7 @@ async function runTestJob() {
         }
 
         const data = await response.json();
-        showNotification(`Agent test job dispatched (PID ${data.pid || 'n/a'}). Watch timeline for x402 payment and escrow release.`, 'success');
+        showNotification(`Agent compute job dispatched (PID ${data.pid || 'n/a'}). Watch timeline for x402 payment and escrow release.`, 'success');
         await refreshFeed();
     } catch (error) {
         console.error('Run test job failed:', error);

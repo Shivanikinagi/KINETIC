@@ -18,6 +18,15 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: kinetic-redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - kinetic_redis_data:/data
+
   provider-api:
     image: python:3.11-slim
     container_name: provider-api
@@ -29,11 +38,14 @@ services:
       - .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://kinetic:kinetic@postgres:5432/kinetic}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     ports:
       - "8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   agent-bridge:
     image: python:3.11-slim
@@ -46,6 +58,7 @@ services:
       - .env
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://kinetic:kinetic@postgres:5432/kinetic}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     ports:
       - "3001:3001"
     depends_on:
@@ -53,3 +66,4 @@ services:
 
 volumes:
   kinetic_postgres_data:
+  kinetic_redis_data:

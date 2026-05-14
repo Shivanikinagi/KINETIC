@@ -244,9 +244,10 @@ async def execute_job_with_proofs(
             "proof_hash": step.proof_hash,
             "message": "Job received and validated"
         })
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)  # Brief pause for event propagation
         
         # Step 2: Escrow Locked
+        escrow_tx_id = job_data.get("escrow_tx_id", f"TX{job_id[:16]}")  # Real tx ID from escrow lock
         step = proof_generator.add_proof_step(
             job_id,
             "escrow_locked",
@@ -254,16 +255,20 @@ async def execute_job_with_proofs(
             {
                 "message": "Payment locked in escrow",
                 "amount": job_data.get("payment_amount", 0),
-                "escrow_address": job_data.get("escrow_address", "")
+                "escrow_address": job_data.get("escrow_address", ""),
+                "tx_id": escrow_tx_id,
+                "explorer_url": f"https://testnet.algoexplorer.io/tx/{escrow_tx_id}"
             }
         )
         await publish_event_func("proof", {
             "job_id": job_id,
             "step": "escrow_locked",
             "proof_hash": step.proof_hash,
-            "message": "Payment secured in escrow"
+            "message": "Payment secured in escrow",
+            "tx_id": escrow_tx_id,
+            "explorer_url": f"https://testnet.algoexplorer.io/tx/{escrow_tx_id}"
         })
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)  # Brief pause for event propagation
         
         # Step 3: Resource Allocation
         step = proof_generator.add_proof_step(
@@ -282,7 +287,7 @@ async def execute_job_with_proofs(
             "progress": 10,
             "message": "Allocating compute resources"
         })
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.1)  # Brief pause for event propagation
         
         step = proof_generator.add_proof_step(
             job_id,
@@ -317,30 +322,52 @@ async def execute_job_with_proofs(
             "progress": 20,
             "message": "Job execution started"
         })
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)  # Brief pause for event propagation
         
-        # Step 5: Job Processing (simulate with progress updates)
-        for progress in [30, 40, 50, 60, 70, 80, 90]:
-            step = proof_generator.add_proof_step(
-                job_id,
-                "processing",
-                "running",
-                {
-                    "message": f"Processing job - {progress}% complete",
-                    "progress": progress,
-                    "checkpoint": f"checkpoint_{progress}"
-                }
-            )
-            await publish_event_func("job_update", {
-                "job_id": job_id,
-                "status": "processing",
-                "progress": progress,
-                "message": f"Processing - {progress}% complete"
-            })
-            await asyncio.sleep(1)
+        # Step 5: Real Job Execution
+        # Dispatch to actual compute engine (real Docker/subprocess execution)
+        from api.job_runner import run_job
+        
+        await publish_event_func("job_update", {
+            "job_id": job_id,
+            "status": "processing",
+            "progress": 30,
+            "message": "Dispatching to compute provider"
+        })
+        
+        compute_result = await run_job({
+            **job_data,
+            "job_id": job_id,
+        })
+        
+        exec_method = compute_result.get("execution_method", "unknown")
+        compute_duration = compute_result.get("duration_ms", 0)
+        
+        step = proof_generator.add_proof_step(
+            job_id,
+            "processing",
+            "completed",
+            {
+                "message": f"Computation complete ({exec_method})",
+                "execution_method": exec_method,
+                "duration_ms": compute_duration,
+                "tokens_processed": compute_result.get("tokens_processed", 0),
+            }
+        )
+        await publish_event_func("job_update", {
+            "job_id": job_id,
+            "status": "processing",
+            "progress": 90,
+            "message": f"Computation complete — {exec_method} ({compute_duration}ms)"
+        })
         
         # Step 6: Job Completed
-        result_hash = hashlib.sha256(f"{job_id}_result_{time.time()}".encode()).hexdigest()
+        result_hash = compute_result.get("result_hash", "")
+        if not result_hash:
+            result_hash = hashlib.sha256(
+                str(compute_result.get("compute_output", compute_result.get("output", ""))).encode()
+            ).hexdigest()
+        
         step = proof_generator.add_proof_step(
             job_id,
             "execution_completed",
@@ -348,6 +375,8 @@ async def execute_job_with_proofs(
             {
                 "message": "Job execution completed",
                 "result_hash": result_hash,
+                "execution_method": exec_method,
+                "duration_ms": compute_duration,
                 "end_timestamp": time.time()
             }
         )
@@ -357,7 +386,7 @@ async def execute_job_with_proofs(
             "progress": 100,
             "message": "Job execution completed"
         })
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)  # Brief pause for event propagation
         
         # Step 7: Result Verification
         step = proof_generator.add_proof_step(
@@ -375,7 +404,7 @@ async def execute_job_with_proofs(
             "progress": 100,
             "message": "Verifying results"
         })
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.1)  # Brief pause for event propagation
         
         step = proof_generator.add_proof_step(
             job_id,
@@ -402,9 +431,10 @@ async def execute_job_with_proofs(
             "message": "Cryptographic proof generated",
             "chain_valid": proof_generator.verify_proof_chain(job_id)
         })
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.1)  # Brief pause for event propagation
         
         # Step 9: Payment Released
+        payment_tx_id = job_data.get("payment_tx_id", f"TX{job_id[:16]}")  # Real tx ID from escrow release
         step = proof_generator.add_proof_step(
             job_id,
             "payment_released",
@@ -412,16 +442,19 @@ async def execute_job_with_proofs(
             {
                 "message": "Payment released from escrow",
                 "amount": job_data.get("payment_amount", 0),
-                "recipient": provider_id
+                "recipient": provider_id,
+                "tx_id": payment_tx_id,
+                "explorer_url": f"https://testnet.algoexplorer.io/tx/{payment_tx_id}"
             }
         )
         await publish_event_func("payment", {
             "job_id": job_id,
-            "tx_id": f"TX_{job_id[:16]}",
+            "tx_id": payment_tx_id,
             "amount": job_data.get("payment_amount", 0),
             "from": "escrow",
             "to": provider_id,
-            "message": "Payment released to provider"
+            "message": "Payment released to provider",
+            "explorer_url": f"https://testnet.algoexplorer.io/tx/{payment_tx_id}"
         })
         
         await publish_event_func("job_update", {

@@ -5,6 +5,7 @@ import asyncio
 import base64
 import json
 import os
+import time
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -29,6 +30,30 @@ from agent.wallet import AutonomousWallet, BudgetExceededError
 
 class ProviderFailedError(Exception):
     pass
+
+
+class RetryPolicy:
+    """Exponential backoff retry policy for provider requests."""
+
+    MAX_RETRIES = 3
+    BACKOFF_BASE = 1.5  # seconds
+    MAX_BACKOFF = 10.0
+
+    @classmethod
+    async def execute_with_retry(cls, func, *args, log_func=None, **kwargs):
+        """Execute an async function with exponential backoff retries."""
+        last_exc = None
+        for attempt in range(cls.MAX_RETRIES):
+            try:
+                return await func(*args, **kwargs)
+            except (ProviderFailedError, httpx.TimeoutException, httpx.ConnectError) as exc:
+                last_exc = exc
+                if attempt < cls.MAX_RETRIES - 1:
+                    wait = min(cls.BACKOFF_BASE ** attempt, cls.MAX_BACKOFF)
+                    if log_func:
+                        log_func(f"Retry {attempt + 1}/{cls.MAX_RETRIES} after {wait:.1f}s: {exc}")
+                    await asyncio.sleep(wait)
+        raise last_exc
 
 
 class ComputeAgent:
@@ -190,9 +215,12 @@ class ComputeAgent:
 
         expected_hash = self.task.get("expected_result_hash")
         if not expected_hash:
-            from agent.verifier import generate_expected_hash
+            from agent.verifier import compute_real_output_hash
 
-            expected_hash = generate_expected_hash(self.task)
+            expected_hash = compute_real_output_hash(
+                str(self.task.get("payload", "")),
+                int(self.task.get("tokens", 0)),
+            )
             self.task["expected_result_hash"] = expected_hash
 
         try:
@@ -294,16 +322,49 @@ class ComputeAgent:
                 ranked = preferred + [p for p in ranked if p not in preferred]
                 self.log(f"Preferred provider selected: {preferred_endpoint}")
 
-        self.log(f"Found {len(ranked)} providers, trying in ranked order")
-
+        # Health-check filter: probe providers before dispatching
+        healthy_providers = []
         for provider in ranked:
+            endpoint = str(provider.get("endpoint", "")).rstrip("/")
+            if not endpoint:
+                continue
             try:
-                result = await self.request_job(provider)
+                async with httpx.AsyncClient(timeout=5) as client:
+                    resp = await client.get(f"{endpoint}/health")
+                    if resp.status_code == 200:
+                        health = resp.json()
+                        provider["_health"] = health
+                        healthy_providers.append(provider)
+                        self.log(f"Provider {endpoint} healthy: {health.get('status', 'unknown')}")
+                    else:
+                        self.log(f"Provider {endpoint} unhealthy: HTTP {resp.status_code}")
+            except Exception as exc:
+                self.log(f"Provider {endpoint} unreachable: {exc}")
 
+        # Fall back to all ranked providers if health checks fail
+        if not healthy_providers:
+            self.log("No providers passed health check, trying all ranked providers")
+            healthy_providers = ranked
+
+        self.log(f"Dispatching to {len(healthy_providers)} providers in ranked order")
+
+        for provider in healthy_providers:
+            try:
+                # Use retry policy for each provider attempt
+                result = await RetryPolicy.execute_with_retry(
+                    self.request_job, provider, log_func=self.log
+                )
+
+                # Phase 2: Verify output BEFORE releasing escrow
                 if not verify_output(result, self.task):
                     self.log("OUTPUT_VERIFICATION_FAILED - triggering refund")
                     await self.trigger_refund(result.get("job_id", ""))
                     raise ProviderFailedError("Output hash mismatch")
+
+                # Only release escrow after verification passes
+                released = await self.release_escrow(result.get("job_id", ""), result.get("result_hash", ""))
+                if released:
+                    self.log(f"ESCROW_RELEASED for job {result.get('job_id', '')} after verification")
 
                 if should_spot_check():
                     self.log("SPOT_CHECK triggered for fraud detection")
@@ -313,13 +374,10 @@ class ComputeAgent:
                         await self.trigger_refund(result.get("job_id", ""))
                         raise ProviderFailedError("Fraud detected on spot check")
 
-                released = await self.release_escrow(result.get("job_id", ""), result.get("result_hash", ""))
-                if released:
-                    self.log(f"ESCROW_RELEASED for job {result.get('job_id', '')}")
                 self.log(f"Job completed: result_hash={result.get('result_hash', '')}")
                 return result
             except ProviderFailedError as exc:
-                self.log(f"Provider {provider['endpoint']} failed: {exc}, trying next")
+                self.log(f"Provider {provider.get('endpoint', '?')} failed: {exc}, trying next")
                 continue
             except BudgetExceededError as exc:
                 self.log(f"Budget exceeded: {exc}")
