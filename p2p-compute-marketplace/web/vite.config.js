@@ -4,11 +4,18 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
+      '/health': 'http://localhost:8000',
+      '/providers': 'http://localhost:8000',
+      '/analytics': 'http://localhost:8000',
+      '/jobs': 'http://localhost:8000',
+      '/job': 'http://localhost:8000',
+      '/hub': 'http://localhost:8000',
+      '/orgs': 'http://localhost:8000',
+      '/scheduler': 'http://localhost:8000',
+      '/telemetry': 'http://localhost:8000',
+      '/realtime': 'http://localhost:8000',
+      '/provider': 'http://localhost:8000',
+      '/agent': 'http://localhost:3001',
     }
   },
   define: {
@@ -21,13 +28,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html',
-        providers: './providers.html',
-        activity: './activity.html',
+        explore: './explore.html',
         dashboard: './dashboard.html',
-        roadmap: './roadmap.html',
-        orgDashboard: './org-dashboard.html',
-        orgRegister: './org-register.html',
-        wallet: './wallet.html'
+        provide: './provide.html',
       }
     }
   }

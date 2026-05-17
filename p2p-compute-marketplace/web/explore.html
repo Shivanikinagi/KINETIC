@@ -1,156 +1,441 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>KINETIC Hub | Explore</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>KINETIC — Explore GPUs | Decentralized GPU Marketplace</title>
+    <meta name="description" content="Search and compare GPU compute providers. Filter by model, VRAM, price. One-click deploy on Algorand."/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/static/js/config.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
     <style>
-        :root {
-            --bg-main: #070d1d;
-            --surface: rgba(11, 21, 44, 0.86);
-            --surface-soft: rgba(13, 26, 52, 0.7);
-            --line: rgba(94, 136, 197, 0.28);
-            --text-main: #eaf2ff;
-            --text-muted: #9cb1ce;
-            --brand: #32c6ea;
-            --brand-strong: #17afd0;
-            --warn: #f9c36a;
-        }
-
-        body {
-            font-family: Inter, sans-serif;
-            color: var(--text-main);
-            background:
-                radial-gradient(940px 520px at 92% -8%, rgba(50, 198, 234, 0.24), transparent 68%),
-                radial-gradient(760px 560px at -8% 10%, rgba(89, 123, 255, 0.14), transparent 72%),
-                linear-gradient(180deg, #070d1d 0%, #0a1227 100%);
-            min-height: 100vh;
-        }
-
-        h1, h2, h3 {
-            font-family: 'Space Grotesk', sans-serif;
-        }
-
-        .panel {
-            border-radius: 1rem;
-            border: 1px solid var(--line);
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-        }
-
-        .card {
-            border-radius: 1rem;
-            border: 1px solid rgba(92, 140, 209, 0.3);
-            background: var(--surface-soft);
-            box-shadow: 0 12px 22px rgba(3, 8, 19, 0.35);
-        }
-
-        .field,
-        .select {
-            width: 100%;
-            background: rgba(2, 10, 25, 0.96);
-            border: 1px solid rgba(88, 125, 179, 0.48);
-            color: var(--text-main);
-            border-radius: 0.72rem;
-            padding: 0.62rem 0.72rem;
-            font-size: 0.95rem;
-        }
-
-        .field::placeholder {
-            color: #7d95b8;
-        }
-
-        .field:focus,
-        .select:focus {
-            outline: none;
-            border-color: rgba(50, 198, 234, 0.82);
-            box-shadow: 0 0 0 3px rgba(50, 198, 234, 0.2);
-        }
-
-        .btn-primary {
-            border-radius: 0.72rem;
-            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 100%);
-            color: #05242f;
-            font-weight: 700;
-            padding: 0.62rem 0.9rem;
-        }
-
-        .btn-primary:hover {
-            filter: brightness(1.07);
-        }
-
-        .tag {
-            border-radius: 999px;
-            border: 1px solid rgba(102, 142, 198, 0.5);
-            background: rgba(80, 120, 181, 0.18);
-            color: #b8cff0;
-            font-size: 0.68rem;
-            font-weight: 600;
-            padding: 0.2rem 0.58rem;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
+        body { font-family:'Inter',sans-serif; background:#0b0d10; color:#e8edf5; }
+        h1,h2,h3,h4 { font-family:'Space Grotesk',sans-serif; }
+        .material-symbols-outlined { font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+        .glass { background:rgba(18,22,28,0.7); backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,0.06); }
+        .card-hover { transition:transform 0.2s, box-shadow 0.2s; }
+        .card-hover:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,245,255,0.08); }
+        .chip { display:inline-flex; align-items:center; gap:0.3rem; padding:0.35rem 0.75rem; border-radius:999px; font-size:0.7rem; font-weight:600; cursor:pointer; transition:all 0.2s; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); color:#94a3b8; }
+        .chip:hover, .chip.active { border-color:rgba(0,245,255,0.4); background:rgba(0,245,255,0.08); color:#67e8f9; }
+        .template-pill { display:inline-flex; align-items:center; gap:0.4rem; padding:0.5rem 1rem; border-radius:0.75rem; font-size:0.8rem; font-weight:600; cursor:pointer; transition:all 0.2s; border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03); color:#cbd5e1; }
+        .template-pill:hover { border-color:rgba(0,245,255,0.3); background:rgba(0,245,255,0.06); }
+        /* Deploy modal */
+        .modal-overlay { position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.7); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; }
+        .modal-overlay.open { display:flex; }
     </style>
 </head>
 <body>
-    <header class="max-w-7xl mx-auto px-5 sm:px-7 py-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-            <p class="text-xs uppercase tracking-[0.2em] text-cyan-100/65 mb-1">Kinetic Hub Marketplace</p>
-            <h1 class="text-3xl sm:text-4xl font-bold text-cyan-200">Explore Providers</h1>
-            <p class="text-slate-300/80">Compare trust signals, performance, and price before you deploy.</p>
-        </div>
-        <nav class="flex flex-wrap gap-4 text-sm text-slate-300">
-            <a class="hover:text-cyan-200" href="/index.html">Marketplace</a>
-            <a class="text-cyan-200 font-semibold" href="/explore.html">Explore</a>
-            <a class="hover:text-cyan-200" href="/templates.html">Templates</a>
-            <a class="hover:text-cyan-200" href="/consumer-dashboard.html">Consumer Dashboard</a>
-        </nav>
-    </header>
 
-    <main class="max-w-7xl mx-auto px-5 sm:px-7 pb-10">
-        <section class="panel p-4 sm:p-5 mb-5">
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
-                <div class="xl:col-span-2">
-                    <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Search</label>
-                    <input id="q" placeholder="Org, provider, GPU" class="field mt-1" />
+<div id="nav"></div>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Explore GPUs</h1>
+            <p class="text-slate-500 text-sm mt-1">Search, compare, and deploy GPU compute instantly</p>
+        </div>
+        <div class="flex items-center gap-3 text-sm">
+            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+            <span class="text-slate-500 font-mono text-xs" id="providerCount">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Search + Filters -->
+    <div class="glass rounded-xl p-5 mb-6">
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1 relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+                <input id="searchInput" type="text" placeholder="Search by GPU model, provider name, org..."
+                    class="w-full bg-black/30 border border-white/10 rounded-lg pl-10 pr-4 py-3 text-sm placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none transition-colors"/>
+            </div>
+            <select id="sortBy" class="bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-sm text-slate-300 focus:border-cyan-500/50 focus:outline-none">
+                <option value="reputation">Sort: Reputation</option>
+                <option value="price">Sort: Price (low → high)</option>
+                <option value="uptime">Sort: Uptime</option>
+                <option value="vram">Sort: VRAM</option>
+            </select>
+        </div>
+        <!-- Filter chips -->
+        <div class="flex flex-wrap gap-2 mt-4">
+            <button class="chip gpu-chip" data-gpu="H100">H100</button>
+            <button class="chip gpu-chip" data-gpu="RTX 4090">RTX 4090</button>
+            <button class="chip gpu-chip" data-gpu="A100">A100</button>
+            <button class="chip gpu-chip" data-gpu="RTX 3090">RTX 3090</button>
+            <span class="w-px h-6 bg-white/10 mx-1"></span>
+            <button class="chip vram-chip" data-vram="8">8GB+</button>
+            <button class="chip vram-chip" data-vram="24">24GB+</button>
+            <button class="chip vram-chip" data-vram="48">48GB+</button>
+            <span class="w-px h-6 bg-white/10 mx-1"></span>
+            <button class="chip" id="verifiedChip">
+                <span class="material-symbols-outlined text-xs">verified</span>
+                Verified only
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Deploy Templates -->
+    <div class="mb-8">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500 mb-3">Quick Deploy Templates</h2>
+        <div class="flex flex-wrap gap-3" id="templateList">
+            <span class="text-xs text-slate-600">Loading templates...</span>
+        </div>
+    </div>
+
+    <!-- Provider Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" id="providerGrid">
+        <div class="glass rounded-xl p-8 text-center text-slate-500 col-span-full">Loading GPUs...</div>
+    </div>
+</main>
+
+<!-- Deploy Modal -->
+<div class="modal-overlay" id="deployModal">
+    <div class="glass rounded-2xl p-8 w-full max-w-lg mx-4 relative">
+        <button onclick="document.getElementById('deployModal').classList.remove('open')" class="absolute top-4 right-4 text-slate-500 hover:text-white">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <h2 class="text-xl font-bold mb-1" id="modalTitle">Deploy Job</h2>
+        <p class="text-sm text-slate-400 mb-6" id="modalDesc">Configure and deploy compute to this provider</p>
+        <form id="deployForm" class="space-y-4">
+            <input type="hidden" id="deployProviderId"/>
+            <div>
+                <label class="text-xs uppercase tracking-wider text-slate-500 mb-1 block">Job Type</label>
+                <select id="deployJobType" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-sm text-slate-300 focus:border-cyan-500/50 focus:outline-none">
+                    <option value="inference">Inference</option>
+                    <option value="training">Training</option>
+                    <option value="fine_tune">Fine-Tune LLM</option>
+                    <option value="rendering">3D Rendering</option>
+                    <option value="data">Data Pipeline</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs uppercase tracking-wider text-slate-500 mb-1 block">Tokens</label>
+                <input id="deployTokens" type="number" min="100" value="1000" class="w-full bg-black/30 border border-white/10 rounded-lg px-4 py-3 text-sm placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"/>
+            </div>
+            <div class="glass rounded-lg p-4 text-sm">
+                <div class="flex justify-between mb-1">
+                    <span class="text-slate-400">Provider</span>
+                    <span id="modalProvider" class="font-semibold">—</span>
                 </div>
-                <div>
-                    <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">GPU model</label>
-                    <input id="gpu" placeholder="H100, RTX 4090" class="field mt-1" />
-                </div>
-                <div>
-                    <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Max price ($/hr)</label>
-                    <input id="maxPrice" type="number" min="0" step="0.1" value="5" class="field mt-1" />
-                </div>
-                <div>
-                    <label class="text-xs uppercase tracking-[0.16em] text-slate-300/70">Sort by</label>
-                    <select id="sortBy" class="select mt-1">
-                        <option value="reputation">Reputation</option>
-                        <option value="rating">Rating</option>
-                        <option value="price">Price</option>
-                        <option value="uptime">Uptime</option>
-                        <option value="availability">Availability</option>
-                    </select>
-                </div>
-                <div class="flex items-end">
-                    <button id="refreshBtn" class="btn-primary w-full">Refresh Results</button>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Est. Cost</span>
+                    <span id="modalCost" class="font-semibold text-cyan-400">—</span>
                 </div>
             </div>
-        </section>
+            <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-bold hover:brightness-110 transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-lg">rocket_launch</span>
+                Deploy Now
+            </button>
+        </form>
+        <div id="deployResult" class="mt-4 text-sm hidden"></div>
+    </div>
+</div>
 
-        <section class="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <p id="resultsMeta" class="text-sm text-slate-300/85">Loading providers...</p>
-            <div class="tag">Trust-ranked catalog</div>
-        </section>
+<div id="footer"></div>
 
-        <section id="providerGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></section>
-    </main>
+<script type="module">
+import { renderNav, renderFooter, fetchJson, toast } from '/static/js/shared.js';
+import '/static/js/wallet-init.js';
 
-    <script type="module" src="/static/js/explore.js"></script>
+document.getElementById('nav').innerHTML = renderNav('explore');
+document.getElementById('footer').innerHTML = renderFooter();
+
+let allProviders = [];
+let allTemplates = [];
+let filters = { search: '', gpu: null, vram: 0, verified: false, sort: 'reputation' };
+
+// ── Load providers ──────────────────────────────────────────────
+async function loadProviders() {
+    try {
+        const data = await fetchJson('/hub/explore');
+        allProviders = data.providers || [];
+        renderProviders();
+        document.getElementById('providerCount').textContent = `${allProviders.length} providers online`;
+    } catch (e) {
+        // Fallback to simple /providers endpoint
+        try {
+            const data = await fetchJson('/providers');
+            allProviders = Array.isArray(data) ? data : [];
+            renderProviders();
+            document.getElementById('providerCount').textContent = `${allProviders.length} providers online`;
+        } catch(e2) {
+            document.getElementById('providerGrid').innerHTML = '<div class="glass rounded-xl p-8 text-center text-slate-500 col-span-full">Unable to load providers. Check that the backend is running.</div>';
+        }
+    }
+}
+
+// ── Load templates ──────────────────────────────────────────────
+async function loadTemplates() {
+    try {
+        const data = await fetchJson('/hub/templates');
+        allTemplates = data.templates || [];
+        const container = document.getElementById('templateList');
+        if (allTemplates.length === 0) {
+            container.innerHTML = '<span class="text-xs text-slate-600">No templates available</span>';
+            return;
+        }
+        container.innerHTML = allTemplates.map(t => `
+            <button class="template-pill" data-template="${t.template_id}" title="${t.description}">
+                <span class="material-symbols-outlined text-sm text-cyan-400">bolt</span>
+                ${t.name}
+                <span class="text-[10px] text-slate-500">${t.base_tokens} tokens</span>
+            </button>
+        `).join('');
+
+        container.querySelectorAll('.template-pill').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tpl = allTemplates.find(t => t.template_id === btn.dataset.template);
+                if (tpl) openDeployModal(null, tpl);
+            });
+        });
+    } catch(e) {
+        document.getElementById('templateList').innerHTML = '<span class="text-xs text-slate-600">Templates unavailable</span>';
+    }
+}
+
+// ── Filter + render ─────────────────────────────────────────────
+function renderProviders() {
+    const grid = document.getElementById('providerGrid');
+    let list = [...allProviders];
+
+    // Apply filters
+    if (filters.search) {
+        const q = filters.search.toLowerCase();
+        list = list.filter(p =>
+            (p.name || '').toLowerCase().includes(q) ||
+            (p.gpu_model || '').toLowerCase().includes(q) ||
+            (p.org_name || '').toLowerCase().includes(q) ||
+            (p.id || '').toLowerCase().includes(q)
+        );
+    }
+    if (filters.gpu) {
+        const g = filters.gpu.toLowerCase();
+        list = list.filter(p => (p.gpu_model || '').toLowerCase().includes(g));
+    }
+    if (filters.vram > 0) {
+        list = list.filter(p => (p.vram_gb || 0) >= filters.vram);
+    }
+    if (filters.verified) {
+        list = list.filter(p => p.verified_member || p.org_verified);
+    }
+
+    // Sort
+    if (filters.sort === 'price') list.sort((a,b) => (a.price_per_hour||0)-(b.price_per_hour||0));
+    else if (filters.sort === 'uptime') list.sort((a,b) => (b.uptime||0)-(a.uptime||0));
+    else if (filters.sort === 'vram') list.sort((a,b) => (b.vram_gb||0)-(a.vram_gb||0));
+    else list.sort((a,b) => {
+        const ra = a.trust?.reputation_score || (a.verified_member ? 80 : 50);
+        const rb = b.trust?.reputation_score || (b.verified_member ? 80 : 50);
+        return rb - ra;
+    });
+
+    if (list.length === 0) {
+        grid.innerHTML = '<div class="glass rounded-xl p-8 text-center text-slate-500 col-span-full">No GPUs match your filters. Try adjusting search criteria.</div>';
+        return;
+    }
+
+    grid.innerHTML = list.map(p => {
+        const uptime = Number(p.uptime || 0);
+        const uptimeColor = uptime >= 99 ? 'text-emerald-400' : uptime >= 95 ? 'text-amber-400' : 'text-red-400';
+        const verified = p.verified_member || p.org_verified;
+        const orgBadge = p.org_name ? `<span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">✓ ${p.org_name}</span>` : '';
+        const price = typeof p.price_per_hour === 'number' ? p.price_per_hour.toFixed(2) : p.price_per_hour;
+        const rep = p.trust?.reputation_score ? p.trust.reputation_score.toFixed(0) : (verified ? '80' : '—');
+
+        return `
+        <div class="glass rounded-xl overflow-hidden card-hover group">
+            <div class="p-5 space-y-4">
+                <div class="flex items-start justify-between">
+                    <div class="min-w-0">
+                        <h3 class="font-bold text-sm truncate">${p.name || p.id}</h3>
+                        <p class="text-xs text-slate-500 font-mono mt-0.5">${p.gpu_model || 'GPU'}</p>
+                        ${orgBadge}
+                    </div>
+                    <div class="flex flex-col items-end gap-1 shrink-0">
+                        ${verified ? '<span class="material-symbols-outlined text-emerald-400 text-sm" style="font-variation-settings:\'FILL\' 1" title="Verified">verified</span>' : ''}
+                    </div>
+                </div>
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="text-center">
+                        <p class="text-[9px] text-slate-500 uppercase">VRAM</p>
+                        <p class="font-bold text-xs">${p.vram_gb || '?'}GB</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[9px] text-slate-500 uppercase">Price</p>
+                        <p class="font-bold text-xs">${price} Ⱥ</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[9px] text-slate-500 uppercase">Uptime</p>
+                        <p class="font-bold text-xs ${uptimeColor}">${uptime}%</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[9px] text-slate-500 uppercase">Score</p>
+                        <p class="font-bold text-xs text-cyan-400">${rep}</p>
+                    </div>
+                </div>
+                <button class="deploy-btn w-full py-2.5 rounded-lg bg-cyan-500/10 text-cyan-400 text-sm font-semibold hover:bg-cyan-500/20 transition-all border border-cyan-500/20 flex items-center justify-center gap-1.5"
+                    data-id="${p.id}" data-name="${p.name || p.id}" data-price="${p.price_per_hour || 0}">
+                    <span class="material-symbols-outlined text-sm">rocket_launch</span>
+                    Deploy
+                </button>
+            </div>
+        </div>`;
+    }).join('');
+
+    // Attach deploy button handlers
+    grid.querySelectorAll('.deploy-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const provider = allProviders.find(p => p.id === btn.dataset.id);
+            openDeployModal(provider);
+        });
+    });
+}
+
+// ── Deploy Modal ────────────────────────────────────────────────
+function openDeployModal(provider, template = null) {
+    currentDeployTemplate = template;
+    const modal = document.getElementById('deployModal');
+    if (provider) {
+        document.getElementById('modalTitle').textContent = `Deploy to ${provider.name || provider.id}`;
+        document.getElementById('modalDesc').textContent = `${provider.gpu_model || 'GPU'} · ${provider.vram_gb || '?'}GB VRAM`;
+        document.getElementById('modalProvider').textContent = provider.name || provider.id;
+        document.getElementById('deployProviderId').value = provider.id;
+        updateCostEstimate(provider.price_per_hour || 0);
+    } else if (template) {
+        document.getElementById('modalTitle').textContent = template.name;
+        document.getElementById('modalDesc').textContent = template.description || 'Deploy this template';
+        document.getElementById('modalProvider').textContent = 'Best available';
+        document.getElementById('deployProviderId').value = '';
+        document.getElementById('deployTokens').value = template.base_tokens || 1000;
+        updateCostEstimate(1.0);
+    }
+    document.getElementById('deployResult').classList.add('hidden');
+    modal.classList.add('open');
+}
+
+function updateCostEstimate(pricePerHour) {
+    const tokens = parseInt(document.getElementById('deployTokens').value) || 1000;
+    const hours = Math.max(1/60, tokens / 3600);
+    const cost = (pricePerHour * hours).toFixed(4);
+    document.getElementById('modalCost').textContent = `~${cost} ALGO`;
+}
+
+document.getElementById('deployTokens').addEventListener('input', () => {
+    const providerId = document.getElementById('deployProviderId').value;
+    const provider = allProviders.find(p => p.id === providerId);
+    updateCostEstimate(provider?.price_per_hour || 1.0);
+});
+
+// ── Deploy form submit ──────────────────────────────────────────
+let currentDeployTemplate = null;
+
+document.getElementById('deployForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const resultEl = document.getElementById('deployResult');
+    const providerId = document.getElementById('deployProviderId').value;
+    const jobType = document.getElementById('deployJobType').value;
+    const tokens = parseInt(document.getElementById('deployTokens').value) || 1000;
+
+    resultEl.innerHTML = '<p class="text-cyan-400">Dispatching...</p>';
+    resultEl.classList.remove('hidden');
+
+    try {
+        let result;
+        if (currentDeployTemplate) {
+            // Template deploy via hub
+            const payload = {
+                consumer_id: 'user_' + Date.now(),
+                params: { tokens, type: jobType },
+                provider_id: providerId || undefined,
+            };
+            result = await fetchJson(`/hub/templates/${currentDeployTemplate.template_id}/deploy`, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+            });
+        } else {
+            // Direct job submission
+            const payload = { type: jobType, tokens, payload: `deploy:${providerId || 'auto'}:${Date.now()}` };
+            if (providerId) {
+                const provider = allProviders.find(p => p.id === providerId);
+                if (provider?.endpoint) payload.provider_endpoint = provider.endpoint;
+            }
+            result = await fetchJson('/job', { method: 'POST', body: JSON.stringify(payload) });
+        }
+
+        const status = result.status || 'dispatched';
+        const isError = status === 'failed';
+        resultEl.innerHTML = `
+            <div class="glass rounded-lg p-4 space-y-2">
+                <p class="${isError ? 'text-red-400' : 'text-emerald-400'} font-semibold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm">${isError ? 'error' : 'check_circle'}</span>
+                    ${isError ? 'Job failed' : 'Job ' + status}
+                </p>
+                <p class="text-xs text-slate-400">ID: <span class="font-mono text-slate-300">${result.deployment_id || result.job_id || 'pending'}</span></p>
+                <p class="text-xs text-slate-400">Track in <a href="/dashboard.html" class="text-cyan-400 underline">Dashboard</a></p>
+            </div>`;
+        toast(isError ? 'Job failed' : 'Job deployed!', isError ? 'error' : 'success');
+    } catch (err) {
+        resultEl.innerHTML = `<p class="text-red-400">${err.message}</p>`;
+        toast('Deploy failed: ' + err.message, 'error');
+    }
+});
+
+// ── Filter event listeners ──────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    filters.search = e.target.value;
+    renderProviders();
+});
+document.getElementById('sortBy').addEventListener('change', (e) => {
+    filters.sort = e.target.value;
+    renderProviders();
+});
+
+document.querySelectorAll('.gpu-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        const isActive = chip.classList.contains('active');
+        document.querySelectorAll('.gpu-chip').forEach(c => c.classList.remove('active'));
+        if (!isActive) {
+            chip.classList.add('active');
+            filters.gpu = chip.dataset.gpu;
+        } else {
+            filters.gpu = null;
+        }
+        renderProviders();
+    });
+});
+
+document.querySelectorAll('.vram-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        const isActive = chip.classList.contains('active');
+        document.querySelectorAll('.vram-chip').forEach(c => c.classList.remove('active'));
+        if (!isActive) {
+            chip.classList.add('active');
+            filters.vram = parseInt(chip.dataset.vram);
+        } else {
+            filters.vram = 0;
+        }
+        renderProviders();
+    });
+});
+
+document.getElementById('verifiedChip').addEventListener('click', function() {
+    this.classList.toggle('active');
+    filters.verified = this.classList.contains('active');
+    renderProviders();
+});
+
+// Close modal on overlay click
+document.getElementById('deployModal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+});
+
+// ── Init ────────────────────────────────────────────────────────
+loadProviders();
+loadTemplates();
+</script>
 </body>
 </html>

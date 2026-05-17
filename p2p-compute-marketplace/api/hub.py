@@ -883,41 +883,50 @@ async def deploy_template(template_id: str, payload: TemplateDeployRequest) -> d
         status="pending",
     )
 
-    result = await run_job(
-        {
-            "job_id": deployment_id,
-            "type": str(row["use_case"]),
-            "tokens": tokens,
-            "payload": json.dumps(merged_params, sort_keys=True),
-        }
-    )
-
-    result_hash = str(result.get("result_hash", ""))
-    duration_ms = int(result.get("duration_ms", 0))
+    # Execute job with error handling
+    try:
+        result = await run_job(
+            {
+                "job_id": deployment_id,
+                "type": str(row["use_case"]),
+                "tokens": tokens,
+                "payload": json.dumps(merged_params, sort_keys=True),
+            }
+        )
+        result_hash = str(result.get("result_hash", ""))
+        duration_ms = int(result.get("duration_ms", 0))
+        final_status = "completed"
+    except Exception as exc:
+        result_hash = ""
+        duration_ms = 0
+        final_status = "failed"
+        result = {"error": str(exc)}
 
     conn = _connect()
     conn.execute(
         """
         UPDATE template_deployments
-        SET status='completed', result_hash=?, duration_ms=?, completed_at=?
+        SET status=?, result_hash=?, duration_ms=?, completed_at=?
         WHERE deployment_id=?
         """,
-        (result_hash, duration_ms, _utc_now().isoformat(), deployment_id),
+        (final_status, result_hash, duration_ms, _utc_now().isoformat(), deployment_id),
     )
     conn.commit()
     conn.close()
 
-    complete_job(deployment_id, result_hash=result_hash, duration_ms=duration_ms, status="completed")
-    await _dispatch_webhooks(
-        payload.consumer_id,
-        "job.completed",
-        {
-            "deployment_id": deployment_id,
-            "template_id": template_id,
-            "provider_id": selected.get("id"),
-            "result_hash": result_hash,
-        },
-    )
+    complete_job(deployment_id, result_hash=result_hash, duration_ms=duration_ms, status=final_status)
+
+    if final_status == "completed":
+        await _dispatch_webhooks(
+            payload.consumer_id,
+            "job.completed",
+            {
+                "deployment_id": deployment_id,
+                "template_id": template_id,
+                "provider_id": selected.get("id"),
+                "result_hash": result_hash,
+            },
+        )
 
     return {
         "deployment_id": deployment_id,
@@ -927,6 +936,7 @@ async def deploy_template(template_id: str, payload: TemplateDeployRequest) -> d
             "name": selected.get("name"),
         },
         "estimated_cost_algo": estimated_cost_algo,
+        "status": final_status,
         "job_result": result,
     }
 
