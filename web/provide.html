@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>KINETIC | Provide Compute</title>
+    <meta name="description" content="Register your GPU and start earning ALGO."/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0b0d10; color: #e8edf5; margin: 0; }
+        h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass { background: rgba(18,22,28,0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.06); }
+        .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,245,255,0.08); }
+        input, select, textarea {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 0.5rem;
+            padding: 0.6rem 0.875rem;
+            color: #e8edf5;
+            font-size: 0.875rem;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus, textarea:focus { border-color: rgba(0,245,255,0.4); }
+        input::placeholder { color: #64748b; }
+        label { display: block; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 0.4rem; }
+    </style>
+</head>
+<body>
+
+<div id="nav"></div>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+    <!-- Hero -->
+    <section class="glass rounded-2xl p-8 md:p-12 text-center mb-10">
+        <h1 class="text-3xl md:text-4xl font-black tracking-tight mb-3">Have idle GPUs?</h1>
+        <p class="text-slate-400 max-w-lg mx-auto text-sm">Register your hardware and start earning ALGO. Set your own price, get paid per job, instant settlement.</p>
+        <div class="flex flex-wrap justify-center gap-6 mt-8">
+            <div class="text-center">
+                <p class="text-2xl font-bold text-cyan-400">1</p>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-1">Register</p>
+            </div>
+            <div class="text-slate-600 text-xl">→</div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-cyan-400">2</p>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-1">List GPU</p>
+            </div>
+            <div class="text-slate-600 text-xl">→</div>
+            <div class="text-center">
+                <p class="text-2xl font-bold text-cyan-400">3</p>
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mt-1">Earn</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Register Form -->
+        <section class="glass rounded-xl p-6">
+            <h2 class="text-xl font-bold mb-1">Register Provider</h2>
+            <p class="text-slate-500 text-xs mb-6">List your compute on-chain</p>
+            <form id="registerForm" class="space-y-4">
+                <div>
+                    <label>GPU Model</label>
+                    <input type="text" id="gpuModel" placeholder="e.g. RTX 4090" required/>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label>VRAM (GB)</label>
+                        <input type="number" id="vramGb" placeholder="24" min="1" required/>
+                    </div>
+                    <div>
+                        <label>GPU Count</label>
+                        <input type="number" id="gpuCount" placeholder="1" min="1" value="1" required/>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label>Price / hour (ALGO)</label>
+                        <input type="number" id="priceHour" placeholder="1.5" step="0.01" min="0.01" required/>
+                    </div>
+                    <div>
+                        <label>Endpoint URL</label>
+                        <input type="url" id="endpoint" placeholder="https://provider.example.com" required/>
+                    </div>
+                </div>
+                <div>
+                    <label>Organization Name</label>
+                    <input type="text" id="orgName" placeholder="Optional: My GPU Farm"/>
+                </div>
+                <div>
+                    <label>Provider Mnemonic (25 words)</label>
+                    <textarea id="mnemonic" rows="3" placeholder="abandon abandon abandon ..." required></textarea>
+                    <p class="text-[10px] text-slate-500 mt-1">Required to sign the on-chain registration transaction.</p>
+                </div>
+                <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-bold hover:brightness-110 transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-lg">cloud_upload</span>
+                    Register on-chain
+                </button>
+            </form>
+            <div id="registerResult" class="mt-4 text-sm hidden"></div>
+        </section>
+
+        <!-- Provider Status -->
+        <section class="space-y-6">
+            <div class="glass rounded-xl p-6">
+                <h2 class="text-xl font-bold mb-4">Your Provider</h2>
+                <div id="providerStatus">
+                    <p class="text-slate-500 text-sm">Loading provider info...</p>
+                </div>
+            </div>
+
+            <div class="glass rounded-xl p-6">
+                <h2 class="text-xl font-bold mb-4">Network Overview</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center p-4 rounded-lg bg-white/[0.03]">
+                        <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Total Providers</p>
+                        <p class="text-2xl font-bold text-cyan-400" id="netProviders">—</p>
+                    </div>
+                    <div class="text-center p-4 rounded-lg bg-white/[0.03]">
+                        <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Avg Price</p>
+                        <p class="text-2xl font-bold text-emerald-400" id="netAvgPrice">—</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass rounded-xl p-6">
+                <h2 class="text-xl font-bold mb-2">Need Help?</h2>
+                <p class="text-slate-500 text-sm mb-4">Run the provider node software to start accepting jobs.</p>
+                <a href="https://github.com/Shivanikinagi/KINETIC/blob/main/docs/PROVIDER_GUIDE.md" target="_blank" class="inline-flex items-center gap-2 text-cyan-400 text-sm font-semibold hover:text-cyan-200 transition-colors">
+                    <span class="material-symbols-outlined text-sm">open_in_new</span>
+                    Provider Setup Guide
+                </a>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div id="footer"></div>
+
+<script type="module">
+import { renderNav, renderFooter, fetchJson, toast } from '/static/js/shared.js';
+import '/static/js/wallet-init.js';
+
+document.getElementById('nav').innerHTML = renderNav('provide');
+document.getElementById('footer').innerHTML = renderFooter();
+
+// Load provider status
+async function loadProviderStatus() {
+    try {
+        const info = await fetchJson('/providers/me');
+        const el = document.getElementById('providerStatus');
+        el.innerHTML = `
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-400">GPU</span>
+                    <span class="text-sm font-semibold">${info.gpu_model || '—'}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-400">VRAM</span>
+                    <span class="text-sm font-semibold">${info.vram_gb || '—'} GB</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-400">Price</span>
+                    <span class="text-sm font-semibold">${info.price_per_hour || '—'} microALGO/hr</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-400">Address</span>
+                    <span class="text-sm font-mono text-cyan-400">${info.payment_address ? info.payment_address.substring(0, 16) + '...' : '—'}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-400">Status</span>
+                    <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Active
+                    </span>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        document.getElementById('providerStatus').innerHTML = '<p class="text-slate-500 text-sm">Not registered yet. Fill the form to register your provider.</p>';
+    }
+}
+
+// Load network stats
+async function loadNetwork() {
+    try {
+        const providers = await fetchJson('/providers');
+        const list = Array.isArray(providers) ? providers : [];
+        document.getElementById('netProviders').textContent = list.length;
+        const avg = list.length > 0 ? (list.reduce((s, p) => s + (p.price_per_hour || 0), 0) / list.length).toFixed(2) : '0.00';
+        document.getElementById('netAvgPrice').textContent = avg + ' A';
+    } catch (e) { console.log('Network error:', e); }
+}
+
+// Register form
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const resultEl = document.getElementById('registerResult');
+    resultEl.classList.remove('hidden');
+    resultEl.innerHTML = '<p class="text-cyan-400">Registering on-chain...</p>';
+
+    const payload = {
+        gpu_model: document.getElementById('gpuModel').value.trim(),
+        vram_gb: parseInt(document.getElementById('vramGb').value),
+        price_per_hour: parseFloat(document.getElementById('priceHour').value),
+        endpoint: document.getElementById('endpoint').value.trim(),
+        org_name: document.getElementById('orgName').value.trim(),
+        provider_mnemonic: document.getElementById('mnemonic').value.trim(),
+    };
+
+    try {
+        const result = await fetchJson('/provider/register', {
+            method: 'POST',
+            body: JSON.stringify(payload),
+        });
+        resultEl.innerHTML = `
+            <div class="glass rounded-lg p-4 space-y-2">
+                <p class="text-emerald-400 font-semibold flex items-center gap-1"><span class="material-symbols-outlined text-sm">check_circle</span> Registered</p>
+                <p class="text-xs text-slate-400">Address: <span class="font-mono text-slate-300">${result.provider_address}</span></p>
+                <p class="text-xs text-slate-400">Tx: <a href="${result.explorer_url}" target="_blank" class="text-cyan-400 underline">View on Explorer</a></p>
+            </div>`;
+        toast('Provider registered!', 'success');
+        loadProviderStatus();
+    } catch (err) {
+        resultEl.innerHTML = `<p class="text-red-400">${err.message}</p>`;
+        toast('Registration failed: ' + err.message, 'error');
+    }
+});
+
+loadProviderStatus();
+loadNetwork();
+</script>
+</body>
+</html>

@@ -482,3 +482,21 @@ async def list_jobs(limit: int = 20) -> list[dict]:
     """Return real job history from database."""
     return get_recent_jobs(limit=limit)
 
+
+@app.get("/network/stats")
+async def network_stats() -> dict:
+    """Return aggregate network statistics from providers."""
+    providers = await list_providers()
+    total_gpus = sum(p.get("gpu_count", 1) for p in providers)
+    total_vram = sum(p.get("vram_gb", 0) for p in providers)
+    avg_uptime = (
+        sum(p.get("uptime", 0) for p in providers) / len(providers)
+        if providers else 0
+    )
+    return {
+        "total_providers": len(providers),
+        "total_gpus": total_gpus,
+        "total_vram_gb": total_vram,
+        "network_uptime": round(avg_uptime, 2),
+    }
+
