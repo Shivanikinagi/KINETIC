@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { fetchJson, type Job, type Analytics, type Provider } from '../lib/api'
-import StatusBadge from '../components/StatusBadge'
 
 export default function Activity() {
   const [jobs, setJobs] = useState<Job[]>([])

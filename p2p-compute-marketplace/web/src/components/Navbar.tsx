@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useWallet } from '../hooks/useWallet'
 
 const pages = [
   { href: '/', label: 'Hub', id: 'home' },
@@ -10,8 +11,13 @@ const pages = [
   { href: '/activity', label: 'Activity', id: 'activity' },
 ]
 
+function formatAddress(addr: string) {
+  return `${addr.slice(0, 4)}...${addr.slice(-4)}`
+}
+
 export default function Navbar() {
   const location = useLocation()
+  const { address, connected, connecting, connect, disconnect } = useWallet()
   const activePage = pages.find(p => p.href === location.pathname)?.id || ''
 
   return (
@@ -42,9 +48,23 @@ export default function Navbar() {
           <span className="hidden sm:inline text-[10px] tracking-widest uppercase text-slate-500 font-mono border border-slate-700/50 px-3 py-1 rounded-full">
             Algorand TestNet
           </span>
-          <button className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 px-5 py-2 rounded-lg font-semibold text-sm hover:brightness-110 transition-all">
-            Connect Wallet
-          </button>
+          {connected && address ? (
+            <button
+              onClick={disconnect}
+              className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-emerald-500/20 transition-all"
+            >
+              <span className="material-symbols-outlined text-sm">account_balance_wallet</span>
+              {formatAddress(address)}
+            </button>
+          ) : (
+            <button
+              onClick={connect}
+              disabled={connecting}
+              className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 px-5 py-2 rounded-lg font-semibold text-sm hover:brightness-110 transition-all disabled:opacity-50"
+            >
+              {connecting ? 'Connecting...' : 'Connect Wallet'}
+            </button>
+          )}
         </div>
       </div>
     </header>

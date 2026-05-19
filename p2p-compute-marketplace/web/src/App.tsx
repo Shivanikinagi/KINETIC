@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import { WalletProvider } from './hooks/useWallet'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Hub from './pages/Hub'
@@ -11,20 +12,22 @@ import Activity from './pages/Activity'
 
 export default function App() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Hub />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/submit" element={<SubmitJob />} />
-          <Route path="/jobs" element={<MyJobs />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/provide" element={<Provide />} />
-          <Route path="/activity" element={<Activity />} />
-        </Routes>
-      </main>
-      <Footer />
-    </div>
+    <WalletProvider>
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <main className="flex-1">
+          <Routes>
+            <Route path="/" element={<Hub />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/submit" element={<SubmitJob />} />
+            <Route path="/jobs" element={<MyJobs />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/provide" element={<Provide />} />
+            <Route path="/activity" element={<Activity />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </WalletProvider>
   )
 }

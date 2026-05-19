@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { fetchJson, type Analytics } from '../lib/api'
+import { fetchJson } from '../lib/api'
 
 export default function Provide() {
   const [form, setForm] = useState({
@@ -16,10 +16,9 @@ export default function Provide() {
 
   const loadStats = async () => {
     try {
-      const [providers, jobs, analytics] = await Promise.all([
+      const [providers, jobs] = await Promise.all([
         fetchJson('/providers').catch(() => []),
         fetchJson('/jobs?limit=100').catch(() => []),
-        fetchJson('/analytics').catch(() => ({})),
       ])
       const list = Array.isArray(providers) ? providers : []
       const jobList = Array.isArray(jobs) ? jobs : []
@@ -151,10 +150,10 @@ export default function Provide() {
               </p>
               {result.details && (
                 <div className="mt-2 text-xs space-y-1">
-                  <p>ID: <span className="font-mono">{String(result.details.provider_id || result.details.provider_address || 'local')}</span></p>
-                  <p>Status: {String(result.details.on_chain_status || 'local')}</p>
-                  {result.details.explorer_url && (
-                    <a href={String(result.details.explorer_url)} target="_blank" rel="noreferrer" className="text-cyan-400 underline inline-flex items-center gap-1">
+                  <p>ID: <span className="font-mono">{String((result.details as any).provider_id || (result.details as any).provider_address || 'local')}</span></p>
+                  <p>Status: {String((result.details as any).on_chain_status || 'local')}</p>
+                  {(result.details as any).explorer_url && (
+                    <a href={String((result.details as any).explorer_url)} target="_blank" rel="noreferrer" className="text-cyan-400 underline inline-flex items-center gap-1">
                       <span className="material-symbols-outlined text-xs">open_in_new</span> View on Explorer
                     </a>
                   )}
