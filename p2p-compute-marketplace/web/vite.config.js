@@ -15,7 +15,8 @@ export default defineConfig({
       '/telemetry': 'http://localhost:8000',
       '/realtime': 'http://localhost:8000',
       '/provider': 'http://localhost:8000',
-      '/agent': 'http://localhost:3001',
+      '/network': 'http://localhost:8000',
+      '/activity': 'http://localhost:8000',
     }
   },
   define: {
@@ -29,8 +30,11 @@ export default defineConfig({
       input: {
         main: './index.html',
         explore: './explore.html',
+        submit: './submit.html',
+        jobs: './jobs.html',
         dashboard: './dashboard.html',
         provide: './provide.html',
+        activity: './activity.html',
       }
     }
   }

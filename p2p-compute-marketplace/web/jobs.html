@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>KINETIC | My Jobs</title>
+    <meta name="description" content="Track your compute jobs, view results, and verify proofs."/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0b0d10; color: #e8edf5; margin: 0; }
+        h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass { background: rgba(18,22,28,0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.06); }
+        .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,245,255,0.08); }
+        .badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+        .badge-completed { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-failed { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+        .badge-pending { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+        .badge-running { background: rgba(34,211,238,0.12); color: #22d3ee; border: 1px solid rgba(34,211,238,0.25); }
+        .progress-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.06); overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #22d3ee, #0ea5e9); transition: width 0.5s ease; }
+    </style>
+</head>
+<body>
+
+<div id="nav"></div>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">My Jobs</h1>
+            <p class="text-slate-500 text-sm mt-1">Track execution, view results, verify proofs</p>
+        </div>
+        <a href="/submit.html" class="bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 px-5 py-2.5 rounded-xl font-bold text-sm hover:brightness-110 transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined text-lg">add</span>
+            New Job
+        </a>
+    </div>
+
+    <!-- Job List -->
+    <div class="space-y-4" id="jobList">
+        <div class="glass rounded-xl p-8 text-center text-slate-500">Loading jobs...</div>
+    </div>
+</main>
+
+<!-- Job Detail Modal -->
+<div class="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4" id="jobModal">
+    <div class="glass rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+        <div class="p-6" id="jobModalContent">
+            <!-- populated dynamically -->
+        </div>
+    </div>
+</div>
+
+<div id="footer"></div>
+
+<script type="module">
+import { renderNav, renderFooter, fetchJson, toast } from '/static/js/shared.js';
+import '/static/js/wallet-init.js';
+
+document.getElementById('nav').innerHTML = renderNav('jobs');
+document.getElementById('footer').innerHTML = renderFooter();
+
+function formatTime(ts) {
+    if (!ts) return '—';
+    const d = new Date(ts * 1000);
+    return d.toLocaleString();
+}
+
+function statusBadge(status) {
+    const map = {
+        completed: 'badge-completed',
+        failed: 'badge-failed',
+        pending: 'badge-pending',
+        running: 'badge-running',
+    };
+    return `<span class="badge ${map[status] || 'badge-pending'}">${status || 'pending'}</span>`;
+}
+
+async function loadJobs() {
+    try {
+        const jobs = await fetchJson('/jobs?limit=50');
+        const container = document.getElementById('jobList');
+        if (!jobs || jobs.length === 0) {
+            container.innerHTML = `
+                <div class="glass rounded-xl p-12 text-center">
+                    <span class="material-symbols-outlined text-5xl text-slate-600 mb-4">work_outline</span>
+                    <h3 class="text-lg font-bold mb-2">No jobs yet</h3>
+                    <p class="text-slate-500 text-sm mb-6">Submit your first compute job to get started</p>
+                    <a href="/submit.html" class="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 px-6 py-2.5 rounded-xl font-bold text-sm hover:brightness-110 transition-all">
+                        <span class="material-symbols-outlined text-sm">rocket_launch</span>
+                        Submit Job
+                    </a>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = jobs.map((job, i) => {
+            const progress = job.status === 'completed' ? 100 : job.status === 'failed' ? 100 : job.status === 'running' ? 60 : 10;
+            const hashShort = job.result_hash ? job.result_hash.substring(0, 20) + '...' : 'Pending';
+            return `
+            <div class="glass rounded-xl p-5 card-hover cursor-pointer" onclick="openJobDetail(${i})">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="font-mono text-xs text-cyan-400">${(job.job_id || '').substring(0, 16)}...</span>
+                            ${statusBadge(job.status)}
+                        </div>
+                        <p class="text-sm font-semibold">${job.task_type || 'Compute'} &middot; ${job.tokens || 0} tokens</p>
+                        <p class="text-xs text-slate-500 mt-1">${formatTime(job.created_at)}</p>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-500 uppercase">Duration</p>
+                            <p class="text-sm font-mono">${job.duration_ms || 0}ms</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-slate-500 uppercase">Hash</p>
+                            <p class="text-sm font-mono text-slate-400">${hashShort}</p>
+                        </div>
+                        <span class="material-symbols-outlined text-slate-500">chevron_right</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div class="flex justify-between text-[10px] text-slate-500 mb-1">
+                        <span>Progress</span>
+                        <span>${progress}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+
+        window._jobs = jobs;
+    } catch (e) {
+        document.getElementById('jobList').innerHTML = `<div class="glass rounded-xl p-8 text-center text-slate-500">Unable to load jobs. <a href="/submit.html" class="text-cyan-400 underline">Submit a job first</a>.</div>`;
+    }
+}
+
+window.openJobDetail = function(index) {
+    const job = window._jobs[index];
+    if (!job) return;
+    const modal = document.getElementById('jobModal');
+    const content = document.getElementById('jobModalContent');
+
+    const isCompleted = job.status === 'completed';
+    const isFailed = job.status === 'failed';
+
+    content.innerHTML = `
+        <div class="space-y-6">
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    <h2 class="text-xl font-bold">Job Details</h2>
+                    ${statusBadge(job.status)}
+                </div>
+                <p class="font-mono text-xs text-cyan-400">${job.job_id}</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="glass rounded-lg p-3 text-center">
+                    <p class="text-[10px] text-slate-500 uppercase">Type</p>
+                    <p class="text-sm font-semibold mt-1">${job.task_type || 'compute'}</p>
+                </div>
+                <div class="glass rounded-lg p-3 text-center">
+                    <p class="text-[10px] text-slate-500 uppercase">Tokens</p>
+                    <p class="text-sm font-semibold mt-1">${job.tokens || 0}</p>
+                </div>
+                <div class="glass rounded-lg p-3 text-center">
+                    <p class="text-[10px] text-slate-500 uppercase">Duration</p>
+                    <p class="text-sm font-semibold mt-1">${job.duration_ms || 0}ms</p>
+                </div>
+                <div class="glass rounded-lg p-3 text-center">
+                    <p class="text-[10px] text-slate-500 uppercase">Cost</p>
+                    <p class="text-sm font-semibold mt-1">${((job.amount_microalgo || 0) / 1_000_000).toFixed(4)} A</p>
+                </div>
+            </div>
+
+            ${isCompleted ? `
+            <div class="glass rounded-xl p-5 border border-emerald-500/20 bg-emerald-500/5">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="material-symbols-outlined text-emerald-400">verified</span>
+                    <h3 class="font-bold text-sm">Proof of Compute</h3>
+                </div>
+                <p class="text-xs text-slate-400 mb-2">Cryptographic hash verifying execution integrity:</p>
+                <div class="flex items-center gap-2">
+                    <code class="flex-1 bg-black/40 rounded-lg px-3 py-2 text-xs font-mono text-slate-300 break-all">${job.result_hash}</code>
+                    <button onclick="navigator.clipboard.writeText('${job.result_hash}')" class="text-cyan-400 hover:text-cyan-200">
+                        <span class="material-symbols-outlined text-sm">content_copy</span>
+                    </button>
+                </div>
+                <div class="mt-3 flex gap-3 text-xs">
+                    <span class="text-slate-500">Verified on Algorand</span>
+                    <span class="text-emerald-400 flex items-center gap-1"><span class="material-symbols-outlined text-xs">check_circle</span> Valid</span>
+                </div>
+            </div>
+            ` : ''}
+
+            ${isFailed ? `
+            <div class="glass rounded-xl p-5 border border-red-500/20 bg-red-500/5">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-red-400">error</span>
+                    <h3 class="font-bold text-sm">Execution Failed</h3>
+                </div>
+                <p class="text-xs text-slate-400">The job could not complete. Payment was not released.</p>
+            </div>
+            ` : ''}
+
+            <div class="glass rounded-xl p-5">
+                <h3 class="font-bold text-sm mb-3">Execution Timeline</h3>
+                <div class="space-y-3">
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-emerald-400 text-xs">check</span>
+                        </span>
+                        <div>
+                            <p class="text-sm">Job Submitted</p>
+                            <p class="text-[10px] text-slate-500">${formatTime(job.created_at)}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded-full ${isCompleted || isFailed ? 'bg-emerald-500/20' : 'bg-white/5'} flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined ${isCompleted || isFailed ? 'text-emerald-400' : 'text-slate-500'} text-xs">${isCompleted || isFailed ? 'check' : 'schedule'}</span>
+                        </span>
+                        <div>
+                            <p class="text-sm">Execution ${isCompleted ? 'Completed' : isFailed ? 'Failed' : 'In Progress'}</p>
+                            <p class="text-[10px] text-slate-500">${job.duration_ms ? job.duration_ms + 'ms' : 'Waiting for provider...'}</p>
+                        </div>
+                    </div>
+                    ${isCompleted ? `
+                    <div class="flex items-start gap-3">
+                        <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-emerald-400 text-xs">check</span>
+                        </span>
+                        <div>
+                            <p class="text-sm">Payment Released from Escrow</p>
+                            <p class="text-[10px] text-slate-500">Verified and settled on-chain</p>
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+};
+
+window.closeModal = function() {
+    const modal = document.getElementById('jobModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+};
+
+// Close modal on backdrop click
+document.getElementById('jobModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+loadJobs();
+setInterval(loadJobs, 10000);
+</script>
+</body>
+</html>

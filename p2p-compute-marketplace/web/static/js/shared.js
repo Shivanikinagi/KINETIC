@@ -41,8 +41,11 @@ export function renderNav(activePage = '') {
   const pages = [
     { href: '/', label: 'Hub', id: 'home' },
     { href: '/explore.html', label: 'Explore GPUs', id: 'explore' },
+    { href: '/submit.html', label: 'Submit Job', id: 'submit' },
+    { href: '/jobs.html', label: 'My Jobs', id: 'jobs' },
     { href: '/dashboard.html', label: 'Dashboard', id: 'dashboard' },
     { href: '/provide.html', label: 'Provide', id: 'provide' },
+    { href: '/activity.html', label: 'Activity', id: 'activity' },
   ];
 
   const navLinks = pages.map(p => {

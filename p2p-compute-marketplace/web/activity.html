@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>KINETIC | Activity Feed</title>
+    <meta name="description" content="Live activity feed for the Kinetic decentralized compute marketplace."/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #0b0d10; color: #e8edf5; margin: 0; }
+        h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass { background: rgba(18,22,28,0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.06); }
+        .timeline-line { position: absolute; left: 19px; top: 40px; bottom: 0; width: 2px; background: rgba(255,255,255,0.06); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeInUp 0.3s ease-out forwards; }
+    </style>
+</head>
+<body>
+
+<div id="nav"></div>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">Activity Feed</h1>
+            <p class="text-slate-500 text-sm mt-1">Live events from the compute network</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+            <span class="text-xs font-mono uppercase tracking-widest text-slate-500">Live</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Feed -->
+        <div class="lg:col-span-2">
+            <div class="glass rounded-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-bold">Recent Events</h2>
+                    <button id="refreshBtn" class="text-xs text-cyan-400 hover:text-cyan-200 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">refresh</span>
+                        Refresh
+                    </button>
+                </div>
+                <div class="space-y-4 relative" id="activityFeed">
+                    <div class="text-center py-8 text-slate-500">Loading activity...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Sidebar -->
+        <div class="space-y-6">
+            <div class="glass rounded-xl p-6">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Network Stats</h2>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-400">Jobs Today</span>
+                        <span class="text-sm font-bold text-cyan-400" id="statJobsToday">—</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-400">ALGO Spent</span>
+                        <span class="text-sm font-bold text-emerald-400" id="statAlgoSpent">—</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-400">Success Rate</span>
+                        <span class="text-sm font-bold text-violet-400" id="statSuccess">—</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-slate-400">Active Providers</span>
+                        <span class="text-sm font-bold text-amber-400" id="statProviders">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass rounded-xl p-6">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">On-chain Contracts</h2>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-cyan-400 text-sm">deployed_code</span>
+                        </span>
+                        <div>
+                            <p class="text-sm font-semibold">Escrow</p>
+                            <p class="text-[10px] text-slate-500">Payment lock & release</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-emerald-400 text-sm">app_registration</span>
+                        </span>
+                        <div>
+                            <p class="text-sm font-semibold">Provider Registry</p>
+                            <p class="text-[10px] text-slate-500">On-chain provider listings</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-violet-400 text-sm">verified</span>
+                        </span>
+                        <div>
+                            <p class="text-sm font-semibold">Badge Minter</p>
+                            <p class="text-[10px] text-slate-500">Verification badges</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div id="footer"></div>
+
+<script type="module">
+import { renderNav, renderFooter, fetchJson } from '/static/js/shared.js';
+import '/static/js/wallet-init.js';
+
+document.getElementById('nav').innerHTML = renderNav('activity');
+document.getElementById('footer').innerHTML = renderFooter();
+
+function timeAgo(ts) {
+    if (!ts) return 'just now';
+    const diff = Date.now() - new Date(ts * 1000).getTime();
+    const s = Math.floor(diff / 1000);
+    if (s < 60) return `${s}s ago`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h/24)}d ago`;
+}
+
+function eventIcon(status) {
+    const map = {
+        completed: { icon: 'check_circle', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+        failed: { icon: 'error', color: 'text-red-400', bg: 'bg-red-500/10' },
+        pending: { icon: 'schedule', color: 'text-amber-400', bg: 'bg-amber-500/10' },
+    };
+    const s = map[status] || map.pending;
+    return `<span class="w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0"><span class="material-symbols-outlined ${s.color}">${s.icon}</span></span>`;
+}
+
+async function loadActivity() {
+    try {
+        const [jobs, analytics, providers] = await Promise.all([
+            fetchJson('/jobs?limit=30').catch(() => []),
+            fetchJson('/analytics').catch(() => ({})),
+            fetchJson('/providers').catch(() => []),
+        ]);
+
+        document.getElementById('statJobsToday').textContent = analytics.jobs_last_24h || 0;
+        document.getElementById('statAlgoSpent').textContent = (analytics.total_algo_spent || 0).toFixed(2) + ' A';
+        document.getElementById('statSuccess').textContent = (analytics.success_rate || 0) + '%';
+        document.getElementById('statProviders').textContent = (Array.isArray(providers) ? providers.length : 0);
+
+        const feed = document.getElementById('activityFeed');
+        const list = Array.isArray(jobs) ? jobs : [];
+        if (list.length === 0) {
+            feed.innerHTML = '<div class="text-center py-8 text-slate-500">No activity yet. Submit a job to see events.</div>';
+            return;
+        }
+
+        feed.innerHTML = `
+            <div class="timeline-line"></div>
+            ${list.map((job, i) => `
+                <div class="flex items-start gap-4 animate-in" style="animation-delay: ${i * 50}ms">
+                    ${eventIcon(job.status)}
+                    <div class="flex-1 min-w-0 pb-4">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-sm font-semibold">${job.task_type || 'Compute'} job ${job.status || 'submitted'}</p>
+                            <span class="text-[10px] text-slate-500 shrink-0">${timeAgo(job.created_at)}</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">ID: <span class="font-mono text-slate-400">${(job.job_id || '').substring(0, 16)}...</span></p>
+                        ${job.result_hash ? `<p class="text-xs text-slate-500 mt-1">Hash: <span class="font-mono text-emerald-400">${job.result_hash.substring(0, 24)}...</span></p>` : ''}
+                    </div>
+                </div>
+            `).join('')}
+        `;
+    } catch (e) {
+        console.log('Activity error:', e);
+    }
+}
+
+document.getElementById('refreshBtn').addEventListener('click', loadActivity);
+loadActivity();
+setInterval(loadActivity, 10000);
+</script>
+</body>
+</html>

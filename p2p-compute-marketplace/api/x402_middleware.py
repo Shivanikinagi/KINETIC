@@ -24,6 +24,10 @@ class X402Middleware(BaseHTTPMiddleware):
         if request.method != "POST" or request.url.path != "/job":
             return await call_next(request)
 
+        # Allow bypass for demo / local dev via env var
+        if os.getenv("X402_ENABLED", "true").lower() in ("false", "0", ""):
+            return await call_next(request)
+
         provider_wallet = resolve_provider_wallet()
         price_per_token = int(os.getenv("JOB_PRICE_PER_TOKEN_MICROALGO", "100"))
         algod_url = os.getenv("ALGOD_URL", "https://testnet-api.algonode.cloud")

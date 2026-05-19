@@ -434,6 +434,13 @@ document.getElementById('deployModal').addEventListener('click', function(e) {
 });
 
 // ── Init ────────────────────────────────────────────────────────
+// Read search query from URL
+const urlParams = new URLSearchParams(window.location.search);
+const urlQuery = urlParams.get('q');
+if (urlQuery) {
+    document.getElementById('searchInput').value = urlQuery;
+    filters.search = urlQuery;
+}
 loadProviders();
 loadTemplates();
 </script>
