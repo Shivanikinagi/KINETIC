@@ -5,11 +5,13 @@ import hashlib
 import logging
 import os
 import subprocess
+import sys
 import time
 
 import httpx
 
 from api.heartbeat import update_telemetry
+from api.job_history import complete_job, record_job
 
 try:
     import psutil
@@ -84,18 +86,20 @@ for i in range(min(tokens, 1000)):
 
 print(result)
 """
-    
+
+    # Use sys.executable so this works on Windows, macOS, Linux
+    python_exe = sys.executable or "python"
     proc = await asyncio.create_subprocess_exec(
-        "python", "-c", script,
+        python_exe, "-c", script,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    
+
     stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=30)
-    
+
     if proc.returncode != 0:
         raise RuntimeError(f"Subprocess execution failed: {stderr.decode()}")
-    
+
     output = stdout.decode().strip()
     return output, "subprocess"
 
@@ -124,9 +128,21 @@ async def _run_remote_compute(provider_endpoint: str, task: dict) -> tuple[str, 
 async def run_job(task: dict) -> dict:
     start = time.perf_counter()
 
+    job_id = str(task.get("job_id", "") or task.get("type", "job") + "_" + str(int(time.time())))
     tokens = int(task.get("tokens", 0))
     payload = str(task.get("payload", ""))
     provider_endpoint = str(task.get("provider_endpoint", "")).strip()
+    task_type = str(task.get("type", "compute"))
+
+    # Record job in DB before execution
+    record_job(
+        job_id=job_id,
+        consumer=task.get("consumer", ""),
+        provider=provider_endpoint or "local",
+        task_type=task_type,
+        tokens=tokens,
+        status="pending",
+    )
 
     try:
         if provider_endpoint:
@@ -145,8 +161,11 @@ async def run_job(task: dict) -> dict:
         memory = float(psutil.virtual_memory().percent) if psutil else 0.0
         update_telemetry(cpu=cpu, memory=memory, success=True)
 
+        # Mark job as completed in DB
+        complete_job(job_id, result_hash=result_hash, duration_ms=duration_ms, status="completed")
+
         return {
-            "job_id": str(task.get("job_id", "")),
+            "job_id": job_id,
             "result_hash": result_hash,
             "output": compute_output[:200],
             "tokens_processed": tokens,
@@ -154,8 +173,14 @@ async def run_job(task: dict) -> dict:
             "execution_method": exec_method,
             "compute_output": compute_output,
         }
-    except Exception:
+    except Exception as exc:
         cpu = float(psutil.cpu_percent(interval=None)) if psutil else 0.0
         memory = float(psutil.virtual_memory().percent) if psutil else 0.0
         update_telemetry(cpu=cpu, memory=memory, success=False)
-        raise
+
+        # Mark job as failed in DB
+        duration_ms = int((time.perf_counter() - start) * 1000)
+        complete_job(job_id, result_hash="", duration_ms=duration_ms, status="failed")
+
+        # Re-raise with a cleaner message
+        raise RuntimeError(f"Job execution failed: {exc}") from exc

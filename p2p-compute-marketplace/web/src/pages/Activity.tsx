@@ -24,16 +24,22 @@ export default function Activity() {
     })
   }
 
-  const timeAgo = (ts?: number) => {
-    if (!ts) return 'just now'
-    const diff = Date.now() - new Date(ts * 1000).getTime()
+  const timeAgo = (ts?: number | string) => {
+    if (!ts || ts === 0) return 'unknown time'
+    // Handle both Unix seconds (number) and ISO strings
+    const date = typeof ts === 'number' ? new Date(ts * 1000) : new Date(ts)
+    if (isNaN(date.getTime())) return 'unknown time'
+    const diff = Date.now() - date.getTime()
     const s = Math.floor(diff / 1000)
+    if (s < 5) return 'just now'
     if (s < 60) return `${s}s ago`
     const m = Math.floor(s / 60)
     if (m < 60) return `${m}m ago`
     const h = Math.floor(m / 60)
     if (h < 24) return `${h}h ago`
-    return `${Math.floor(h / 24)}d ago`
+    const d = Math.floor(h / 24)
+    if (d < 30) return `${d}d ago`
+    return date.toLocaleDateString()
   }
 
   return (

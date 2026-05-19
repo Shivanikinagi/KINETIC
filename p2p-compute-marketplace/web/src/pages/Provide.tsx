@@ -151,7 +151,12 @@ export default function Provide() {
               {result.details && (
                 <div className="mt-2 text-xs space-y-1">
                   <p>ID: <span className="font-mono">{String((result.details as any).provider_id || (result.details as any).provider_address || 'local')}</span></p>
-                  <p>Status: {String((result.details as any).on_chain_status || 'local')}</p>
+                  <p>Status: <span className="text-emerald-400">{(() => {
+                    const s = String((result.details as any).on_chain_status || 'local')
+                    if (s === 'success') return 'Registered on-chain'
+                    if (s === 'local_fallback') return 'Registered locally (on-chain failed, but you are listed)'
+                    return 'Registered locally (add a mnemonic to register on-chain)'
+                  })()}</span></p>
                   {(result.details as any).explorer_url && (
                     <a href={String((result.details as any).explorer_url)} target="_blank" rel="noreferrer" className="text-cyan-400 underline inline-flex items-center gap-1">
                       <span className="material-symbols-outlined text-xs">open_in_new</span> View on Explorer

@@ -359,7 +359,7 @@ async def register_provider(payload: dict) -> dict:
 
     tx_id = None
     explorer_url = None
-    on_chain_status = "skipped"
+    on_chain_status = "local_only"
 
     if registry_app_id > 0 and mnemonic_provided:
         try:
@@ -403,7 +403,7 @@ async def register_provider(payload: dict) -> dict:
             explorer_url = f"https://testnet.algoexplorer.io/tx/{tx_id}"
             on_chain_status = "success"
         except Exception:
-            on_chain_status = "skipped — registered locally"
+            on_chain_status = "local_fallback"
 
     # Always store locally so the provider appears in listings immediately
     _ensure_local_provider_db()

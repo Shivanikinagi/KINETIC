@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { WalletProvider } from './hooks/useWallet'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -24,6 +24,7 @@ export default function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/provide" element={<Provide />} />
             <Route path="/activity" element={<Activity />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
         <Footer />
