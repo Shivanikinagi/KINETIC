@@ -1,236 +1,173 @@
-# Kinetic - P2P Compute Marketplace on Algorand
+# Kinetic - Decentralized GPU Compute Hub on Algorand
 
-> Decentralized GPU marketplace with autonomous agents, real on-chain transactions, and cryptographic proof-of-compute.
+> **The "Hugging Face for GPU Compute."** Browse, compare, and instantly deploy containerized AI/ML workloads to decentralized providers via Algorand smart contract escrow.
 
 [![Algorand](https://img.shields.io/badge/Algorand-TestNet-00D1FF?style=flat&logo=algorand)](https://testnet.algoexplorer.io/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat&logo=python)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
 
+**Built for AlgoBharat Hack Series 3.0 - Round 3**
+
+---
+
 ## 🎥 Demo Video
 
-**Watch the 3-minute demo:** [Demo Video Link](#)
+**Watch the 5-minute Demo:** [Insert YouTube/Loom Link Here]
 
-See the complete flow:
-- Submit job → X-402 payment → Escrow lock (live on AlgoExplorer)
-- Real compute execution → Hash verification → Escrow release
-- Full proof chain with transaction links
+The demo covers:
+- End-to-end flow: Searching for a GPU → Submitting a Docker payload → X-402 Escrow payment
+- Real compute execution on a provider node with live logs
+- Cryptographic proof generation and on-chain escrow release
+- Provider registration flow
 
-## 🚀 Quick Start (< 5 commands)
+## 📖 Key Documentation
 
-```bash
-# 1. Clone and install
-git clone <repo-url> && cd p2p-compute-marketplace
-pip install -e .
+- [**GTM Plan & Monetization**](docs/GTM_PLAN.md) - Target users, revenue model, and why Algorand.
+- [**Business Model**](BUSINESS_MODEL.md) - Deep dive into path to profitability.
+- [**Proof System**](docs/PROOF_SYSTEM.md) - Cryptographic verification architecture.
 
-# 2. Configure (copy and edit)
-cp .env.example .env
-# Add your AGENT_MNEMONIC and PROVIDER_MNEMONIC
-
-# 3. Start backend
-python -m uvicorn api.main:app --reload
-
-# 4. Start frontend (new terminal)
-cd web && npm install && npm run dev
-
-# 5. Open browser
-open http://localhost:3000
-```
-
-**That's it!** The marketplace is running with real TestNet transactions.
+---
 
 ## 🏗️ Architecture
 
+Kinetic acts as a decentralized Serverless Compute Layer (FaaS) utilizing autonomous agents.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    KINETIC MARKETPLACE                       │
+│                    KINETIC MARKETPLACE                      │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
+│                                                             │
 │  Consumer Agent          Algorand TestNet      Provider     │
-│  ┌──────────┐           ┌──────────────┐      ┌─────────┐  │
-│  │ Discover │──────────▶│   Registry   │◀─────│Register │  │
-│  │ Providers│           │ (App 758813563)     │ Hardware│  │
-│  └────┬─────┘           └──────────────┘      └────┬────┘  │
-│       │                                             │       │
-│       │ 1. Submit Job                               │       │
-│       ├────────────────────────────────────────────▶│       │
-│       │                                             │       │
-│       │ 2. 402 Payment Required                    │       │
-│       │◀────────────────────────────────────────────┤       │
-│       │                                             │       │
-│  ┌────▼─────┐           ┌──────────────┐           │       │
-│  │   Pay    │──────────▶│    Escrow    │           │       │
-│  │ Provider │           │ (App 758813574)          │       │
-│  └──────────┘           └──────┬───────┘           │       │
-│       │                        │ Lock               │       │
-│       │                        │                    │       │
-│       │ 3. Execute Job                              │       │
-│       ├────────────────────────────────────────────▶│       │
-│       │                                        ┌────▼────┐  │
-│       │                                        │ Docker  │  │
-│       │                                        │ Compute │  │
-│       │                                        └────┬────┘  │
-│       │ 4. Result + Hash                           │       │
-│       │◀───────────────────────────────────────────┤       │
-│       │                                             │       │
-│  ┌────▼─────┐                                      │       │
-│  │ Verify   │                                      │       │
-│  │   Hash   │                                      │       │
-│  └────┬─────┘                                      │       │
-│       │                                             │       │
-│       │ 5. Release Escrow                          │       │
-│       ├────────────────────────────────────────────▶│       │
-│       │           ┌──────────────┐                 │       │
-│       └──────────▶│    Escrow    │─────────────────┘       │
-│                   │   Release    │                         │
-│                   └──────────────┘                         │
+│  ┌──────────┐           ┌──────────────┐      ┌─────────┐   │
+│  │ Discover │──────────▶│   Registry   │◀─────│Register │   │
+│  │ Providers│           │ (App 758813563)     │ Hardware│   │
+│  └────┬─────┘           └──────────────┘      └────┬────┘   │
+│       │                                            │        │
+│       │ 1. Submit Docker Job                       │        │
+│       ├───────────────────────────────────────────▶│        │
+│       │                                            │        │
+│       │ 2. X-402 Payment Required                  │        │
+│       │◀───────────────────────────────────────────┤        │
+│       │                                            │        │
+│  ┌────▼─────┐           ┌──────────────┐           │        │
+│  │   Pay    │──────────▶│    Escrow    │           │        │
+│  │ Provider │           │ (App 758813574)          │        │
+│  └──────────┘           └──────┬───────┘           │        │
+│       │                        │ Lock              │        │
+│       │                        │                   │        │
+│       │ 3. Execute Container                       │        │
+│       ├───────────────────────────────────────────▶│        │
+│       │                                       ┌────▼────┐   │
+│       │                                       │ Docker  │   │
+│       │                                       │ Sandbox │   │
+│       │                                       └────┬────┘   │
+│       │ 4. ZK Proof / Result Hash                  │        │
+│       │◀───────────────────────────────────────────┤        │
+│       │                                            │        │
+│  ┌────▼─────┐                                      │        │
+│  │ Verify   │                                      │        │
+│  │   Hash   │                                      │        │
+│  └────┬─────┘                                      │        │
+│       │                                            │        │
+│       │ 5. Release Escrow                          │        │
+│       ├───────────────────────────────────────────▶│        │
+│       │           ┌──────────────┐                 │        │
+│       └──────────▶│    Escrow    │─────────────────┘        │
+│                   │   Release    │                          │
+│                   └──────────────┘                          │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## ✨ Key Features
+---
+
+## ✨ Features (Updates since Round 2)
+
+### ✅ Complete UI/UX Overhaul
+- Transformed from a basic "SHA-256 demo" to a generic "HuggingFace for GPU" Hub.
+- **Submit Job UI:** Users can now specify Docker images, entrypoint commands, required VRAM, and Dataset URLs.
+- **Unified Dashboard:** Consolidated tracking of running containers, logs, and cryptographic proofs.
+
+### ✅ Generic Compute Execution
+- Moved beyond simulated tasks. Provider nodes now isolate and run arbitrary payloads in secure Docker containers.
 
 ### ✅ Real On-Chain Transactions
-- Provider registry on TestNet (App ID 758813563)
-- Escrow contract (App ID 758813574)
-- All transactions verifiable on AlgoExplorer
-
-### ✅ Real Compute Execution
-- Docker/subprocess execution (not simulated)
-- SHA-256 workload for verification
-- Result hash tied to escrow release
-
-### ✅ Autonomous Agents
-- Consumer agent: discovers providers, manages payments
-- Provider agent: executes jobs, generates proofs
-- No human intervention required
-
-### ✅ Cryptographic Proofs
-- Every step hashed and linked
-- AlgoExplorer links for verification
-- Fraud detection via spot checks
-
-### ✅ Self-Service Provider Registration
-- REST API: `POST /provider/register`
-- Provider dashboard: `/provider/dashboard`
-- Instant marketplace visibility
-
-## 📊 What's Working (Production-Ready)
-
-| Feature | Status | Verification |
-|---------|--------|--------------|
-| Provider Registry | ✅ On-Chain | [AlgoExplorer](https://testnet.algoexplorer.io/application/758813563) |
-| Escrow Contract | ✅ On-Chain | [AlgoExplorer](https://testnet.algoexplorer.io/application/758813574) |
-| X-402 Payment Flow | ✅ Real TestNet | Transaction in note field |
-| Compute Execution | ✅ Docker/subprocess | SHA-256 workload |
-| Hash Verification | ✅ Blocks escrow | Refund on mismatch |
-| Provider Registration | ✅ Self-service API | `/provider/register` |
-| Provider Dashboard | ✅ Live | `/provider/dashboard` |
-| Proof Chain | ✅ Complete | AlgoExplorer links |
-
-## 🎯 Business Model
-
-See [BUSINESS_MODEL.md](BUSINESS_MODEL.md) for details on:
-- Revenue streams (marketplace fee, premium features)
-- Cost structure (infrastructure, support)
-- How Algorand earns (transaction fees, ecosystem growth)
-- Path to profitability
-
-## 📁 Project Structure
-
-```
-p2p-compute-marketplace/
-├── api/                    # FastAPI backend
-│   ├── main.py            # API routes, provider registration
-│   ├── job_runner.py      # Real Docker/subprocess execution
-│   ├── proof_system.py    # Cryptographic proof chain
-│   ├── x402_middleware.py # X-402 payment verification
-│   ├── orgs.py            # Organisation registry API
-│   └── scheduler.py       # Provider health scheduler
-├── agent/                  # Autonomous agents
-│   ├── consumer_agent.py  # Job dispatch, escrow, verification
-│   ├── verifier.py        # Hash verification & fraud detection
-│   ├── wallet.py          # Autonomous budget management
-│   └── orchestrator.py    # Agent coordination
-├── contracts/              # Algorand smart contracts (PyTeal/ARC4)
-│   ├── registry.py        # Provider registry
-│   ├── escrow.py          # Payment escrow with hash verification
-│   ├── badge.py           # Reputation NFTs
-│   ├── org_registry.py    # Organisation registry
-│   └── contracts/artifacts/ # Compiled TEAL + ARC56 clients
-├── provider_node/          # Standalone provider execution node
-│   ├── server.py          # Provider HTTP API
-│   ├── executor.py        # Workload executor
-│   └── adapters/          # GPU, Docker, local adapters
-├── web/                    # Frontend (Vite + Tailwind)
-│   ├── index.html         # Marketplace homepage
-│   ├── org-register.html  # Organisation registration
-│   ├── org-dashboard.html # Organisation management
-│   └── static/js/         # App logic, providers, activity feeds
-├── docs/                   # Documentation
-└── scripts/                # Deployment & utility scripts
-```
-
-## 🧪 Testing
-
-```bash
-# Phase 1: On-chain transactions
-python test_phase1.py
-
-# Phase 2: Real compute execution
-python test_phase2.py
-
-# Phase 3: Provider registration
-python test_phase3.py
-
-# Phase 4: Documentation and hygiene
-python test_phase4.py
-```
-
-**All tests pass:** 17/17 (100%)
-
-## 📚 Documentation
-
-- [Business Model](BUSINESS_MODEL.md) - Revenue streams and path to profitability
-- [Proof System](docs/PROOF_SYSTEM.md) - Cryptographic verification architecture
-- [Quick Start](docs/QUICKSTART.md) - 5-minute setup guide
-- [Deployment](docs/DEPLOYMENT.md) - Production deployment guide
-
-## 🔗 Live Links
-
-**TestNet Smart Contracts:**
-- Registry: https://testnet.algoexplorer.io/application/758813563
-- Escrow: https://testnet.algoexplorer.io/application/758813574
-- Badge Minter: https://testnet.algoexplorer.io/application/758813562
-
-**Local Endpoints:**
-- Marketplace: http://localhost:3000
-- Provider Dashboard: http://localhost:8000/provider/dashboard
-- API Docs: http://localhost:8000/docs
-
-## 🛠️ Technology Stack
-
-**Backend:** FastAPI, Uvicorn, py-algorand-sdk, Docker  
-**Frontend:** Vite, ES Modules, Pera Wallet Connect  
-**Blockchain:** Algorand TestNet, PyTeal smart contracts  
-**Agents:** Custom Python (asyncio, httpx)
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file.
-
-## 🙏 Acknowledgments
-
-Built for **AlgoBharat Hack Series 3.0 - Round 3**
-
-- Algorand Foundation for blockchain infrastructure
-- AlgoKit for development tools
-- TestNet faucet for testing
+- **Provider Registry:** Live on TestNet (`758813563`).
+- **Escrow Contract:** Live on TestNet (`758813574`).
+- **X-402 Payment Flow:** Real M2M payments via the autonomous agent bridge.
 
 ---
 
-**Status:** ✅ Production-Ready  
-**Version:** 2.0.0  
-**Last Updated:** May 14, 2026
+## 🚀 Quick Setup Guide
 
-*Kinetic - Decentralized Compute for Everyone*
+### Requirements
+- Python 3.10+
+- Node.js 18+
+- Docker (for provider execution)
+
+### Steps
+
+```bash
+# 1. Clone and install backend
+git clone <repo-url> && cd p2p-compute-marketplace
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .\.venv\Scripts\Activate.ps1
+pip install -e .
+
+# 2. Configure Environment
+cp .env.example .env
+# Important: Add your AGENT_MNEMONIC and PROVIDER_MNEMONIC to the .env file
+
+# 3. Start the Backend API & Agent Bridge
+python -m uvicorn api.main:app --port 8000 --reload &
+python -m uvicorn agent.api_bridge:app --port 3001 --reload &
+
+# 4. Start the Frontend
+cd web
+npm install
+npm run dev
+
+# 5. Open Browser
+# The Vite server will launch at http://localhost:3000
+```
+
+---
+
+## 🔗 Contract Details & Integrations
+
+### Smart Contracts (Algorand TestNet)
+- **Registry App ID:** `758813563`
+- **Escrow App ID:** `758813574`
+- **Badge NFT Minter:** `758813562`
+
+### Ecosystem Integrations
+- **X-402:** Custom implementation of machine-to-machine payment headers for autonomous agent negotiation.
+- **Pera Wallet SDK:** Integrated into the frontend for seamless consumer wallet connection and manual escrow funding when not using agentic mode.
+- **Algorand Indexer:** Used for dynamic, on-chain discovery of active provider nodes.
+
+---
+
+## 📁 Repository Structure
+
+```text
+p2p-compute-marketplace/
+├── api/                    # FastAPI backend (Marketplace Hub)
+├── agent/                  # Autonomous Agents (Consumer/Provider negotiation)
+├── contracts/              # PyTeal/ARC4 Smart Contracts
+├── provider_node/          # Standalone hardware execution node (Docker Sandbox)
+├── web/                    # Vite + Tailwind Frontend
+│   ├── index.html          # GPU Hub (Landing)
+│   ├── explore.html        # Provider Discovery
+│   ├── submit.html         # Job Submission Form
+│   ├── jobs.html           # Active Jobs Dashboard
+│   ├── provide.html        # Provider Onboarding
+│   └── static/js/          # Shared App Logic
+└── docs/                   # GTM Plan, Architecture, API Ref
+```
+
+## 📄 License
+MIT License - see [LICENSE](LICENSE) file.
+
+---
+*Kinetic - Real Compute. Real Payments. Real Trust.*

@@ -26,11 +26,19 @@ def _ensure_db() -> sqlite3.Connection:
             result_hash TEXT,
             status TEXT DEFAULT 'pending',
             duration_ms INTEGER DEFAULT 0,
+            tx_id TEXT,
+            explorer_url TEXT,
             created_at REAL,
             completed_at REAL
         )
         """
     )
+    # Migration for existing tables
+    for col, dtype in [("tx_id", "TEXT"), ("explorer_url", "TEXT")]:
+        try:
+            conn.execute(f"ALTER TABLE jobs ADD COLUMN {col} {dtype}")
+        except sqlite3.OperationalError:
+            pass
     conn.commit()
     return conn
 
@@ -43,16 +51,18 @@ def record_job(
     tokens: int = 0,
     amount_microalgo: int = 0,
     status: str = "pending",
+    tx_id: str = "",
+    explorer_url: str = "",
 ) -> dict[str, Any]:
     conn = _ensure_db()
     now = time.time()
     conn.execute(
         """
         INSERT OR REPLACE INTO jobs
-            (job_id, consumer, provider, task_type, tokens, amount_microalgo, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (job_id, consumer, provider, task_type, tokens, amount_microalgo, status, tx_id, explorer_url, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (job_id, consumer, provider, task_type, tokens, amount_microalgo, status, now),
+        (job_id, consumer, provider, task_type, tokens, amount_microalgo, status, tx_id, explorer_url, now),
     )
     conn.commit()
     conn.close()
@@ -64,12 +74,14 @@ def complete_job(
     result_hash: str = "",
     duration_ms: int = 0,
     status: str = "completed",
+    tx_id: str = "",
+    explorer_url: str = "",
 ) -> None:
     conn = _ensure_db()
     now = time.time()
     conn.execute(
-        "UPDATE jobs SET status=?, result_hash=?, duration_ms=?, completed_at=? WHERE job_id=?",
-        (status, result_hash, duration_ms, now, job_id),
+        "UPDATE jobs SET status=?, result_hash=?, duration_ms=?, completed_at=?, tx_id=?, explorer_url=? WHERE job_id=?",
+        (status, result_hash, duration_ms, now, tx_id, explorer_url, job_id),
     )
     conn.commit()
     conn.close()
@@ -84,7 +96,7 @@ def get_recent_jobs(limit: int = 50) -> list[dict[str, Any]]:
     columns = [
         "job_id", "consumer", "provider", "task_type", "tokens",
         "amount_microalgo", "result_hash", "status", "duration_ms",
-        "created_at", "completed_at",
+        "tx_id", "explorer_url", "created_at", "completed_at",
     ]
     return [dict(zip(columns, row)) for row in rows]
 

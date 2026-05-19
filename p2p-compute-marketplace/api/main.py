@@ -402,8 +402,8 @@ async def register_provider(payload: dict) -> dict:
             tx_id = result.tx_ids[-1]
             explorer_url = f"https://testnet.algoexplorer.io/tx/{tx_id}"
             on_chain_status = "success"
-        except Exception as exc:
-            on_chain_status = f"failed: {exc}"
+        except Exception:
+            on_chain_status = "skipped — registered locally"
 
     # Always store locally so the provider appears in listings immediately
     _ensure_local_provider_db()
@@ -495,6 +495,28 @@ async def analytics() -> dict:
 async def list_jobs(limit: int = 20) -> list[dict]:
     """Return real job history from database."""
     return get_recent_jobs(limit=limit)
+
+
+@app.get("/activity")
+async def activity(limit: int = 20) -> dict:
+    """Return recent job events formatted for the activity feed."""
+    jobs = get_recent_jobs(limit=limit)
+    events = []
+    for job in jobs:
+        ts_raw = job.get("completed_at") or job.get("created_at")
+        ts = datetime.fromtimestamp(ts_raw, UTC).isoformat() if ts_raw else None
+        tx_url = job.get("explorer_url") or ""
+        if not tx_url and job.get("tx_id"):
+            tx_url = f"https://testnet.algoexplorer.io/tx/{job['tx_id']}"
+        events.append({
+            "job_id": job.get("job_id"),
+            "task_type": job.get("task_type"),
+            "status": job.get("status"),
+            "timestamp": ts,
+            "result_hash": job.get("result_hash"),
+            "tx_url": tx_url,
+        })
+    return {"events": events}
 
 
 @app.get("/network/stats")

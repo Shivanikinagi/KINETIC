@@ -1,0 +1,28 @@
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000,
+    proxy: {
+      '/api': { target: 'http://localhost:8000', changeOrigin: true },
+      '/providers': { target: 'http://localhost:8000', changeOrigin: true },
+      '/analytics': { target: 'http://localhost:8000', changeOrigin: true },
+      '/jobs': { target: 'http://localhost:8000', changeOrigin: true },
+      '/job': { target: 'http://localhost:8000', changeOrigin: true },
+      '/hub': { target: 'http://localhost:8000', changeOrigin: true },
+      '/orgs': { target: 'http://localhost:8000', changeOrigin: true },
+      '/scheduler': { target: 'http://localhost:8000', changeOrigin: true },
+      '/telemetry': { target: 'http://localhost:8000', changeOrigin: true },
+      '/realtime': { target: 'http://localhost:8000', changeOrigin: true },
+      '/provider': { target: 'http://localhost:8000', changeOrigin: true },
+      '/network': { target: 'http://localhost:8000', changeOrigin: true },
+      '/activity': { target: 'http://localhost:8000', changeOrigin: true },
+      '/health': { target: 'http://localhost:8000', changeOrigin: true },
+    }
+  },
+  build: {
+    outDir: 'dist',
+  }
+})

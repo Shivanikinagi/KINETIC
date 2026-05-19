@@ -21,11 +21,15 @@ class X402Middleware(BaseHTTPMiddleware):
         self.pending_sessions: dict[str, dict[str, int | str]] = {}
 
     async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Any]]):
+        # Never block template deploy endpoints
+        if request.url.path.startswith("/hub/templates/") and request.url.path.endswith("/deploy"):
+            return await call_next(request)
+
         if request.method != "POST" or request.url.path != "/job":
             return await call_next(request)
 
         # Allow bypass for demo / local dev via env var
-        if os.getenv("X402_ENABLED", "true").lower() in ("false", "0", ""):
+        if os.getenv("X402_ENABLED", "true").strip().lower() in ("false", "0", ""):
             return await call_next(request)
 
         provider_wallet = resolve_provider_wallet()
