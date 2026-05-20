@@ -44,12 +44,8 @@ export default function Hub() {
     ]
     let idx = 0
     const iv = setInterval(() => {
-      if (idx < demos.length) {
-        setTerminalLines(prev => [...prev.slice(-12), demos[idx]])
-        idx++
-      } else {
-        setTimeout(() => { idx = 0 }, 3000)
-      }
+      setTerminalLines(prev => [...prev.slice(-12), demos[idx]])
+      idx = (idx + 1) % demos.length
     }, 1800)
     return () => clearInterval(iv)
   }, [])
