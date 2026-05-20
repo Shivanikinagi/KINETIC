@@ -24,6 +24,10 @@ export default defineConfig({
       '/network': { target: 'http://localhost:8000', changeOrigin: true },
       '/activity': { target: 'http://localhost:8000', changeOrigin: true },
       '/health': { target: 'http://localhost:8000', changeOrigin: true },
+      '/models': { target: 'http://localhost:8000', changeOrigin: true },
+      '/datasets': { target: 'http://localhost:8000', changeOrigin: true },
+      '/spaces': { target: 'http://localhost:8000', changeOrigin: true },
+      '/api-keys': { target: 'http://localhost:8000', changeOrigin: true },
     }
   },
   build: {

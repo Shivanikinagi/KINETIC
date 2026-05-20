@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchJson } from '../lib/api'
+import algosdk from 'algosdk'
 
 export default function Provide() {
   const [form, setForm] = useState({
@@ -8,6 +9,7 @@ export default function Provide() {
   })
   const [result, setResult] = useState<{msg: string; status: 'success' | 'error'; details?: Record<string, unknown>} | null>(null)
   const [loading, setLoading] = useState(false)
+  const [generatedMnemonic, setGeneratedMnemonic] = useState<string | null>(null)
   const [stats, setStats] = useState({ providers: 0, avgPrice: '0.00', totalJobs: 0, earnings: '0.00' })
 
   useEffect(() => {
@@ -31,6 +33,13 @@ export default function Provide() {
         earnings: earned.toFixed(2),
       })
     } catch (e) {}
+  }
+
+  const generateMnemonic = () => {
+    const acct = algosdk.generateAccount()
+    const mnemonic = algosdk.secretKeyToMnemonic(acct.sk)
+    setGeneratedMnemonic(mnemonic)
+    setForm(f => ({ ...f, mnemonic }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -131,18 +140,30 @@ export default function Provide() {
                 placeholder="Optional: My GPU Farm" className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 outline-none" />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Provider Mnemonic (exactly 25 words)</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">Provider Mnemonic (exactly 25 words)</label>
+                <button type="button" onClick={generateMnemonic}
+                  className="text-[10px] px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all">
+                  Generate TestNet Mnemonic
+                </button>
+              </div>
               <textarea rows={3} value={form.mnemonic} onChange={e => setForm(f => ({ ...f, mnemonic: e.target.value }))}
-                placeholder="Optional — must be exactly 25 words for on-chain registration" className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 outline-none" />
+                placeholder="Paste a 25-word Algorand mnemonic here, or click 'Generate' to create one" className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 outline-none" />
               <p className="text-[10px] text-slate-500 mt-1">
                 {form.mnemonic.trim() ? (
                   <span className={form.mnemonic.trim().split(/\s+/).length === 25 ? 'text-emerald-400' : 'text-amber-400'}>
-                    {form.mnemonic.trim().split(/\s+/).length} words — {form.mnemonic.trim().split(/\s+/).length === 25 ? 'valid for on-chain' : 'must be exactly 25 words'}
+                    {form.mnemonic.trim().split(/\s+/).length} words — {form.mnemonic.trim().split(/\s+/).length === 25 ? 'valid for on-chain registration' : 'must be exactly 25 words for on-chain'}
                   </span>
                 ) : (
-                  'Optional. Add a 25-word Algorand mnemonic to register on-chain.'
+                  'Optional. Without a mnemonic, your provider is saved locally and visible immediately.'
                 )}
               </p>
+              {generatedMnemonic && (
+                <div className="mt-2 p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20">
+                  <p className="text-[10px] text-emerald-400 mb-1">Generated! Save this somewhere safe:</p>
+                  <code className="text-[10px] font-mono text-slate-400 break-all">{generatedMnemonic}</code>
+                </div>
+              )}
             </div>
             <button type="submit" disabled={loading}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-bold hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
