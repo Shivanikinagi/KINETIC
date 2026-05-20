@@ -64,6 +64,18 @@
   }
 }
 
+select, option, optgroup {
+  background-color: #1a1d23;
+  color: #e8edf5;
+}
+select:focus {
+  outline: 2px solid rgba(34, 211, 238, 0.3);
+}
+select option:checked,
+select option:hover {
+  background-color: rgba(0, 245, 255, 0.15);
+}
+
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }

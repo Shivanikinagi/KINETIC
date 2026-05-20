@@ -90,13 +90,13 @@ def complete_job(
 def get_recent_jobs(limit: int = 50) -> list[dict[str, Any]]:
     conn = _ensure_db()
     rows = conn.execute(
-        "SELECT * FROM jobs ORDER BY created_at DESC LIMIT ?", (limit,)
+        "SELECT job_id, consumer, provider, task_type, tokens, amount_microalgo, result_hash, status, duration_ms, created_at, completed_at, tx_id, explorer_url FROM jobs ORDER BY created_at DESC LIMIT ?", (limit,)
     ).fetchall()
     conn.close()
     columns = [
         "job_id", "consumer", "provider", "task_type", "tokens",
         "amount_microalgo", "result_hash", "status", "duration_ms",
-        "tx_id", "explorer_url", "created_at", "completed_at",
+        "created_at", "completed_at", "tx_id", "explorer_url",
     ]
     return [dict(zip(columns, row)) for row in rows]
 

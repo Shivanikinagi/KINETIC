@@ -144,6 +144,7 @@ async def run_job(task: dict) -> dict:
         status="pending",
     )
 
+    error_msg = None
     try:
         if provider_endpoint:
             # Remote execution: dispatch to a provider node
@@ -172,6 +173,7 @@ async def run_job(task: dict) -> dict:
             "duration_ms": duration_ms,
             "execution_method": exec_method,
             "compute_output": compute_output,
+            "status": "completed",
         }
     except Exception as exc:
         cpu = float(psutil.cpu_percent(interval=None)) if psutil else 0.0
@@ -181,6 +183,17 @@ async def run_job(task: dict) -> dict:
         # Mark job as failed in DB
         duration_ms = int((time.perf_counter() - start) * 1000)
         complete_job(job_id, result_hash="", duration_ms=duration_ms, status="failed")
+        error_msg = str(exc)
 
-        # Re-raise with a cleaner message
-        raise RuntimeError(f"Job execution failed: {exc}") from exc
+        # Return failure details instead of crashing
+        return {
+            "job_id": job_id,
+            "result_hash": "",
+            "output": "",
+            "tokens_processed": tokens,
+            "duration_ms": duration_ms,
+            "execution_method": "failed",
+            "compute_output": "",
+            "status": "failed",
+            "error": error_msg,
+        }

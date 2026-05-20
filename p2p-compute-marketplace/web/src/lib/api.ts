@@ -5,6 +5,13 @@ export async function fetchJson(url: string, opts: RequestInit = {}) {
   })
   if (!res.ok) {
     const text = await res.text().catch(() => '')
+    // Try to extract FastAPI error detail
+    try {
+      const parsed = JSON.parse(text)
+      if (parsed.detail) throw new Error(JSON.stringify(parsed))
+    } catch (e: any) {
+      if (e.message && e.message.startsWith('{')) throw e
+    }
     throw new Error(text || `Request failed (${res.status})`)
   }
   return res.json()

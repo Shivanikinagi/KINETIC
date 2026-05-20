@@ -52,9 +52,19 @@ export default function SubmitJob() {
         }),
       }
       const res = await fetchJson('/job', { method: 'POST', body: JSON.stringify(payload) })
+      if (res.status === 'failed' || res.error) {
+        throw new Error(res.error || 'Job execution failed on the backend')
+      }
       setResult({ msg: 'Job deployed!', status: 'success', id: res.job_id || res.pid, hash: res.result_hash })
     } catch (err: any) {
-      setResult({ msg: err.message || 'Deploy failed', status: 'error' })
+      // Try to extract a clean message from the error
+      let msg = err.message || 'Deploy failed'
+      try {
+        const parsed = JSON.parse(msg)
+        if (parsed.detail) msg = String(parsed.detail)
+        else if (parsed.message) msg = String(parsed.message)
+      } catch { /* not JSON */ }
+      setResult({ msg, status: 'error' })
     } finally {
       setLoading(false)
     }

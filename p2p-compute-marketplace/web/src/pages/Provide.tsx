@@ -131,10 +131,18 @@ export default function Provide() {
                 placeholder="Optional: My GPU Farm" className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 outline-none" />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Provider Mnemonic (25 words)</label>
+              <label className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Provider Mnemonic (exactly 25 words)</label>
               <textarea rows={3} value={form.mnemonic} onChange={e => setForm(f => ({ ...f, mnemonic: e.target.value }))}
-                placeholder="Optional: abandon abandon abandon ..." className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 outline-none" />
-              <p className="text-[10px] text-slate-500 mt-1">Optional. Required only for on-chain registration.</p>
+                placeholder="Optional — must be exactly 25 words for on-chain registration" className="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm focus:border-cyan-500/50 outline-none" />
+              <p className="text-[10px] text-slate-500 mt-1">
+                {form.mnemonic.trim() ? (
+                  <span className={form.mnemonic.trim().split(/\s+/).length === 25 ? 'text-emerald-400' : 'text-amber-400'}>
+                    {form.mnemonic.trim().split(/\s+/).length} words — {form.mnemonic.trim().split(/\s+/).length === 25 ? 'valid for on-chain' : 'must be exactly 25 words'}
+                  </span>
+                ) : (
+                  'Optional. Add a 25-word Algorand mnemonic to register on-chain.'
+                )}
+              </p>
             </div>
             <button type="submit" disabled={loading}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 font-bold hover:brightness-110 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
@@ -155,7 +163,7 @@ export default function Provide() {
                     const s = String((result.details as any).on_chain_status || 'local')
                     if (s === 'success') return 'Registered on-chain'
                     if (s === 'local_fallback') return 'Registered locally (on-chain failed, but you are listed)'
-                    return 'Registered locally (add a mnemonic to register on-chain)'
+                    return 'Registered locally (add a 25-word mnemonic to register on-chain)'
                   })()}</span></p>
                   {(result.details as any).explorer_url && (
                     <a href={String((result.details as any).explorer_url)} target="_blank" rel="noreferrer" className="text-cyan-400 underline inline-flex items-center gap-1">

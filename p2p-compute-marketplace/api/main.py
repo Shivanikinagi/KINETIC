@@ -362,6 +362,13 @@ async def register_provider(payload: dict) -> dict:
     on_chain_status = "local_only"
 
     if registry_app_id > 0 and mnemonic_provided:
+        # Validate mnemonic word count
+        mnemonic_words = str(payload.get("provider_mnemonic", "")).strip().split()
+        if len(mnemonic_words) != 25:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Mnemonic must be exactly 25 words. You provided {len(mnemonic_words)}. Generate a valid mnemonic from Pera Wallet or algosdk.account.generate_account()."
+            )
         try:
             algod_url = os.getenv("ALGOD_URL", "https://testnet-api.algonode.cloud")
             algod_token = os.getenv("ALGOD_TOKEN", "")
@@ -402,8 +409,12 @@ async def register_provider(payload: dict) -> dict:
             tx_id = result.tx_ids[-1]
             explorer_url = f"https://testnet.algoexplorer.io/tx/{tx_id}"
             on_chain_status = "success"
-        except Exception:
-            on_chain_status = "local_fallback"
+        except Exception as exc:
+            # Re-raise as 400 so frontend shows the real error
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"On-chain registration failed: {exc}. Your provider was still saved locally and is visible in the marketplace."
+            ) from exc
 
     # Always store locally so the provider appears in listings immediately
     _ensure_local_provider_db()
@@ -439,7 +450,13 @@ async def register_provider(payload: dict) -> dict:
 @app.post("/job")
 async def submit_job(task: dict, request: Request) -> dict:
     task["job_id"] = task.get("job_id") or getattr(request.state, "job_id", "")
-    return await run_job(task)
+    result = await run_job(task)
+    if result.get("status") == "failed":
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=result.get("error", "Job execution failed"),
+        )
+    return result
 
 
 # ── Provider Node Management ────────────────────────────────────────────────

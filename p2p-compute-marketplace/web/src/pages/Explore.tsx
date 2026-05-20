@@ -68,7 +68,13 @@ export default function Explore() {
       const isError = result.status === 'failed'
       setDeployResult({ msg: isError ? 'Job failed' : 'Job deployed!', status: isError ? 'error' : 'success', id: result.deployment_id || result.job_id })
     } catch (err: any) {
-      setDeployResult({ msg: err.message || 'Deploy failed', status: 'error' })
+      let msg = err.message || 'Deploy failed'
+      try {
+        const parsed = JSON.parse(msg)
+        if (parsed.detail) msg = String(parsed.detail)
+        else if (parsed.message) msg = String(parsed.message)
+      } catch { /* not JSON */ }
+      setDeployResult({ msg, status: 'error' })
     } finally {
       setLoading(false)
     }
