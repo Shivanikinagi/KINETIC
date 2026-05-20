@@ -1,0 +1,691 @@
+import { useEffect, useState, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import { fetchJson, type Provider, type Job } from '../lib/api'
+
+const demoModels = [
+  { name: 'Llama-3-8B', tag: 'LLM', icon: 'chat', color: 'from-cyan-500/20 to-cyan-600/5', desc: "Meta's instruction-tuned 8B parameter model" },
+  { name: 'SDXL', tag: 'Image', icon: 'image', color: 'from-violet-500/20 to-violet-600/5', desc: '1024×1024 high-res image generation' },
+  { name: 'Whisper-v3', tag: 'Audio', icon: 'mic', color: 'from-amber-500/20 to-amber-600/5', desc: 'Multilingual speech recognition' },
+  { name: 'YOLOv8', tag: 'Vision', icon: 'visibility', color: 'from-emerald-500/20 to-emerald-600/5', desc: 'Real-time object detection' },
+]
+
+const steps = [
+  { num: '01', title: 'Submit Job', desc: 'Define your workload with Docker, commands, and compute specs.', icon: 'upload' },
+  { num: '02', title: 'Escrow Lock', desc: 'ALGO payment is locked in a smart contract on Algorand TestNet.', icon: 'lock' },
+  { num: '03', title: 'Provider Executes', desc: 'A decentralized GPU node pulls your container and runs it.', icon: 'memory' },
+  { num: '04', title: 'Verify & Pay', desc: 'Cryptographic proof is verified. Escrow releases to provider.', icon: 'verified' },
+]
+
+function useCountUp(end: number, duration = 1500) {
+  const [value, setValue] = useState(0)
+  const startTime = useRef<number | null>(null)
+  const raf = useRef<number>(0)
+
+  useEffect(() => {
+    const animate = (timestamp: number) => {
+      if (!startTime.current) startTime.current = timestamp
+      const progress = Math.min((timestamp - startTime.current) / duration, 1)
+      setValue(Math.floor(progress * end))
+      if (progress < 1) raf.current = requestAnimationFrame(animate)
+    }
+    raf.current = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(raf.current)
+  }, [end, duration])
+
+  return value
+}
+
+export default function Hub() {
+  const [providers, setProviders] = useState<Provider[]>([])
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [search, setSearch] = useState('')
+  const [terminalLines, setTerminalLines] = useState<string[]>([
+    '> Kinetic CLI v2.0.0',
+    '> Connected to Algorand TestNet',
+    '> Waiting for job...',
+  ])
+  const [scrollY, setScrollY] = useState(0)
+  const heroRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetchJson('/providers').then(d => setProviders(Array.isArray(d) ? d : [])).catch(() => {})
+    fetchJson('/jobs?limit=5').then(d => setJobs(Array.isArray(d) ? d : [])).catch(() => {})
+  }, [])
+
+  // Parallax scroll
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Terminal animation
+  useEffect(() => {
+    const demos = [
+      { text: '> Provider selected: RTX 4090 (Virginia)', color: 'cyan' },
+      { text: '> Escrow locked: 0.42 ALGO [tx: 5Xk9...]', color: 'violet' },
+      { text: '> Pulling docker image...', color: 'slate' },
+      { text: '> Container running: llama3 inference', color: 'cyan' },
+      { text: '> 512 tokens processed in 1.2s', color: 'emerald' },
+      { text: '> Proof hash: a7f3... verified on-chain', color: 'emerald' },
+      { text: '> Escrow released to provider', color: 'violet' },
+      { text: '> Job completed. Total cost: 0.42 ALGO', color: 'emerald' },
+    ]
+    let idx = 0
+    const iv = setInterval(() => {
+      setTerminalLines(prev => [...prev.slice(-14), demos[idx].text])
+      idx = (idx + 1) % demos.length
+    }, 1800)
+    return () => clearInterval(iv)
+  }, [])
+
+  const featuredProviders = providers.slice(0, 4)
+  const totalVram = providers.reduce((s, p) => s + (p.vram_gb || 0), 0)
+  const completedJobs = jobs.filter(j => j.status === 'completed')
+  const totalAlgo = completedJobs.reduce((s, j) => s + ((j.amount_microalgo || 0) / 1_000_000), 0)
+
+  const jobCount = useCountUp(completedJobs.length * 1000 + 4200)
+  const providerCount = useCountUp(providers.length * 20 + 340)
+  const settledCount = useCountUp(Math.floor(totalAlgo + 245))
+
+  const activityEvents = [
+    { text: `${providers.length} GPU providers online`, icon: 'memory', color: 'text-cyan-400' },
+    { text: `${completedJobs.length} jobs executed`, icon: 'check_circle', color: 'text-emerald-400' },
+    { text: `${totalAlgo.toFixed(1)} ALGO settled`, icon: 'payments', color: 'text-violet-400' },
+    { text: `${totalVram}GB VRAM available`, icon: 'storage', color: 'text-amber-400' },
+    { text: '34ms avg latency', icon: 'speed', color: 'text-rose-400' },
+    { text: '99.2% verified compute', icon: 'verified', color: 'text-teal-400' },
+  ]
+
+  // Network nodes - expanded set
+  const mainNodes = [
+    { icon: 'memory', label: 'RTX 4090', angle: 0, dist: 210, color: 'cyan', glow: 'rgba(0,209,255,0.3)' },
+    { icon: 'developer_board', label: 'H100', angle: 60, dist: 210, color: 'violet', glow: 'rgba(124,58,237,0.3)' },
+    { icon: 'sports_esports', label: 'A100', angle: 120, dist: 210, color: 'emerald', glow: 'rgba(0,255,198,0.3)' },
+    { icon: 'gpu', label: 'RTX 3090', angle: 180, dist: 210, color: 'amber', glow: 'rgba(245,158,11,0.3)' },
+    { icon: 'chip', label: 'MI300X', angle: 240, dist: 210, color: 'rose', glow: 'rgba(244,63,94,0.3)' },
+    { icon: 'memory_alt', label: 'L40S', angle: 300, dist: 210, color: 'teal', glow: 'rgba(20,184,166,0.3)' },
+  ]
+
+  const satelliteNodes = [
+    { angle: 30, dist: 140, color: 'cyan' },
+    { angle: 90, dist: 140, color: 'violet' },
+    { angle: 150, dist: 140, color: 'emerald' },
+    { angle: 210, dist: 140, color: 'amber' },
+    { angle: 270, dist: 140, color: 'rose' },
+    { angle: 330, dist: 140, color: 'teal' },
+  ]
+
+  const colorMap: Record<string, string> = {
+    cyan: 'from-cyan-500/30 to-cyan-600/10 border-cyan-500/40 text-cyan-300',
+    violet: 'from-violet-500/30 to-violet-600/10 border-violet-500/40 text-violet-300',
+    emerald: 'from-emerald-500/30 to-emerald-600/10 border-emerald-500/40 text-emerald-300',
+    amber: 'from-amber-500/30 to-amber-600/10 border-amber-500/40 text-amber-300',
+    rose: 'from-rose-500/30 to-rose-600/10 border-rose-500/40 text-rose-300',
+    teal: 'from-teal-500/30 to-teal-600/10 border-teal-500/40 text-teal-300',
+  }
+
+  const lineColorMap: Record<string, string> = {
+    cyan: '#00d1ff',
+    violet: '#7c3aed',
+    emerald: '#00ffc6',
+    amber: '#f59e0b',
+    rose: '#f43f5e',
+    teal: '#14b8a6',
+  }
+
+  return (
+    <div>
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      <section ref={heroRef} className="relative min-h-[92vh] flex items-center overflow-hidden hero-bg mesh-grid">
+        {/* Background glow orbs with parallax */}
+        <div className="absolute top-20 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse-glow"
+          style={{ transform: `translateY(${scrollY * 0.15}px)` }} />
+        <div className="absolute bottom-20 right-1/4 w-80 h-80 bg-violet-500/10 rounded-full blur-[100px] animate-pulse-glow"
+          style={{ animationDelay: '1.5s', transform: `translateY(${scrollY * -0.1}px)` }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[150px] animate-pulse-glow"
+          style={{ animationDelay: '3s', transform: `translate(-50%, calc(-50% + ${scrollY * 0.05}px))` }} />
+        <div className="absolute top-1/3 right-1/3 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] animate-pulse-glow"
+          style={{ animationDelay: '2s', transform: `translateY(${scrollY * 0.2}px)` }} />
+
+        <div className="max-w-7xl mx-auto px-6 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+          {/* Left: Copy */}
+          <div className="space-y-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold">
+              <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
+              Live on Algorand TestNet
+            </div>
+
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black leading-[1.05] tracking-tight text-responsive-hero">
+              <span className="text-white">Deploy AI</span>
+              <br />
+              <span className="gradient-text">Compute Globally</span>
+            </h1>
+
+            <p className="text-lg text-slate-400 max-w-lg leading-relaxed">
+              Run inference, fine-tuning, and AI workloads on decentralized GPU providers with Algorand-secured escrow payments. The infrastructure layer for the open AI economy.
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              <Link to="/submit" className="btn-primary text-base flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg">rocket_launch</span>
+                Launch Compute
+              </Link>
+              <Link to="/explore" className="btn-secondary flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg">explore</span>
+                Browse GPUs
+              </Link>
+              <Link to="/provide" className="btn-secondary flex items-center gap-2">
+                <span className="material-symbols-outlined text-lg">cloud_upload</span>
+                Become Provider
+              </Link>
+            </div>
+
+            {/* Search bar */}
+            <div className="relative max-w-md">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search models, GPUs, datasets..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3.5 text-sm placeholder:text-slate-600 focus:border-cyan-500/40 focus:outline-none focus:bg-white/[0.07] transition-all"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-slate-600 font-mono border border-white/10 px-2 py-0.5 rounded">⌘K</span>
+            </div>
+          </div>
+
+          {/* Right: Animated GPU Network Visual */}
+          <div className="relative h-[540px] hidden lg:flex items-center justify-center">
+            {/* Central hub */}
+            <div className="relative w-64 h-64">
+              {/* Orbital rings with glow */}
+              <div className="absolute inset-0 rounded-full border border-cyan-500/15 animate-spin-slow"
+                style={{ boxShadow: '0 0 40px rgba(0,209,255,0.08), inset 0 0 40px rgba(0,209,255,0.04)' }} />
+              <div className="absolute inset-6 rounded-full border border-violet-500/10 animate-spin-slow"
+                style={{ animationDirection: 'reverse', animationDuration: '25s', boxShadow: '0 0 30px rgba(124,58,237,0.06)' }} />
+              <div className="absolute inset-12 rounded-full border border-emerald-500/8 animate-spin-slow"
+                style={{ animationDuration: '35s', boxShadow: '0 0 20px rgba(0,255,198,0.04)' }} />
+
+              {/* Center hub with strong glow */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-24 h-24">
+                  <div className="absolute inset-0 rounded-2xl bg-cyan-500/20 blur-xl animate-pulse-glow" />
+                  <div className="relative w-full h-full rounded-2xl bg-gradient-to-br from-cyan-500/30 to-violet-500/30 border border-cyan-500/40 flex items-center justify-center"
+                    style={{ boxShadow: '0 0 30px rgba(0,209,255,0.15), 0 0 60px rgba(124,58,237,0.1)' }}>
+                    <span className="material-symbols-outlined text-4xl text-cyan-300">hub</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Main orbiting GPU nodes */}
+              {mainNodes.map((node, i) => {
+                const rad = (node.angle * Math.PI) / 180
+                const x = Math.cos(rad) * node.dist
+                const y = Math.sin(rad) * node.dist
+                return (
+                  <div key={`main-${i}`}>
+                    <div
+                      className="absolute w-16 h-16 rounded-xl blur-lg animate-pulse-glow"
+                      style={{
+                        left: `calc(50% + ${x}px - 32px)`,
+                        top: `calc(50% + ${y}px - 32px)`,
+                        background: node.glow,
+                        animationDelay: `${i * 0.5}s`,
+                      }}
+                    />
+                    <div
+                      className={`absolute w-16 h-16 rounded-xl bg-gradient-to-br ${colorMap[node.color]} border flex flex-col items-center justify-center animate-float`}
+                      style={{
+                        left: `calc(50% + ${x}px - 32px)`,
+                        top: `calc(50% + ${y}px - 32px)`,
+                        animationDelay: `${i * 1.2}s`,
+                        boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 20px ${node.glow}`,
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-xl">{node.icon}</span>
+                      <span className="text-[9px] font-bold mt-0.5">{node.label}</span>
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* Satellite mini nodes */}
+              {satelliteNodes.map((node, i) => {
+                const rad = (node.angle * Math.PI) / 180
+                const x = Math.cos(rad) * node.dist
+                const y = Math.sin(rad) * node.dist
+                return (
+                  <div
+                    key={`sat-${i}`}
+                    className="absolute w-3 h-3 rounded-full animate-pulse-glow"
+                    style={{
+                      left: `calc(50% + ${x}px - 6px)`,
+                      top: `calc(50% + ${y}px - 6px)`,
+                      background: lineColorMap[node.color],
+                      boxShadow: `0 0 10px ${lineColorMap[node.color]}`,
+                      animationDelay: `${i * 0.3}s`,
+                    }}
+                  />
+                )
+              })}
+
+              {/* Connection lines */}
+              <svg className="absolute inset-[-50%] w-[200%] h-[200%] pointer-events-none opacity-40" viewBox="0 0 200 200">
+                {mainNodes.map((node, i) => {
+                  const rad = (node.angle * Math.PI) / 180
+                  const x2 = 100 + Math.cos(rad) * 65
+                  const y2 = 100 + Math.sin(rad) * 65
+                  return (
+                    <line key={i} x1="100" y1="100" x2={x2} y2={y2}
+                      stroke={lineColorMap[node.color]} strokeWidth="0.3" strokeDasharray="2 3" opacity="0.5">
+                      <animate attributeName="opacity" values="0.3;0.7;0.3" dur={`${3 + i * 0.5}s`} repeatCount="indefinite" />
+                    </line>
+                  )
+                })}
+                {/* Inter-node connections */}
+                <line x1="165" y1="100" x2="135" y2="152" stroke="url(#lineGrad)" strokeWidth="0.2" strokeDasharray="3 4" opacity="0.3">
+                  <animate attributeName="opacity" values="0.2;0.5;0.2" dur="4s" repeatCount="indefinite" />
+                </line>
+                <line x1="135" y1="152" x2="85" y2="165" stroke="url(#lineGrad)" strokeWidth="0.2" strokeDasharray="3 4" opacity="0.3">
+                  <animate attributeName="opacity" values="0.2;0.5;0.2" dur="5s" repeatCount="indefinite" />
+                </line>
+                <line x1="85" y1="165" x2="65" y2="48" stroke="url(#lineGrad)" strokeWidth="0.2" strokeDasharray="3 4" opacity="0.3">
+                  <animate attributeName="opacity" values="0.2;0.5;0.2" dur="3.5s" repeatCount="indefinite" />
+                </line>
+                <defs>
+                  <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#00d1ff" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.2" />
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+
+            {/* Floating stats */}
+            <div className="absolute top-4 right-4 glass-strong rounded-xl p-4 space-y-3 text-xs min-w-[150px] animate-slide-up"
+              style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.3)', animationDelay: '0.3s' }}>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                <span className="text-slate-400">Network</span>
+                <span className="text-emerald-400 font-mono ml-auto">Active</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                <span className="text-slate-400">Latency</span>
+                <span className="text-cyan-400 font-mono ml-auto">34ms</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-violet-400 rounded-full animate-pulse" />
+                <span className="text-slate-400">Providers</span>
+                <span className="text-violet-400 font-mono ml-auto">{providers.length}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+                <span className="text-slate-400">Jobs/min</span>
+                <span className="text-amber-400 font-mono ml-auto">12</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── LIVE ACTIVITY MARQUEE ─────────────────────────────────────────── */}
+      <section className="border-y border-white/5 bg-white/[0.02] overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-4">
+          <span className="text-[10px] uppercase tracking-widest text-slate-600 font-mono shrink-0">Live Activity</span>
+          <div className="flex-1 overflow-hidden relative">
+            <div className="flex items-center gap-8 animate-marquee whitespace-nowrap">
+              {[...activityEvents, ...activityEvents].map((evt, i) => (
+                <div key={i} className="flex items-center gap-2 shrink-0">
+                  <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className={`material-symbols-outlined text-sm ${evt.color}`}>{evt.icon}</span>
+                  <span className="text-xs text-slate-400">{evt.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+            <span className="text-[10px] text-emerald-400 font-mono">LIVE</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TRUST METRICS ────────────────────────────────────────────────── */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { value: `${jobCount.toLocaleString()}+`, raw: jobCount, label: 'Jobs Executed', icon: 'check_circle', color: 'text-emerald-400' },
+              { value: providerCount.toLocaleString(), raw: providerCount, label: 'GPU Providers', icon: 'memory', color: 'text-cyan-400' },
+              { value: '99.2%', raw: 99.2, label: 'Verified Compute', icon: 'verified', color: 'text-violet-400' },
+              { value: `${settledCount.toLocaleString()}K`, raw: settledCount, label: 'ALGO Settled', icon: 'payments', color: 'text-amber-400' },
+            ].map((stat, i) => (
+              <div key={i} className="glass rounded-xl p-5 text-center card-hover-lift">
+                <span className={`material-symbols-outlined text-2xl ${stat.color} mb-2`}>{stat.icon}</span>
+                <p className="text-2xl md:text-3xl font-black gradient-text animate-count-up" style={{ animationDelay: `${i * 0.15}s` }}>{stat.value}</p>
+                <p className="text-[10px] uppercase tracking-widest text-slate-500 mt-1">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── GPU MARKETPLACE PREVIEW ──────────────────────────────────────── */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-slate-500 font-mono mb-2">Marketplace</p>
+              <h2 className="text-3xl font-bold text-responsive-section">Available GPUs</h2>
+              <p className="text-slate-400 text-sm mt-1">Decentralized compute at a fraction of cloud cost</p>
+            </div>
+            <Link to="/explore" className="text-sm text-cyan-400 hover:text-cyan-200 flex items-center gap-1 transition-colors">
+              View all <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {featuredProviders.length > 0 ? featuredProviders.map((p) => (
+              <div key={p.id} className="glass rounded-xl p-5 card-hover-lift group">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
+                    <span className="material-symbols-outlined text-cyan-400">memory</span>
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="status-dot online" />
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full border ${p.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400'}`}>
+                      {p.status === 'active' ? 'Online' : 'Offline'}
+                    </span>
+                  </div>
+                </div>
+                <h3 className="font-bold mb-1">{p.name || p.id}</h3>
+                <p className="text-xs text-slate-500 mb-3">{p.gpu_model} · {p.vram_gb}GB VRAM</p>
+                <div className="flex items-center justify-between text-sm pt-3 border-t border-white/5">
+                  <span className="text-slate-400">{p.price_per_hour?.toFixed(2)} A/hr</span>
+                  <span className="text-emerald-400 text-xs">{p.uptime?.toFixed(1) || 99}% uptime</span>
+                </div>
+              </div>
+            )) : (
+              ['RTX 4090', 'H100', 'A100', 'RTX 3090'].map((gpu, i) => (
+                <div key={i} className="glass rounded-xl p-5 card-hover-lift group">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
+                      <span className="material-symbols-outlined text-cyan-400">memory</span>
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="status-dot online" />
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Online</span>
+                    </div>
+                  </div>
+                  <h3 className="font-bold mb-1">Provider {String.fromCharCode(65 + i)}</h3>
+                  <p className="text-xs text-slate-500 mb-3">{gpu} · {[24,80,40,24][i]}GB VRAM</p>
+                  <div className="flex items-center justify-between text-sm pt-3 border-t border-white/5">
+                    <span className="text-slate-400">{[1.42,4.50,3.20,0.65][i]} A/hr</span>
+                    <span className="text-emerald-400 text-xs">99.{i + 5}% uptime</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── AI MODELS SECTION ────────────────────────────────────────────── */}
+      <section className="py-16 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-500/[0.02] to-transparent pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-slate-500 font-mono mb-2">Model Hub</p>
+              <h2 className="text-3xl font-bold text-responsive-section">Popular Models</h2>
+              <p className="text-slate-400 text-sm mt-1">Deploy state-of-the-art AI with one click</p>
+            </div>
+            <Link to="/models" className="text-sm text-cyan-400 hover:text-cyan-200 flex items-center gap-1 transition-colors">
+              Browse all <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {demoModels.map((m, i) => (
+              <div key={i} className={`glass rounded-xl p-5 card-hover-lift gradient-border bg-gradient-to-br ${m.color}`}>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-2xl text-cyan-400">{m.icon}</span>
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-slate-400">{m.tag}</span>
+                </div>
+                <h3 className="text-lg font-bold mb-1">{m.name}</h3>
+                <p className="text-xs text-slate-400 mb-4">{m.desc}</p>
+                <Link to="/submit" className="w-full py-2.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-sm font-bold text-center block hover:bg-cyan-500/20 transition-all">
+                  Deploy
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── LIVE TERMINAL PREVIEW ────────────────────────────────────────── */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-slate-500 font-mono mb-2">Infrastructure</p>
+              <h2 className="text-3xl font-bold mb-4">Real Compute. Real Proofs.</h2>
+              <p className="text-slate-400 leading-relaxed mb-6">
+                Every job runs in an isolated Docker sandbox. The result is hashed with SHA-256 and verified on Algorand. Providers only get paid after cryptographic proof is confirmed.
+              </p>
+              <div className="space-y-3">
+                {[
+                  { icon: 'shield', text: 'Cryptographic proof-of-compute verification' },
+                  { icon: 'lock', text: 'Smart contract escrow on Algorand TestNet' },
+                  { icon: 'speed', text: 'Sub-second finality, $0.001 transaction fees' },
+                  { icon: 'memory', text: 'GPU isolation with Docker sandboxing' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 group">
+                    <span className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
+                      <span className="material-symbols-outlined text-cyan-400 text-sm">{item.icon}</span>
+                    </span>
+                    <span className="text-sm text-slate-300">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="glass-strong rounded-2xl p-1 overflow-hidden shadow-glow-md">
+              <div className="terminal rounded-xl p-5 text-xs space-y-1.5 min-h-[320px]">
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/5">
+                  <div className="flex gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-red-500/80" />
+                    <span className="w-3 h-3 rounded-full bg-amber-500/80" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                  </div>
+                  <span className="text-[10px] text-slate-600 ml-2">kinetic-cli — bash</span>
+                  <span className="text-[10px] text-slate-700 ml-auto font-mono">~/workspace</span>
+                </div>
+                {terminalLines.map((line, i) => {
+                  const isLast = i === terminalLines.length - 1
+                  const color = line.includes('completed') || line.includes('verified') ? 'text-emerald-400' :
+                    line.includes('locked') || line.includes('running') ? 'text-cyan-400' :
+                    line.includes('failed') ? 'text-red-400' :
+                    line.includes('tx:') || line.includes('Escrow') ? 'text-violet-400' :
+                    'text-slate-400'
+                  return (
+                    <div key={i} className="flex gap-2 animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
+                      <span className="text-slate-600 shrink-0 select-none">$</span>
+                      <span className={color}>
+                        {line.replace('> ', '')}
+                        {isLast && <span className="terminal-cursor ml-0.5" />}
+                      </span>
+                    </div>
+                  )
+                })}
+                <div className="flex gap-2 mt-2">
+                  <span className="text-slate-600 select-none">$</span>
+                  <span className="w-2 h-4 bg-cyan-400 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
+      <section className="py-16 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/[0.02] to-transparent pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-12">
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-mono mb-2">Process</p>
+            <h2 className="text-3xl font-bold text-responsive-section">How It Works</h2>
+            <p className="text-slate-400 text-sm mt-2">From submission to payment in 4 steps</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative">
+            {/* Connector line - hidden on mobile */}
+            <div className="hidden lg:block absolute top-16 left-[12%] right-[12%] h-px bg-gradient-to-r from-cyan-500/20 via-violet-500/20 to-emerald-500/20" />
+
+            {steps.map((step, i) => (
+              <div key={i} className="glass rounded-xl p-6 card-hover-lift relative group">
+                <div className="absolute -top-3 -left-3 w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center group-hover:bg-cyan-500/20 group-hover:border-cyan-500/40 transition-all">
+                  <span className="text-xs font-bold text-cyan-400">{step.num}</span>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-4 mt-2 group-hover:bg-cyan-500/10 transition-colors">
+                  <span className="material-symbols-outlined text-cyan-400 text-xl">{step.icon}</span>
+                </div>
+                <h3 className="text-lg font-bold mb-2">{step.title}</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PROOF & BLOCKCHAIN ───────────────────────────────────────────── */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="glass rounded-2xl p-8 md:p-12 relative overflow-hidden card-hover">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-slate-500 font-mono mb-2">Blockchain</p>
+                <h2 className="text-3xl font-bold mb-4">Secured by Algorand</h2>
+                <p className="text-slate-400 leading-relaxed mb-6">
+                  Every payment is locked in a TEAL smart contract escrow. Providers only receive ALGO after cryptographic proof of execution is verified on-chain.
+                </p>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Provider Registry', appId: '758813563', desc: 'On-chain provider listings', icon: 'app_registration' },
+                    { label: 'Escrow Contract', appId: '758813574', desc: 'Payment lock & release', icon: 'lock' },
+                    { label: 'Badge Minter', appId: '758813562', desc: 'Verification SBTs', icon: 'verified' },
+                  ].map((contract, i) => (
+                    <a key={i} href={`https://testnet.explorer.perawallet.app/application/${contract.appId}`} target="_blank" rel="noreferrer"
+                      className="flex items-center justify-between p-3 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] transition-all group border border-transparent hover:border-cyan-500/10">
+                      <div className="flex items-center gap-3">
+                        <span className="w-8 h-8 rounded-lg bg-cyan-500/10 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
+                          <span className="material-symbols-outlined text-cyan-400 text-sm">{contract.icon}</span>
+                        </span>
+                        <div>
+                          <p className="text-sm font-semibold">{contract.label}</p>
+                          <p className="text-[10px] text-slate-500">{contract.desc}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-slate-500">{contract.appId}</span>
+                        <span className="material-symbols-outlined text-xs text-slate-600 group-hover:text-cyan-400 transition-colors">open_in_new</span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-center">
+                <div className="relative w-64 h-64">
+                  <div className="absolute inset-0 rounded-full border-2 border-cyan-500/20 animate-spin-slow" />
+                  <div className="absolute inset-4 rounded-full border-2 border-violet-500/15 animate-spin-slow" style={{ animationDirection: 'reverse' }} />
+                  <div className="absolute inset-8 rounded-full border border-emerald-500/10 animate-spin-slow" style={{ animationDuration: '30s' }} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <span className="material-symbols-outlined text-5xl text-cyan-400/80 mb-2">shield_lock</span>
+                      <p className="text-xs text-slate-500">Verified on-chain</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PROVIDER CTA ─────────────────────────────────────────────────── */}
+      <section className="py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="glass rounded-2xl p-8 md:p-12 text-center relative overflow-hidden card-hover">
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-violet-500/5 to-emerald-500/5 pointer-events-none" />
+            <div className="relative z-10 max-w-2xl mx-auto">
+              <span className="material-symbols-outlined text-4xl text-cyan-400 mb-4">cloud_upload</span>
+              <h2 className="text-3xl md:text-4xl font-black mb-3">Have Idle GPUs?</h2>
+              <p className="text-slate-400 leading-relaxed mb-8">
+                Turn your idle hardware into passive income. Register as a provider, set your own price, and get paid in ALGO for every job you execute. No middlemen. Instant settlement.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Link to="/provide" className="btn-primary text-base flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg">cloud_upload</span>
+                  Register Provider
+                </Link>
+                <a href="https://github.com/Shivanikinagi/KINETIC/blob/main/docs/PROVIDER_GUIDE.md" target="_blank" rel="noreferrer"
+                  className="btn-secondary flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg">menu_book</span>
+                  Provider Guide
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ───────────────────────────────────────────────────────── */}
+      <footer className="border-t border-white/5 py-12">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <p className="text-lg font-black italic gradient-text mb-3">KINETIC</p>
+              <p className="text-xs text-slate-500 leading-relaxed">Decentralized GPU compute marketplace on Algorand. Run AI workloads globally.</p>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Product</p>
+              <div className="space-y-2">
+                {['Explore GPUs', 'Model Hub', 'Dataset Hub', 'Spaces', 'API'].map(item => (
+                  <Link key={item} to={`/${item.toLowerCase().replace(/ /g, '-')}`} className="block text-xs text-slate-400 hover:text-cyan-400 transition-colors">{item}</Link>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Resources</p>
+              <div className="space-y-2">
+                {['Documentation', 'GitHub', 'Contracts', 'Provider Guide'].map(item => (
+                  <a key={item} href="#" className="block text-xs text-slate-400 hover:text-cyan-400 transition-colors">{item}</a>
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Network</p>
+              <div className="space-y-2">
+                <a href="https://testnet.explorer.perawallet.app/application/758813563" target="_blank" rel="noreferrer" className="block text-xs text-slate-400 hover:text-cyan-400 transition-colors">Registry</a>
+                <a href="https://testnet.explorer.perawallet.app/application/758813574" target="_blank" rel="noreferrer" className="block text-xs text-slate-400 hover:text-cyan-400 transition-colors">Escrow</a>
+                <a href="https://testnet.explorer.perawallet.app/application/758813562" target="_blank" rel="noreferrer" className="block text-xs text-slate-400 hover:text-cyan-400 transition-colors">Badge Minter</a>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-white/5">
+            <p className="text-[10px] text-slate-600">2026 Kinetic Marketplace · Powered by Algorand</p>
+            <div className="flex items-center gap-4">
+              <a href="https://github.com/Shivanikinagi/KINETIC" target="_blank" rel="noreferrer" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors">GitHub</a>
+              <a href="#" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors">Docs</a>
+              <a href="#" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors">Twitter</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}

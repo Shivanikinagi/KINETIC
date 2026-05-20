@@ -12,6 +12,8 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from sse_starlette.sse import EventSourceResponse
 
+from api.job_history import get_job, get_job_logs
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -154,6 +156,112 @@ async def stream_providers():
     return EventSourceResponse(provider_generator())
 
 
+@router.get("/jobs/{job_id}/logs")
+async def get_job_logs_endpoint(job_id: str) -> dict:
+    """Return all logs for a specific job."""
+    logs = get_job_logs(job_id)
+    return {"job_id": job_id, "logs": logs}
+
+
+@router.get("/jobs/{job_id}/stream")
+async def stream_job_updates(job_id: str):
+    """
+    SSE endpoint that streams job-specific updates (progress, logs, status changes).
+    Uses simple polling against the database every second.
+    """
+    
+    async def job_generator():
+        # Send initial snapshot
+        job = get_job(job_id)
+        if job:
+            yield {
+                "event": "snapshot",
+                "data": json.dumps({
+                    "job_id": job_id,
+                    "status": job.get("status", "pending"),
+                    "progress": job.get("progress", 0),
+                    "logs": job.get("logs", []),
+                    "gpu_utilization": job.get("gpu_utilization", 0.0),
+                    "vram_usage": job.get("vram_usage", 0.0),
+                    "vram_total": job.get("vram_total", 0.0),
+                    "escrow_status": job.get("escrow_status", "locked"),
+                    "cost_algo": job.get("cost_algo", 0.0),
+                    "provider": job.get("provider", ""),
+                    "timestamp": datetime.utcnow().isoformat(),
+                })
+            }
+        else:
+            yield {
+                "event": "error",
+                "data": json.dumps({"message": "Job not found", "job_id": job_id})
+            }
+            return
+        
+        last_log_count = len(job.get("logs", []))
+        last_status = job.get("status")
+        last_progress = job.get("progress", 0)
+        
+        # Poll database every second for changes
+        while True:
+            await asyncio.sleep(1.0)
+            current = get_job(job_id)
+            if not current:
+                yield {
+                    "event": "error",
+                    "data": json.dumps({"message": "Job not found", "job_id": job_id})
+                }
+                return
+            
+            current_logs = current.get("logs", [])
+            current_status = current.get("status")
+            current_progress = current.get("progress", 0)
+            
+            changed = False
+            payload = {
+                "job_id": job_id,
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            
+            if len(current_logs) > last_log_count:
+                payload["new_logs"] = current_logs[last_log_count:]
+                payload["logs"] = current_logs
+                last_log_count = len(current_logs)
+                changed = True
+            
+            if current_status != last_status:
+                payload["status"] = current_status
+                last_status = current_status
+                changed = True
+            
+            if current_progress != last_progress:
+                payload["progress"] = current_progress
+                last_progress = current_progress
+                changed = True
+            
+            if changed:
+                yield {
+                    "event": "job_update",
+                    "data": json.dumps(payload)
+                }
+            
+            # Stop streaming if job is terminal
+            if current_status in ("completed", "failed"):
+                # Send one final snapshot then close
+                yield {
+                    "event": "final",
+                    "data": json.dumps({
+                        "job_id": job_id,
+                        "status": current_status,
+                        "progress": current_progress,
+                        "logs": current_logs,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    })
+                }
+                return
+    
+    return EventSourceResponse(job_generator())
+
+
 # Helper functions for publishing events
 
 async def publish_agent_status(status: str, details: dict = None):
@@ -214,4 +322,3 @@ async def publish_proof(proof_data: dict):
         **proof_data,
         "timestamp": datetime.utcnow().isoformat()
     })
-

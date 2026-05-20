@@ -63,6 +63,7 @@ agent/spend_log.db
 data/
 data/*.db
 data/*.sqlite
+data/images/
 
 # ============================================================
 # Runtime Artifacts
@@ -86,8 +87,30 @@ Thumbs.db
 *~
 
 # ============================================================
-# Temporary/Generated Documentation
+# Temporary / Generated Documentation (AI session artifacts)
 # ============================================================
+# Any markdown file that looks like a fix log, summary, or session artifact
+*_FIX*.md
+*_FIXED*.md
+*_SUMMARY*.md
+*_RESULTS*.md
+*_GUIDE*.md
+*_INSTRUCTIONS*.md
+*_CHECKLIST*.md
+ACTUAL_*.md
+COMPLETE_*.md
+DEMO_SCRIPT.md
+FIXES_*.md
+FRONTEND_*.md
+GROK_*.md
+GROQ_*.md
+OPEN_SPACE_*.md
+QUICK_*.md
+SETUP_*.md
+SPACES_*.md
+START_*.md
+SUBMISSION.md
+TEST_*.md
 BUTTONS_FIXED.md
 WALLET_FIX.md
 WALLET_TROUBLESHOOTING.md
@@ -113,19 +136,31 @@ VERIFICATION_CHECKLIST.md
 # ============================================================
 # Deployment and Setup Scripts (keep local only)
 # ============================================================
-deploy-vercel.ps1
-start_agent_bridge.ps1
-start_agent_bridge.sh
-start_all_services.ps1
-start_marketplace.ps1
-start_marketplace.sh
-setup.ps1
-setup.sh
+*.ps1
+*.sh
+setup.*
+deploy-*
+start_*.*
 
 # ============================================================
-# Docker (optional - uncomment if not using)
+# Cleanup / Fix Scripts (one-off AI session artifacts)
 # ============================================================
-# docker-compose.yml
+cleanup_*.py
+fix_*.py
+verify_*.py
+setup_*.py
+check_*.py
+test_*.py
+*_test.py
+
+# ============================================================
+# Backups
+# ============================================================
+web-backup/
+backup/
+*.bak
+*.backup
+*.old
 
 # ============================================================
 # Build Artifacts
@@ -135,15 +170,6 @@ setup.sh
 build/
 dist/
 *.egg
-
-# ============================================================
-# Test Files
-# ============================================================
-test_*.py
-*_test.py
-tests/
-.pytest_cache/
-test_org_flow.py
 
 # ============================================================
 # Docker
@@ -161,11 +187,3 @@ docker-compose.override.yml
 # ============================================================
 .git/
 *.orig
-
-# ============================================================
-# Backup Files
-# ============================================================
-*.bak
-*.backup
-*.old
-*~

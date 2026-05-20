@@ -291,7 +291,9 @@ def _seed_builtin_templates() -> None:
 
 def _base_provider_catalog() -> list[dict[str, Any]]:
     provider_wallet = os.getenv("PROVIDER_WALLET", "")
-    default_endpoint = os.getenv("PROVIDER_ENDPOINT", "http://localhost:8000")
+    # IMPORTANT: default to *no* endpoint so jobs run locally.
+    # If this defaults to the marketplace API (localhost:8000), jobs recurse forever.
+    default_endpoint = os.getenv("PROVIDER_ENDPOINT", "").strip()
     return [
         {
             "id": "provider_001",
@@ -346,7 +348,7 @@ def _provider_pool() -> list[dict[str, Any]]:
         provider.setdefault("uptime", 99.0)
         provider.setdefault("gpu_count", 1)
         provider.setdefault("region", "Global")
-        provider.setdefault("endpoint", os.getenv("PROVIDER_ENDPOINT", "http://localhost:8000"))
+        provider.setdefault("endpoint", os.getenv("PROVIDER_ENDPOINT", "").strip())
     return providers
 
 
@@ -893,14 +895,14 @@ async def deploy_template(template_id: str, payload: TemplateDeployRequest) -> d
                 "payload": json.dumps(merged_params, sort_keys=True),
             }
         )
-        result_hash = str(result.get("result_hash", ""))
-        duration_ms = int(result.get("duration_ms", 0))
-        final_status = "completed"
     except Exception as exc:
-        result_hash = ""
-        duration_ms = 0
-        final_status = "failed"
-        result = {"error": str(exc)}
+        # run_job should generally return a structured failure, but keep this as a safety net.
+        result = {"status": "failed", "error": str(exc)}
+
+    result_status = str(result.get("status", "completed"))
+    final_status = "completed" if result_status == "completed" else "failed"
+    result_hash = str(result.get("result_hash", "")) if final_status == "completed" else ""
+    duration_ms = int(result.get("duration_ms", 0) or 0)
 
     conn = _connect()
     conn.execute(
