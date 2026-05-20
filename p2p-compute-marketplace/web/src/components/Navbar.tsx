@@ -1,21 +1,19 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useWallet } from '../hooks/useWallet'
+import { useState } from 'react'
 
-const pages = [
+const mainNav = [
   { href: '/', label: 'Hub', id: 'home' },
-  { href: '/explore', label: 'GPUs', id: 'explore' },
+  { href: '/explore', label: 'Explore GPUs', id: 'explore' },
   { href: '/models', label: 'Models', id: 'models' },
-  { href: '/datasets', label: 'Datasets', id: 'datasets' },
   { href: '/spaces', label: 'Spaces', id: 'spaces' },
   { href: '/assistant', label: 'Assistant', id: 'assistant' },
-  { href: '/submit', label: 'Submit Job', id: 'submit' },
-  { href: '/monitor', label: 'Monitor', id: 'monitor' },
-  { href: '/jobs', label: 'My Jobs', id: 'jobs' },
-  { href: '/wallet', label: 'Wallet', id: 'wallet' },
-  { href: '/api', label: 'API', id: 'api' },
-  { href: '/dashboard', label: 'Dashboard', id: 'dashboard' },
-  { href: '/provide', label: 'Provide', id: 'provide' },
-  { href: '/activity', label: 'Activity', id: 'activity' },
+]
+
+const utilityNav = [
+  { href: '/submit', label: 'Submit Job', icon: 'rocket_launch' },
+  { href: '/jobs', label: 'My Jobs', icon: 'work_history' },
+  { href: '/wallet', label: 'Wallet', icon: 'account_balance_wallet' },
 ]
 
 function formatAddress(addr: string) {
@@ -25,25 +23,28 @@ function formatAddress(addr: string) {
 export default function Navbar() {
   const location = useLocation()
   const { address, connected, connecting, connect, disconnect } = useWallet()
-  const activePage = pages.find(p => p.href === location.pathname)?.id || ''
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const activeId = mainNav.find(p => p.href === location.pathname)?.id || ''
 
   return (
-    <header className="w-full top-0 sticky z-50 border-b border-white/5" style={{ background: 'rgba(11,13,16,0.92)', backdropFilter: 'blur(16px)' }}>
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-10">
-          <Link to="/" className="text-2xl font-black italic tracking-tight text-cyan-400" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+    <header className="w-full top-0 sticky z-50 border-b border-white/5 hero-bg" style={{ background: 'rgba(8,9,12,0.92)', backdropFilter: 'blur(24px)' }}>
+      <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
+        <div className="flex items-center gap-8">
+          <Link to="/" className="text-xl font-black italic tracking-tight gradient-text" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
             KINETIC
           </Link>
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-            {pages.map(p => {
-              const isActive = p.id === activePage
+          <nav className="hidden md:flex items-center gap-1">
+            {mainNav.map(p => {
+              const isActive = p.id === activeId
               return (
                 <Link
                   key={p.id}
                   to={p.href}
-                  className={isActive
-                    ? 'text-cyan-400 font-semibold border-b-2 border-cyan-400 pb-1'
-                    : 'text-slate-400 hover:text-cyan-200 transition-colors'}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    isActive
+                      ? 'text-cyan-400 bg-cyan-500/10'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
+                  }`}
                 >
                   {p.label}
                 </Link>
@@ -51,29 +52,58 @@ export default function Navbar() {
             })}
           </nav>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="hidden sm:inline text-[10px] tracking-widest uppercase text-slate-500 font-mono border border-slate-700/50 px-3 py-1 rounded-full">
-            Algorand TestNet
+
+        <div className="flex items-center gap-2">
+          {/* Utility nav - desktop */}
+          <div className="hidden lg:flex items-center gap-1 mr-2">
+            {utilityNav.map(p => (
+              <Link
+                key={p.href}
+                to={p.href}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all"
+              >
+                <span className="material-symbols-outlined text-sm">{p.icon}</span>
+                {p.label}
+              </Link>
+            ))}
+          </div>
+
+          <span className="hidden sm:inline text-[10px] tracking-widest uppercase text-slate-600 font-mono border border-slate-800 px-2.5 py-1 rounded-full">
+            TestNet
           </span>
+
           {connected && address ? (
-            <button
-              onClick={disconnect}
-              className="flex items-center gap-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-emerald-500/20 transition-all"
-            >
+            <button onClick={disconnect}
+              className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg font-semibold text-xs hover:bg-emerald-500/20 transition-all">
               <span className="material-symbols-outlined text-sm">account_balance_wallet</span>
               {formatAddress(address)}
             </button>
           ) : (
-            <button
-              onClick={connect}
-              disabled={connecting}
-              className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 px-5 py-2 rounded-lg font-semibold text-sm hover:brightness-110 transition-all disabled:opacity-50"
-            >
-              {connecting ? 'Connecting...' : 'Connect Wallet'}
+            <button onClick={connect} disabled={connecting}
+              className="btn-primary text-xs py-2 px-4">
+              {connecting ? '...' : 'Connect'}
             </button>
           )}
+
+          {/* Mobile menu toggle */}
+          <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-slate-400 hover:text-white p-1">
+            <span className="material-symbols-outlined">{mobileOpen ? 'close' : 'menu'}</span>
+          </button>
         </div>
       </div>
+
+      {/* Mobile nav */}
+      {mobileOpen && (
+        <div className="md:hidden border-t border-white/5 px-6 py-4 space-y-1">
+          {[...mainNav, ...utilityNav].map(p => (
+            <Link key={p.href} to={p.href} onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
+              {'icon' in p && <span className="material-symbols-outlined text-sm">{(p as any).icon}</span>}
+              {p.label}
+            </Link>
+          ))}
+        </div>
+      )}
     </header>
   )
 }

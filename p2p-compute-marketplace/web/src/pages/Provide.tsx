@@ -58,7 +58,7 @@ export default function Provide() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
+    <div>
       <section className="glass rounded-2xl p-8 md:p-12 text-center mb-10">
         <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-3">Have idle GPUs?</h1>
         <p className="text-slate-400 max-w-lg mx-auto text-sm">Register your hardware and start earning ALGO. Set your own price, get paid per job, instant settlement.</p>

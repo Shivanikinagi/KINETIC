@@ -42,7 +42,7 @@ export default function ApiKeys() {
   const formatDate = (ts: number) => new Date(ts * 1000).toLocaleDateString()
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
+    <div>
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">API Deployment</h1>
