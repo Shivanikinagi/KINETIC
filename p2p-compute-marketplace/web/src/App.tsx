@@ -11,6 +11,11 @@ import Provide from './pages/Provide'
 import Activity from './pages/Activity'
 import Monitor from './pages/Monitor'
 import Wallet from './pages/Wallet'
+import Models from './pages/Models'
+import Datasets from './pages/Datasets'
+import Spaces from './pages/Spaces'
+import ApiKeys from './pages/ApiKeys'
+import Assistant from './pages/Assistant'
 
 export default function App() {
   return (
@@ -28,6 +33,11 @@ export default function App() {
             <Route path="/activity" element={<Activity />} />
             <Route path="/monitor" element={<Monitor />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/models" element={<Models />} />
+            <Route path="/datasets" element={<Datasets />} />
+            <Route path="/spaces" element={<Spaces />} />
+            <Route path="/api" element={<ApiKeys />} />
+            <Route path="/assistant" element={<Assistant />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

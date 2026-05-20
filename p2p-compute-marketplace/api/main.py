@@ -21,7 +21,13 @@ from api.rate_limit import ApiKeyRateLimitMiddleware
 from api.roadmap_store import RoadmapValidationError, get_roadmap, update_roadmap
 from api.wallet_utils import resolve_provider_wallet
 from api.x402_middleware import X402Middleware
-from api.job_history import get_analytics, get_job, get_recent_jobs, mark_stale_pending_jobs
+from api.job_history import get_analytics, get_job, get_recent_jobs
+from api.hub_data import (
+    create_model, list_models, get_model, like_model, fork_model, increment_downloads,
+    create_dataset, list_datasets, get_dataset,
+    create_space, list_spaces, get_space,
+    create_api_key as create_hub_api_key, list_api_keys, revoke_api_key, verify_api_key,
+)
 from fastapi.responses import FileResponse
 
 try:
@@ -568,4 +574,123 @@ async def network_stats() -> dict:
         "total_vram_gb": total_vram,
         "network_uptime": round(avg_uptime, 2),
     }
+
+
+# ── Model Hub ───────────────────────────────────────────────────────────────
+
+@app.post("/models")
+async def api_create_model(payload: dict) -> dict:
+    return create_model(
+        name=payload.get("name", "Untitled Model"),
+        description=payload.get("description", ""),
+        tags=payload.get("tags", []),
+        readme=payload.get("readme", ""),
+        owner=payload.get("owner", "anonymous"),
+        license=payload.get("license", "MIT"),
+        compute_req=payload.get("compute_req", ""),
+    )
+
+
+@app.get("/models")
+async def api_list_models(q: str = "", tags: str = "", sort: str = "likes") -> dict:
+    tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else None
+    return {"count": 0, "models": list_models(q=q, tags=tag_list, sort=sort)}
+
+
+@app.get("/models/{model_id}")
+async def api_get_model(model_id: str) -> dict:
+    m = get_model(model_id)
+    if not m:
+        raise HTTPException(status_code=404, detail="Model not found")
+    return m
+
+
+@app.post("/models/{model_id}/like")
+async def api_like_model(model_id: str, payload: dict) -> dict:
+    return like_model(model_id, payload.get("user_id", "anonymous"))
+
+
+@app.post("/models/{model_id}/fork")
+async def api_fork_model(model_id: str, payload: dict) -> dict:
+    return fork_model(model_id, payload.get("owner", "anonymous"))
+
+
+@app.post("/models/{model_id}/download")
+async def api_download_model(model_id: str) -> dict:
+    increment_downloads(model_id)
+    return {"downloaded": True, "model_id": model_id}
+
+
+# ── Dataset Hub ─────────────────────────────────────────────────────────────
+
+@app.post("/datasets")
+async def api_create_dataset(payload: dict) -> dict:
+    return create_dataset(
+        name=payload.get("name", "Untitled Dataset"),
+        description=payload.get("description", ""),
+        tags=payload.get("tags", []),
+        owner=payload.get("owner", "anonymous"),
+        license=payload.get("license", "MIT"),
+        file_count=payload.get("file_count", 0),
+        size_mb=payload.get("size_mb", 0),
+        is_public=payload.get("is_public", True),
+    )
+
+
+@app.get("/datasets")
+async def api_list_datasets(q: str = "", sort: str = "newest") -> dict:
+    return {"count": 0, "datasets": list_datasets(q=q, sort=sort)}
+
+
+@app.get("/datasets/{dataset_id}")
+async def api_get_dataset(dataset_id: str) -> dict:
+    d = get_dataset(dataset_id)
+    if not d:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    return d
+
+
+# ── Spaces ──────────────────────────────────────────────────────────────────
+
+@app.post("/spaces")
+async def api_create_space(payload: dict) -> dict:
+    return create_space(
+        name=payload.get("name", "Untitled Space"),
+        description=payload.get("description", ""),
+        space_type=payload.get("space_type", "demo"),
+        owner=payload.get("owner", "anonymous"),
+        url=payload.get("url", ""),
+        compute_tokens=payload.get("compute_tokens", 0),
+    )
+
+
+@app.get("/spaces")
+async def api_list_spaces(q: str = "", space_type: str = "", sort: str = "likes") -> dict:
+    return {"count": 0, "spaces": list_spaces(q=q, space_type=space_type, sort=sort)}
+
+
+@app.get("/spaces/{space_id}")
+async def api_get_space(space_id: str) -> dict:
+    s = get_space(space_id)
+    if not s:
+        raise HTTPException(status_code=404, detail="Space not found")
+    return s
+
+
+# ── API Keys ────────────────────────────────────────────────────────────────
+
+@app.post("/api-keys")
+async def api_create_key(payload: dict) -> dict:
+    return create_hub_api_key(payload.get("owner", "anonymous"))
+
+
+@app.get("/api-keys")
+async def api_list_keys(owner: str = "anonymous") -> dict:
+    return {"keys": list_api_keys(owner)}
+
+
+@app.post("/api-keys/{key_id}/revoke")
+async def api_revoke_key(key_id: str, payload: dict) -> dict:
+    ok = revoke_api_key(key_id, payload.get("owner", "anonymous"))
+    return {"revoked": ok, "key_id": key_id}
 

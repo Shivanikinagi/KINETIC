@@ -4,10 +4,15 @@ import { useWallet } from '../hooks/useWallet'
 const pages = [
   { href: '/', label: 'Hub', id: 'home' },
   { href: '/explore', label: 'GPUs', id: 'explore' },
+  { href: '/models', label: 'Models', id: 'models' },
+  { href: '/datasets', label: 'Datasets', id: 'datasets' },
+  { href: '/spaces', label: 'Spaces', id: 'spaces' },
+  { href: '/assistant', label: 'Assistant', id: 'assistant' },
   { href: '/submit', label: 'Submit Job', id: 'submit' },
   { href: '/monitor', label: 'Monitor', id: 'monitor' },
   { href: '/jobs', label: 'My Jobs', id: 'jobs' },
   { href: '/wallet', label: 'Wallet', id: 'wallet' },
+  { href: '/api', label: 'API', id: 'api' },
   { href: '/dashboard', label: 'Dashboard', id: 'dashboard' },
   { href: '/provide', label: 'Provide', id: 'provide' },
   { href: '/activity', label: 'Activity', id: 'activity' },
@@ -29,7 +34,7 @@ export default function Navbar() {
           <Link to="/" className="text-2xl font-black italic tracking-tight text-cyan-400" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
             KINETIC
           </Link>
-          <nav className="hidden md:flex items-center gap-7 text-sm font-medium" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
             {pages.map(p => {
               const isActive = p.id === activePage
               return (
