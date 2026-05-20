@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import time
+from urllib.parse import urlparse
 
 import httpx
 
@@ -19,6 +20,28 @@ except Exception:  # pragma: no cover
     psutil = None
 
 logger = logging.getLogger(__name__)
+
+
+def _is_marketplace_self_endpoint(provider_endpoint: str) -> bool:
+    """Return True when a provider endpoint points back to this marketplace API.
+
+    This prevents accidental recursion when the hub advertises itself as a provider.
+    """
+
+    provider_endpoint = str(provider_endpoint or "").strip()
+    if not provider_endpoint:
+        return False
+
+    parsed = urlparse(provider_endpoint)
+    host = (parsed.hostname or "").lower()
+    if not host:
+        return False
+
+    default_port = 443 if (parsed.scheme or "").lower() == "https" else 80
+    port = int(parsed.port or default_port)
+    self_port = int(os.getenv("MARKETPLACE_API_PORT", "8000"))
+
+    return host in {"localhost", "127.0.0.1", "0.0.0.0"} and port == self_port
 
 
 def _compute_hash(payload: str, tokens: int) -> str:
@@ -132,6 +155,12 @@ async def run_job(task: dict) -> dict:
     tokens = int(task.get("tokens", 0))
     payload = str(task.get("payload", ""))
     provider_endpoint = str(task.get("provider_endpoint", "")).strip()
+    if provider_endpoint and _is_marketplace_self_endpoint(provider_endpoint):
+        logger.warning(
+            "Ignoring provider_endpoint pointing to marketplace API (%s); running locally",
+            provider_endpoint,
+        )
+        provider_endpoint = ""
     task_type = str(task.get("type", "compute"))
 
     # Record job in DB before execution

@@ -39,8 +39,41 @@ def _ensure_db() -> sqlite3.Connection:
             conn.execute(f"ALTER TABLE jobs ADD COLUMN {col} {dtype}")
         except sqlite3.OperationalError:
             pass
+
+    # Backfill missing timestamps from older databases.
+    try:
+        conn.execute(
+            "UPDATE jobs SET created_at = COALESCE(created_at, completed_at) WHERE created_at IS NULL"
+        )
+        conn.execute(
+            "UPDATE jobs SET completed_at = COALESCE(completed_at, created_at) WHERE completed_at IS NULL AND status IN ('completed','failed')"
+        )
+    except sqlite3.OperationalError:
+        # Older schemas may be missing columns; ignore and proceed.
+        pass
     conn.commit()
     return conn
+
+
+def mark_stale_pending_jobs(*, max_age_seconds: int = 600) -> int:
+    """Mark jobs stuck in 'pending' as 'failed' after crashes/restarts."""
+    conn = _ensure_db()
+    now = time.time()
+    cutoff = now - float(max_age_seconds)
+    try:
+        cur = conn.execute(
+            """
+            UPDATE jobs
+            SET status='failed', completed_at=?, duration_ms=COALESCE(duration_ms, 0)
+            WHERE status='pending' AND created_at IS NOT NULL AND created_at < ?
+            """,
+            (now, cutoff),
+        )
+        affected = int(cur.rowcount or 0)
+    finally:
+        conn.commit()
+        conn.close()
+    return affected
 
 
 def record_job(
@@ -89,16 +122,30 @@ def complete_job(
 
 def get_recent_jobs(limit: int = 50) -> list[dict[str, Any]]:
     conn = _ensure_db()
+    conn.row_factory = sqlite3.Row
     rows = conn.execute(
-        "SELECT job_id, consumer, provider, task_type, tokens, amount_microalgo, result_hash, status, duration_ms, created_at, completed_at, tx_id, explorer_url FROM jobs ORDER BY created_at DESC LIMIT ?", (limit,)
+        "SELECT job_id, consumer, provider, task_type, tokens, amount_microalgo, result_hash, status, duration_ms, created_at, completed_at, tx_id, explorer_url FROM jobs ORDER BY created_at DESC LIMIT ?",
+        (limit,),
     ).fetchall()
     conn.close()
+    return [dict(row) for row in rows]
+
+
+def get_job(job_id: str) -> dict[str, Any] | None:
+    conn = _ensure_db()
+    row = conn.execute(
+        "SELECT job_id, consumer, provider, task_type, tokens, amount_microalgo, result_hash, status, duration_ms, created_at, completed_at, tx_id, explorer_url FROM jobs WHERE job_id=?",
+        (job_id,)
+    ).fetchone()
+    conn.close()
+    if row is None:
+        return None
     columns = [
         "job_id", "consumer", "provider", "task_type", "tokens",
         "amount_microalgo", "result_hash", "status", "duration_ms",
         "created_at", "completed_at", "tx_id", "explorer_url",
     ]
-    return [dict(zip(columns, row)) for row in rows]
+    return dict(zip(columns, row))
 
 
 def get_analytics() -> dict[str, Any]:

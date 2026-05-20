@@ -3,9 +3,11 @@ import { useWallet } from '../hooks/useWallet'
 
 const pages = [
   { href: '/', label: 'Hub', id: 'home' },
-  { href: '/explore', label: 'Explore GPUs', id: 'explore' },
+  { href: '/explore', label: 'GPUs', id: 'explore' },
   { href: '/submit', label: 'Submit Job', id: 'submit' },
+  { href: '/monitor', label: 'Monitor', id: 'monitor' },
   { href: '/jobs', label: 'My Jobs', id: 'jobs' },
+  { href: '/wallet', label: 'Wallet', id: 'wallet' },
   { href: '/dashboard', label: 'Dashboard', id: 'dashboard' },
   { href: '/provide', label: 'Provide', id: 'provide' },
   { href: '/activity', label: 'Activity', id: 'activity' },

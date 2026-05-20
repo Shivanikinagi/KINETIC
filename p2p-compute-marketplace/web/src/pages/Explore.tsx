@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { fetchJson, type Provider, type Template } from '../lib/api'
-import ProviderCard from '../components/ProviderCard'
 
 export default function Explore() {
   const [searchParams] = useSearchParams()
@@ -65,8 +64,8 @@ export default function Explore() {
         if (deployProvider?.endpoint) payload.provider_endpoint = deployProvider.endpoint
         result = await fetchJson('/job', { method: 'POST', body: JSON.stringify(payload) })
       }
-      const isError = result.status === 'failed'
-      setDeployResult({ msg: isError ? 'Job failed' : 'Job deployed!', status: isError ? 'error' : 'success', id: result.deployment_id || result.job_id })
+      const isError = result.status === 'failed' || result.error
+      setDeployResult({ msg: isError ? (result.error || 'Job failed') : 'Job deployed!', status: isError ? 'error' : 'success', id: result.deployment_id || result.job_id })
     } catch (err: any) {
       let msg = err.message || 'Deploy failed'
       try {
@@ -85,12 +84,21 @@ export default function Explore() {
     return (price * hours).toFixed(4)
   }
 
+  const gpuIcon = (model?: string) => {
+    const m = (model || '').toLowerCase()
+    if (m.includes('h100')) return 'memory'
+    if (m.includes('4090')) return 'videogame_asset'
+    if (m.includes('3090')) return 'sports_esports'
+    if (m.includes('a100')) return 'developer_board'
+    return 'gpu'
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Explore GPUs</h1>
-          <p className="text-slate-500 text-sm mt-1">Search, compare, and deploy GPU compute instantly</p>
+          <h1 className="text-3xl font-bold tracking-tight">GPU Marketplace</h1>
+          <p className="text-slate-500 text-sm mt-1">Browse, compare, and deploy to decentralized GPU providers</p>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
@@ -153,7 +161,7 @@ export default function Explore() {
           ) : (
             templates.map(t => (
               <button key={t.template_id} onClick={() => openDeploy(undefined, t)}
-                className="template-pill inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-white/8 bg-white/[0.03] text-slate-300 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all">
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-white/8 bg-white/[0.03] text-slate-300 hover:border-cyan-500/30 hover:bg-cyan-500/5 transition-all">
                 <span className="material-symbols-outlined text-sm text-cyan-400">bolt</span>
                 {t.name}
                 <span className="text-[10px] text-slate-500">{t.base_tokens} tokens</span>
@@ -163,12 +171,83 @@ export default function Explore() {
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Provider Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {filtered.length === 0 ? (
           <div className="glass rounded-xl p-8 text-center text-slate-500 col-span-full">No GPUs match your filters. Try adjusting search criteria.</div>
         ) : (
-          filtered.map(p => <ProviderCard key={p.id} provider={p} onDeploy={() => openDeploy(p)} />)
+          filtered.map(p => (
+            <div key={p.id} className="glass rounded-xl p-5 card-hover group">
+              {/* Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <span className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-cyan-400 text-xl">{gpuIcon(p.gpu_model)}</span>
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold">{p.name || p.id}</h3>
+                    <p className="text-[10px] text-slate-500 font-mono">{p.id?.slice(0, 16)}...</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  {p.verified_member && (
+                    <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="material-symbols-outlined text-[10px]">verified</span> Verified
+                    </span>
+                  )}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                    p.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
+                  }`}>
+                    {p.status === 'active' ? '● Online' : '○ Offline'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Specs */}
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="text-center p-2 rounded-lg bg-white/[0.03]">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider">GPU</p>
+                  <p className="text-sm font-bold text-slate-200">{p.gpu_model || '—'}</p>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-white/[0.03]">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider">VRAM</p>
+                  <p className="text-sm font-bold text-cyan-400">{p.vram_gb || 0}GB</p>
+                </div>
+                <div className="text-center p-2 rounded-lg bg-white/[0.03]">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider">Count</p>
+                  <p className="text-sm font-bold text-violet-400">×{p.gpu_count || 1}</p>
+                </div>
+              </div>
+
+              {/* Details */}
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Region</span>
+                  <span className="text-slate-300">{p.region || 'Global'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Uptime</span>
+                  <span className="text-emerald-400 font-mono">{p.uptime?.toFixed(1) || 99.0}%</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Reputation</span>
+                  <span className="text-cyan-400 font-mono">{Math.round(p.trust?.reputation_score || (p.verified_member ? 80 : 50))}/100</span>
+                </div>
+              </div>
+
+              {/* Price + CTA */}
+              <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                <div>
+                  <p className="text-xs text-slate-500">Price / hour</p>
+                  <p className="text-lg font-bold text-cyan-400">{p.price_per_hour?.toFixed(2) || '—'} A</p>
+                </div>
+                <button onClick={() => openDeploy(p)}
+                  className="px-4 py-2 rounded-lg bg-cyan-500 text-slate-950 text-sm font-bold hover:brightness-110 transition-all">
+                  Deploy
+                </button>
+              </div>
+            </div>
+          ))
         )}
       </div>
 

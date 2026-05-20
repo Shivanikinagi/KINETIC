@@ -9,6 +9,8 @@ import MyJobs from './pages/MyJobs'
 import Dashboard from './pages/Dashboard'
 import Provide from './pages/Provide'
 import Activity from './pages/Activity'
+import Monitor from './pages/Monitor'
+import Wallet from './pages/Wallet'
 
 export default function App() {
   return (
@@ -24,6 +26,8 @@ export default function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/provide" element={<Provide />} />
             <Route path="/activity" element={<Activity />} />
+            <Route path="/monitor" element={<Monitor />} />
+            <Route path="/wallet" element={<Wallet />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>

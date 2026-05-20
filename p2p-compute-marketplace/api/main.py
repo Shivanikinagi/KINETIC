@@ -21,7 +21,7 @@ from api.rate_limit import ApiKeyRateLimitMiddleware
 from api.roadmap_store import RoadmapValidationError, get_roadmap, update_roadmap
 from api.wallet_utils import resolve_provider_wallet
 from api.x402_middleware import X402Middleware
-from api.job_history import get_analytics, get_recent_jobs
+from api.job_history import get_analytics, get_job, get_recent_jobs, mark_stale_pending_jobs
 from fastapi.responses import FileResponse
 
 try:
@@ -65,6 +65,13 @@ from api.scheduler import scheduler
 async def startup_scheduler():
     """Start scheduler background tasks on application startup."""
     asyncio.create_task(scheduler.health_check_loop())
+
+    # If the server previously crashed mid-request, jobs can remain stuck in 'pending'.
+    # Mark older pending jobs as failed so the Activity feed stays sane.
+    try:
+        mark_stale_pending_jobs(max_age_seconds=int(os.getenv("JOB_PENDING_STALE_SECONDS", "600")))
+    except Exception:
+        pass
 
 
 @app.get("/health")
@@ -360,6 +367,7 @@ async def register_provider(payload: dict) -> dict:
     tx_id = None
     explorer_url = None
     on_chain_status = "local_only"
+    on_chain_error: str | None = None
 
     if registry_app_id > 0 and mnemonic_provided:
         # Validate mnemonic word count
@@ -410,11 +418,9 @@ async def register_provider(payload: dict) -> dict:
             explorer_url = f"https://testnet.algoexplorer.io/tx/{tx_id}"
             on_chain_status = "success"
         except Exception as exc:
-            # Re-raise as 400 so frontend shows the real error
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"On-chain registration failed: {exc}. Your provider was still saved locally and is visible in the marketplace."
-            ) from exc
+            # Keep local registration but report the on-chain failure.
+            on_chain_status = "failed"
+            on_chain_error = str(exc)
 
     # Always store locally so the provider appears in listings immediately
     _ensure_local_provider_db()
@@ -434,6 +440,7 @@ async def register_provider(payload: dict) -> dict:
         "provider_id": provider_id,
         "provider_address": provider_address or None,
         "on_chain_status": on_chain_status,
+        "on_chain_error": on_chain_error,
         "tx_id": tx_id,
         "explorer_url": explorer_url,
         "details": {
@@ -512,6 +519,15 @@ async def analytics() -> dict:
 async def list_jobs(limit: int = 20) -> list[dict]:
     """Return real job history from database."""
     return get_recent_jobs(limit=limit)
+
+
+@app.get("/jobs/{job_id}")
+async def get_job_detail(job_id: str) -> dict:
+    """Return a single job by ID."""
+    job = get_job(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
 
 
 @app.get("/activity")
