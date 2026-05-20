@@ -1,10 +1,20 @@
 import { useState, useRef, useEffect } from 'react'
 import { fetchJson } from '../lib/api'
 
+interface CardData {
+  type: 'provider' | 'cost' | 'model'
+  title: string
+  subtitle?: string
+  meta?: { label: string; value: string }[]
+  badge?: string
+  action?: { label: string; action: string; payload?: any }
+}
+
 interface Message {
   role: 'user' | 'assistant'
   content: string
   actions?: { label: string; action: string; payload?: any }[]
+  cards?: CardData[]
 }
 
 interface ProviderInfo {
@@ -117,12 +127,22 @@ export default function Assistant() {
         }
       }
       const cheapest = [...active].sort((a, b) => a.price_per_hour - b.price_per_hour)[0]
-      const nextCheapest = active.length > 1 ? [...active].sort((a, b) => a.price_per_hour - b.price_per_hour)[1] : null
       return {
         role: 'assistant',
-        content: `The cheapest provider right now is **${cheapest.name}** at **${cheapest.price_per_hour.toFixed(2)} ALGO/hour**.\n\nSpecs: ${cheapest.gpu_model} · ${cheapest.vram_gb}GB VRAM · ${cheapest.uptime.toFixed(1)}% uptime\n${nextCheapest ? `Runner-up: ${nextCheapest.name} at ${nextCheapest.price_per_hour.toFixed(2)} ALGO/hr` : ''}\n\nA 1000-token inference job would cost roughly **${(cheapest.price_per_hour * 0.28).toFixed(3)} ALGO**.`,
+        content: `Found the best deal for you. A 1000-token inference job on **${cheapest.name}** costs roughly **${(cheapest.price_per_hour * 0.28).toFixed(3)} ALGO**.`,
+        cards: [{
+          type: 'provider',
+          title: cheapest.name,
+          subtitle: cheapest.gpu_model,
+          badge: 'Cheapest',
+          meta: [
+            { label: 'Price', value: `${cheapest.price_per_hour.toFixed(2)} ALGO/hr` },
+            { label: 'VRAM', value: `${cheapest.vram_gb}GB` },
+            { label: 'Uptime', value: `${cheapest.uptime.toFixed(1)}%` },
+          ],
+          action: { label: 'Deploy Here', action: 'deploy', payload: { providerId: cheapest.id, providerName: cheapest.name, tokens: 1000 } }
+        }],
         actions: [
-          { label: `Deploy to ${cheapest.name}`, action: 'deploy', payload: { providerId: cheapest.id, providerName: cheapest.name, tokens: 1000 } },
           { label: 'Browse All GPUs', action: 'navigate', payload: { to: '/explore' } }
         ]
       }
@@ -306,6 +326,43 @@ export default function Assistant() {
               }`}>
                 {msg.content}
               </div>
+              {msg.cards && (
+                <div className="mt-3 space-y-2">
+                  {msg.cards.map((card, ci) => (
+                    <div key={ci} className="glass rounded-xl p-4 border border-white/10" style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <h4 className="text-sm font-bold">{card.title}</h4>
+                          {card.subtitle && <p className="text-xs text-slate-500">{card.subtitle}</p>}
+                        </div>
+                        {card.badge && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+                            {card.badge}
+                          </span>
+                        )}
+                      </div>
+                      {card.meta && (
+                        <div className="flex gap-3 mb-3">
+                          {card.meta.map((m, mi) => (
+                            <div key={mi}>
+                              <p className="text-[10px] text-slate-500 uppercase">{m.label}</p>
+                              <p className="text-xs font-mono text-cyan-400">{m.value}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {card.action && (
+                        <button
+                          onClick={() => handleAction(card.action!.action, card.action!.payload)}
+                          className="w-full py-2 rounded-lg bg-cyan-500 text-slate-950 text-xs font-bold hover:brightness-110 transition-all"
+                        >
+                          {card.action.label}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
               {msg.actions && (
                 <div className="flex flex-wrap gap-2 mt-2">
                   {msg.actions.map((a, j) => (

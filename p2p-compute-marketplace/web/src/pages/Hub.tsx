@@ -118,76 +118,113 @@ export default function Hub() {
           </div>
 
           {/* Right: Animated GPU Network Visual */}
-          <div className="relative h-[480px] hidden lg:flex items-center justify-center">
-            {/* Central hub */}
-            <div className="relative w-48 h-48">
-              <div className="absolute inset-0 rounded-full border border-cyan-500/20 animate-spin-slow" />
-              <div className="absolute inset-4 rounded-full border border-violet-500/15 animate-spin-slow" style={{ animationDirection: 'reverse', animationDuration: '30s' }} />
-              <div className="absolute inset-8 rounded-full border border-emerald-500/10 animate-spin-slow" style={{ animationDuration: '40s' }} />
+          <div className="relative h-[540px] hidden lg:flex items-center justify-center">
+            {/* Central hub - 30% larger */}
+            <div className="relative w-64 h-64">
+              {/* Orbital rings with glow */}
+              <div className="absolute inset-0 rounded-full border border-cyan-500/15 animate-spin-slow" 
+                style={{ boxShadow: '0 0 40px rgba(0,209,255,0.08), inset 0 0 40px rgba(0,209,255,0.04)' }} />
+              <div className="absolute inset-6 rounded-full border border-violet-500/10 animate-spin-slow" 
+                style={{ animationDirection: 'reverse', animationDuration: '25s', boxShadow: '0 0 30px rgba(124,58,237,0.06)' }} />
+              <div className="absolute inset-12 rounded-full border border-emerald-500/8 animate-spin-slow" 
+                style={{ animationDuration: '35s', boxShadow: '0 0 20px rgba(0,255,198,0.04)' }} />
+              
+              {/* Center hub with strong glow */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-violet-500/20 border border-cyan-500/30 flex items-center justify-center glow-cyan">
-                  <span className="material-symbols-outlined text-3xl text-cyan-400">hub</span>
+                <div className="relative w-24 h-24">
+                  <div className="absolute inset-0 rounded-2xl bg-cyan-500/20 blur-xl animate-pulse-glow" />
+                  <div className="relative w-full h-full rounded-2xl bg-gradient-to-br from-cyan-500/30 to-violet-500/30 border border-cyan-500/40 flex items-center justify-center"
+                    style={{ boxShadow: '0 0 30px rgba(0,209,255,0.15), 0 0 60px rgba(124,58,237,0.1)' }}>
+                    <span className="material-symbols-outlined text-4xl text-cyan-300">hub</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Orbiting GPU nodes */}
+              {/* Orbiting GPU nodes - 25% further out with glow */}
               {[
-                { icon: 'memory', label: 'RTX 4090', angle: 0, dist: 160, color: 'cyan' },
-                { icon: 'developer_board', label: 'H100', angle: 72, dist: 160, color: 'violet' },
-                { icon: 'sports_esports', label: 'A100', angle: 144, dist: 160, color: 'emerald' },
-                { icon: 'gpu', label: 'RTX 3090', angle: 216, dist: 160, color: 'amber' },
-                { icon: 'chip', label: 'MI300X', angle: 288, dist: 160, color: 'rose' },
+                { icon: 'memory', label: 'RTX 4090', angle: 0, dist: 210, color: 'cyan', glow: 'rgba(0,209,255,0.3)' },
+                { icon: 'developer_board', label: 'H100', angle: 72, dist: 210, color: 'violet', glow: 'rgba(124,58,237,0.3)' },
+                { icon: 'sports_esports', label: 'A100', angle: 144, dist: 210, color: 'emerald', glow: 'rgba(0,255,198,0.3)' },
+                { icon: 'gpu', label: 'RTX 3090', angle: 216, dist: 210, color: 'amber', glow: 'rgba(245,158,11,0.3)' },
+                { icon: 'chip', label: 'MI300X', angle: 288, dist: 210, color: 'rose', glow: 'rgba(244,63,94,0.3)' },
               ].map((node, i) => {
                 const rad = (node.angle * Math.PI) / 180
                 const x = Math.cos(rad) * node.dist
                 const y = Math.sin(rad) * node.dist
                 const colorMap: Record<string, string> = {
-                  cyan: 'from-cyan-500/20 to-cyan-600/5 border-cyan-500/30 text-cyan-400',
-                  violet: 'from-violet-500/20 to-violet-600/5 border-violet-500/30 text-violet-400',
-                  emerald: 'from-emerald-500/20 to-emerald-600/5 border-emerald-500/30 text-emerald-400',
-                  amber: 'from-amber-500/20 to-amber-600/5 border-amber-500/30 text-amber-400',
-                  rose: 'from-rose-500/20 to-rose-600/5 border-rose-500/30 text-rose-400',
+                  cyan: 'from-cyan-500/30 to-cyan-600/10 border-cyan-500/40 text-cyan-300',
+                  violet: 'from-violet-500/30 to-violet-600/10 border-violet-500/40 text-violet-300',
+                  emerald: 'from-emerald-500/30 to-emerald-600/10 border-emerald-500/40 text-emerald-300',
+                  amber: 'from-amber-500/30 to-amber-600/10 border-amber-500/40 text-amber-300',
+                  rose: 'from-rose-500/30 to-rose-600/10 border-rose-500/40 text-rose-300',
                 }
                 return (
-                  <div
-                    key={i}
-                    className={`absolute w-14 h-14 rounded-xl bg-gradient-to-br ${colorMap[node.color]} border flex flex-col items-center justify-center animate-float`}
-                    style={{
-                      left: `calc(50% + ${x}px - 28px)`,
-                      top: `calc(50% + ${y}px - 28px)`,
-                      animationDelay: `${i * 1.2}s`,
-                      boxShadow: `0 0 20px rgba(0,0,0,0.3)`,
-                    }}
-                  >
-                    <span className="material-symbols-outlined text-lg">{node.icon}</span>
-                    <span className="text-[8px] font-bold mt-0.5">{node.label}</span>
+                  <div key={i}>
+                    {/* Glow behind node */}
+                    <div
+                      className="absolute w-16 h-16 rounded-xl blur-lg animate-pulse-glow"
+                      style={{
+                        left: `calc(50% + ${x}px - 32px)`,
+                        top: `calc(50% + ${y}px - 32px)`,
+                        background: node.glow,
+                        animationDelay: `${i * 0.5}s`,
+                      }}
+                    />
+                    <div
+                      className={`absolute w-16 h-16 rounded-xl bg-gradient-to-br ${colorMap[node.color]} border flex flex-col items-center justify-center animate-float`}
+                      style={{
+                        left: `calc(50% + ${x}px - 32px)`,
+                        top: `calc(50% + ${y}px - 32px)`,
+                        animationDelay: `${i * 1.2}s`,
+                        boxShadow: `0 4px 20px rgba(0,0,0,0.4), 0 0 20px ${node.glow}`,
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-xl">{node.icon}</span>
+                      <span className="text-[9px] font-bold mt-0.5">{node.label}</span>
+                    </div>
                   </div>
                 )
               })}
 
-              {/* Connection lines (CSS-only visual) */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" style={{ transform: 'scale(2.2)' }}>
-                <circle cx="50%" cy="50%" r="38%" fill="none" stroke="url(#grad1)" strokeWidth="0.5" strokeDasharray="4 4" />
+              {/* Connection lines from center to each node */}
+              <svg className="absolute inset-[-50%] w-[200%] h-[200%] pointer-events-none opacity-30" viewBox="0 0 200 200">
+                {[0, 72, 144, 216, 288].map((angle, i) => {
+                  const rad = (angle * Math.PI) / 180
+                  const x2 = 100 + Math.cos(rad) * 65  // 65% of viewbox to match node distance
+                  const y2 = 100 + Math.sin(rad) * 65
+                  return (
+                    <line key={i} x1="100" y1="100" x2={x2} y2={y2} 
+                      stroke="url(#lineGrad)" strokeWidth="0.3" strokeDasharray="2 3" opacity="0.5">
+                      <animate attributeName="opacity" values="0.3;0.6;0.3" dur={`${3 + i}s`} repeatCount="indefinite" />
+                    </line>
+                  )
+                })}
                 <defs>
-                  <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#00d1ff" />
-                    <stop offset="100%" stopColor="#7c3aed" />
+                  <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#00d1ff" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.2" />
                   </linearGradient>
                 </defs>
               </svg>
             </div>
 
-            {/* Floating stats */}
-            <div className="absolute top-4 right-4 glass-strong rounded-xl p-3 space-y-2 text-xs">
+            {/* Floating stats - enhanced */}
+            <div className="absolute top-4 right-4 glass-strong rounded-xl p-4 space-y-3 text-xs min-w-[140px]"
+              style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }}>
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
                 <span className="text-slate-400">Network</span>
-                <span className="text-emerald-400 font-mono">Active</span>
+                <span className="text-emerald-400 font-mono ml-auto">Active</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
+                <span className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
                 <span className="text-slate-400">Latency</span>
-                <span className="text-cyan-400 font-mono">34ms</span>
+                <span className="text-cyan-400 font-mono ml-auto">34ms</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-violet-400 rounded-full animate-pulse" />
+                <span className="text-slate-400">Providers</span>
+                <span className="text-violet-400 font-mono ml-auto">{providers.length}</span>
               </div>
             </div>
           </div>

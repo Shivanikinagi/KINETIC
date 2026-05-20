@@ -3,16 +3,14 @@ import { useWallet } from '../hooks/useWallet'
 import { useState } from 'react'
 
 const mainNav = [
-  { href: '/', label: 'Hub', id: 'home' },
-  { href: '/explore', label: 'Explore GPUs', id: 'explore' },
+  { href: '/explore', label: 'Explore', id: 'explore' },
   { href: '/models', label: 'Models', id: 'models' },
   { href: '/spaces', label: 'Spaces', id: 'spaces' },
   { href: '/assistant', label: 'Assistant', id: 'assistant' },
 ]
 
-const utilityNav = [
-  { href: '/submit', label: 'Submit Job', icon: 'rocket_launch' },
-  { href: '/jobs', label: 'My Jobs', icon: 'work_history' },
+const rightNav = [
+  { href: '/jobs', label: 'Jobs', icon: 'work_history' },
   { href: '/wallet', label: 'Wallet', icon: 'account_balance_wallet' },
 ]
 
@@ -54,9 +52,8 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Utility nav - desktop */}
           <div className="hidden lg:flex items-center gap-1 mr-2">
-            {utilityNav.map(p => (
+            {rightNav.map(p => (
               <Link
                 key={p.href}
                 to={p.href}
@@ -67,10 +64,6 @@ export default function Navbar() {
               </Link>
             ))}
           </div>
-
-          <span className="hidden sm:inline text-[10px] tracking-widest uppercase text-slate-600 font-mono border border-slate-800 px-2.5 py-1 rounded-full">
-            TestNet
-          </span>
 
           {connected && address ? (
             <button onClick={disconnect}
@@ -85,19 +78,17 @@ export default function Navbar() {
             </button>
           )}
 
-          {/* Mobile menu toggle */}
           <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden text-slate-400 hover:text-white p-1">
             <span className="material-symbols-outlined">{mobileOpen ? 'close' : 'menu'}</span>
           </button>
         </div>
       </div>
 
-      {/* Mobile nav */}
       {mobileOpen && (
         <div className="md:hidden border-t border-white/5 px-6 py-4 space-y-1">
-          {[...mainNav, ...utilityNav].map(p => (
+          {[...mainNav, ...rightNav].map(p => (
             <Link key={p.href} to={p.href} onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-all">
               {'icon' in p && <span className="material-symbols-outlined text-sm">{(p as any).icon}</span>}
               {p.label}
             </Link>
