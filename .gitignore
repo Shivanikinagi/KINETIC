@@ -40,8 +40,8 @@ ENV/
 node_modules/
 web/node_modules/
 frontend/node_modules/
-dist/
-frontend/dist/
+# dist/          <-- commented out for Vercel deployment
+# frontend/dist/
 .vite/
 frontend/.vite/
 *.tsbuildinfo
@@ -168,7 +168,7 @@ backup/
 *.exe
 *.dll
 build/
-dist/
+# dist/        <-- commented out: Vercel needs web/dist/
 *.egg
 
 # ============================================================
