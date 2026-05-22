@@ -3,40 +3,43 @@
   "name": "kinetic-marketplace",
   "builds": [
     {
-      "src": "api/main.py",
+      "src": "api/index.py",
       "use": "@vercel/python"
-    },
-    {
-      "src": "web/**",
-      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "api/main.py"
+      "src": "/assets/(.*)",
+      "dest": "web/dist/assets/$1",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
     },
     {
-      "src": "/static/(.*)",
-      "dest": "web/static/$1"
+      "src": "/(.*\\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|eot|json|txt|xml|map))",
+      "dest": "web/dist/$1",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
     },
     {
-      "src": "/(.*\\.(html|css|js|png|jpg|svg|ico))",
-      "dest": "web/$1"
+      "src": "/(health|providers|provider|job|jobs|analytics|activity|hub|orgs|scheduler|telemetry|realtime|network|models|datasets|spaces|api-keys|assistant|agent|wallet|escrow|roadmap)(/.*)?",
+      "dest": "api/index.py"
     },
     {
-      "src": "/",
-      "dest": "web/index.html"
+      "src": "/(.*)",
+      "dest": "web/dist/index.html",
+      "status": 200
     }
   ],
   "env": {
+    "PYTHONPATH": ".",
     "ALGORAND_NETWORK": "testnet",
     "ALGOD_URL": "https://testnet-api.algonode.cloud",
     "INDEXER_URL": "https://testnet-idx.algonode.cloud",
     "ALGOD_TOKEN": "",
     "JOB_PRICE_PER_TOKEN_MICROALGO": "100",
-    "AGENT_DAILY_BUDGET_MICROALGO": "5000000"
-  },
-  "regions": ["iad1"],
-  "framework": null
+    "AGENT_DAILY_BUDGET_MICROALGO": "5000000",
+    "X402_ENABLED": "false"
+  }
 }
